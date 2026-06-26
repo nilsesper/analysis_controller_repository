@@ -1,0 +1,127 @@
+##################################
+### MOINTOR SUBMITTED CRAB JOB ###
+##################################
+
+############################
+### IMPORTS
+
+import os
+import argparse
+import subprocess
+
+from analysis_controller.src import path_utils
+from analysis_controller.src import cosmetic_utils
+from analysis_controller.src import file_utils
+from analysis_controller.src import console_utils
+
+_FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
+_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_REPOPATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
+cosmetic_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH)
+
+#############################
+### ARGUMENT PARSER
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+        "--submit_config",
+        help="path to submit config yaml file \"*_submit\" (str)",
+        type=str,
+        required=True,
+    )
+parser.add_argument(
+        "--step",
+        help="analysis step that was submitted, e.g. \"rekbmtf\" (str)",
+        type=str,
+        required=True,
+    )
+args = parser.parse_args()
+
+#############################
+#****************************
+### MAIN PART
+
+### check analysis step
+analysis_step = args.step
+if analysis_step not in ["rekbmtf"]:
+    raise Exception(f"{console_utils.color.red}Invalid analysis step specified.{console_utils.color.reset}")
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Analysis step is \"{analysis_step}\"")
+
+### import submit file
+submit_config = file_utils.load_config(
+    filepath=args.submit_config,
+    config_type=f"{analysis_step}_submission"
+)
+
+### prepare variables from config
+data_type = submit_config["data_type"]
+data_label = submit_config["data_label"]
+input_das_name = submit_config["input_das_name"]
+input_lumi_mask = submit_config["input_lumi_mask"]
+
+output_type = submit_config["output_type"]
+output_site = submit_config["output_site"]
+output_basepath = submit_config["output_basepath"]
+
+submission_type = submit_config["submission_type"]
+submission_splitting = submit_config["submission_splitting"]
+
+cmssw_src_path = submit_config["cmssw_src_path"]
+
+crab_config_filepath = submit_config["crab_config_filepath"]
+cmssw_config_filepath = submit_config["cmssw_config_filepath"]
+
+crab_workarea = submit_config["crab_workarea"]
+crab_requestname = submit_config["crab_requestname"]
+
+submit_path = submit_config["submit_path"]
+submit_name = submit_config["submit_name"]
+submit_timestamp = submit_config["submit_timestamp"]
+
+#=============================================================================
+#== SUBMISSION_TYPE: CERN-CRAB
+if submission_type == "cern-crab":
+    
+    # print
+    cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Submission type of this dataset is \"{submission_type}\"")
+    cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Output type of this dataset is \"{output_type}\"")
+
+    ### derive crab submitpath
+    crab_submitpath = os.path.join(crab_workarea, f"crab_{crab_requestname}")
+
+    ### poll status from crab
+    cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Attempting to poll submission status from CRAB, using the CRAB submit directory \"{crab_submitpath}\"")
+    bash_commands = f''
+    bash_commands += f'\n'
+    # source cms base env
+    bash_commands += f'source /cvmfs/cms.cern.ch/cmsset_default.sh\n'
+    # # prepare voms
+    # bash_commands += f'voms-proxy-init --rfc --voms cms -valid 192:00\n'
+    # cd into cmssw workarea
+    bash_commands += f'cd {cmssw_src_path}\n'
+    # source cmssw env
+    bash_commands += f'cmsenv\n'
+    # cd into submitpath
+    bash_commands += f'cd {submit_path}\n'
+    # run crab submit command
+    bash_commands += f'crab status -d {crab_submitpath}\n'
+    _ = subprocess.run(
+        bash_commands,
+        shell=True,
+        check=True,
+        executable="/bin/bash",
+    )
+    # print
+    cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Finished executing the commands for the CRAB status polling")
+
+#=============================================================================
+else:
+    raise Exception(f"{console_utils.color.red}Unsupported submission type \"{submission_type}\"{console_utils.color.reset}")
+#=============================================================================
+
+# print
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Finished monitoring the specified datasets")
+
+#****************************
+#############################
+
+cosmetic_utils.print_console_footer()

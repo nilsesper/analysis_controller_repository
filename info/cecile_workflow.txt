@@ -1,0 +1,83 @@
+
+slow hscp level 1 trigger scouting workflow
+
+#############################
+
+### signal and background mc generation
+
+### input dataset
+- zerobias stream: "/L1Scouting/Run202**-v1/L1SCOUT"
+- selection stream: ?
+
+### re-run modified kbmtf algo on data and mc
+- use code in ./1_reKBMTF/ directory
+- environment preparation:
+    mkdir reKBMTF
+    cd reKBMTF
+    cmsrel CMSSW_14_0_12
+    cd CMSSW_14_0_12/src/
+    cmsenv
+    git cms-init
+    git cms-checkout-topic -u cecilecaillol:hscp_kbmtf 
+    scram b -j 8
+    cd L1TriggerScouting/Utilities/python
+- run mc locally:
+    cmsRun kbmtFlatTableProducerSimulation_cfg.py inputFiles=file:input.root
+- run everything mc:
+    sh do_condor_signal1DHSCP.sh
+- run data locally:
+    cmsRun kbmtFlatTableProducer_cfg.py inputFiles=file:input.root
+- submit data to crab:
+    crab submit crabConfigData
+    *or*
+    crab submit crabConfigDataRunRange.py
+
+### perform track skimming and calculation of higher level quantities
+- use code in ./2_HSCPanalysis/ directory
+- environment preparation:
+    mkdir HSCPanalysis
+    cd HSCPanalysis
+    cmsrel CMSSW_14_0_12
+    cd CMSSW_14_0_12/src/
+    cmsenv
+    git cms-init
+    git clone https://github.com/cecilecaillol/L1ScoutingAnalysisRDataFrame.git
+    scram b -j 8
+    cd L1ScoutingAnalysisRDataFrame/NtupleAnalyzer/scripts
+- run mc locally:
+    python3 FinalSelection_SlowNoFilter.py input.root output.root
+- run data locally:
+    python3 FinalSelection_SlowData.py input.root output.root
+- run everything data:
+    python3 lxbatch_slowSkim.py
+
+### remove duplicate tracks
+- use code in ./2_HSCPanalysis/ directory
+- environment preparation:
+    ./Make.sh RemoveDuplicate.cc
+- run locally:
+    ./RemoveDuplicate.exe input.root output.root
+- run everything:
+    python3 lxbatch_cleaning.py
+
+- hadd skimmed files:
+    sh do_slow.sh
+- hadd skimmed files:
+    sh do_skim_hadd.sh
+
+### analysis of the data, and filling of the histograms
+- use code in ./2_HSCPanalysis/ directory
+- environment preparation:
+    ./Make.sh SlowAnalysis_classification.cc
+- run locally:
+    ./SlowAnalysis_classification.exe input.root output.root name
+- run everything:
+    sh do_datacard.sh
+
+### for validation: dy control region with dimuon events
+- run locally:
+    python3 FinalSelection_ZmumuKBMTF.py input.root output.root 
+- run everything:
+    python3 lxbatch_zmumuKBMTFSkim.py
+
+#############################

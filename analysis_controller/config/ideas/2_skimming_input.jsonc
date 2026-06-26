@@ -1,0 +1,15 @@
+
+{
+    "skimming_input": {
+        "data_type": "data", // type of data: "data", "background", "signal" etc.
+        "data_label": "Scouting_2024H", // assign custom label
+
+        "input_location": "cern-grid", // input location of data from the jobs: "cern-grid", "aachen-netdir"
+        "input_site": "T2_DE_RWTH", // input site name (only for "cern-grid")
+        "input_basepath": "/store/user/nesper/test_analysis_hscp_l1/", // input base path, where the files are stored
+
+        "input_filepath": "/store/user/nesper/test_analysis_hscp_l1/XXX.root", // full path to input root file
+        "input_filehash": "XXXXXXXX", // sha256 hash of the input root file (for potential validity checks)
+        "input_timestamp": "YYYY-MM-DD_hh-mm-ss" // timestamp when input file was created
+    }
+}
