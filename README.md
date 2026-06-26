@@ -61,8 +61,11 @@ The analysis code is also provided from them, and adapted accordingly for my ana
     ```
     python analysis_controller/scripts/rekbmtf_submit.py --input_config analysis_controller/config/rekbmtf_input.yaml --params_config analysis_controller/config/rekbmtf_params.yaml
     ```
-- Now the analysis has been submitted and is running (remotely). The related files (config files, CRAB directory) as well as the submit config are automatically stored in the directory `analysis_controller/submissions/` in the following subdirectory: `rekbmtf_YYYY-MM-DD_hh-mm-ss_{data/mc}_{data_label}/`
-- Monitor the execution of the submitted analysis step:
+- Now the analysis has been submitted and is running (remotely).
+-In the directory `analysis_controller/submissions/`, a subdirectory is automatically created, called `rekbmtf_YYYY-MM-DD_hh-mm-ss_{data/mc}_{data_label}/`, which in the following is referred to as `submit_path`
+- In the `submit_path`, the submit config file `submit_config.yaml` is stored, which holds the relevant information about the submitted task, to monitor it, and to retrieve the outputs from it
+- Also, all other related files to the submission are stored in the `submit_path`, such as the CRAB project directory, the CMSSW and CRAB config files, and others 
+- Monitor the execution of the submitted analysis step, when pointing to the respective `submit_config.yaml` file and specifying the current analysis step:
     ```
     python analysis_controller/scripts/monitor_submission.py --step rekbmtf --submit_config analysis_controller/submissions/rekbmtf_2026-06-25_18-21-34_data_Scouting_2024G/submit_config.yaml
     ```
