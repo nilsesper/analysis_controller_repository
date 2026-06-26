@@ -1,17 +1,17 @@
 
 rekbmtf_input: # list of data entries
 
-    -   data_type: "data" # type of data: "data", "background", "signal" etc.
-        data_label: "Scouting_2024G" # assign custom label (must be unique for each data entry)
-        input_das_name: "/L1Scouting/Run2024G-v1/L1SCOUT" # cms das key of data
-        input_lumi_mask: "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json" # run / luminosity section mask file ("golden json")
+    #-   data_type: "data" # type of data: "data", "background", "signal" etc.
+    #    data_label: "Scouting_2024G" # assign custom label (must be unique for each data entry)
+    #    input_das_name: "/L1Scouting/Run2024G-v1/L1SCOUT" # cms das key of data
+    #    input_lumi_mask: "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json" # run / luminosity section mask file ("golden json")
 
     #-   data_type: "data" # type of data: "data", "background", "signal" etc.
     #    data_label: "Scouting_2024H" # assign custom label
-    #    input_das: "/L1Scouting/Run2024H-v1/L1SCOUT" # cms das key of data
-    #    lumi_mask: "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json" # run / luminosity section mask file ("golden json")
+    #    input_das_name: "/L1Scouting/Run2024H-v1/L1SCOUT" # cms das key of data
+    #    input_lumi_mask: "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json" # run / luminosity section mask file ("golden json")
 
-    #-   data_type: "data" # type of data: "data", "background", "signal" etc.
-    #    data_label: "Scouting_2024I" # assign custom label
-    #    input_das: "/L1Scouting/Run2024I-v1/L1SCOUT" # cms das key of data
-    #    lumi_mask: "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json" # run / luminosity section mask file ("golden json")
+    -   data_type: "data" # type of data: "data", "background", "signal" etc.
+        data_label: "Scouting_2024I" # assign custom label
+        input_das_name: "/L1Scouting/Run2024I-v1/L1SCOUT" # cms das key of data
+        input_lumi_mask: "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json" # run / luminosity section mask file ("golden json")
