@@ -1,12 +1,11 @@
 # analysis_controller_repository  
 
 This repository contains control scripts for the CMS L1 Scouting slow-moving HSCP EXO analysis.  
-
 It contains the scripts to submit the analysis steps, monitor them, and manage the files.  
 
 ## References
 
-The analysis uses CMS [EXO-25-010](https://cmsfence.cern.ch/alcm/cmsanalysis/details/ancode=EXO-25-010) ([Paper](https://linkinghub.elsevier.com/retrieve/pii/S0370269326003515)), with authors Cecile Caillol and Rocco Ardino on the AN, as reference.  
+The analysis uses [CMS-EXO-25-010](https://cmsfence.cern.ch/alcm/cmsanalysis/details/ancode=EXO-25-010) ([Link to paper](https://linkinghub.elsevier.com/retrieve/pii/S0370269326003515)), with authors Cecile Caillol and Rocco Ardino on the AN, as reference.  
 The analysis code is also provided from them, and adapted accordingly for my analysis.  
 
 ## Summary of analysis workflow
@@ -30,7 +29,7 @@ The analysis code is also provided from them, and adapted accordingly for my ana
 
 #### For data:
 - Prepare input config file where the datasets and the unique labels are specified:
-    > File contents of `analysis_controller/config/rekbmtf_input_config.yaml`:
+    > Example for `analysis_controller/config/rekbmtf_input_config.yaml`:
     > ```
     > rekbmtf_input:
     >
@@ -40,7 +39,7 @@ The analysis code is also provided from them, and adapted accordingly for my ana
     >     input_lumi_mask: "https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json" # run / luminosity section mask file ("golden json")
     > ```
 - Prepare params config file where the parameters of the analysis step are specified:
-    > File contents of `analysis_controller/config/rekbmtf_params_config.yaml`:
+    > Example for `analysis_controller/config/rekbmtf_params_config.yaml`:
     > ```
     > rekbmtf_params: # params are specified separately for each "data_type"
     >
@@ -59,10 +58,10 @@ The analysis code is also provided from them, and adapted accordingly for my ana
     > ```
 - Submit the analysis step for execution:
     ```
-    python analysis_controller/scripts/rekbmtf_submit.py --input_config analysis_controller/config/rekbmtf_input.yaml --params_config analysis_controller/config/rekbmtf_params.yaml
+    python analysis_controller/scripts/rekbmtf_submit.py --input_config analysis_controller/config/rekbmtf_input_config.yaml --params_config analysis_controller/config/rekbmtf_params_config.yaml
     ```
 - Now the analysis has been submitted and is running (remotely).
--In the directory `analysis_controller/submissions/`, a subdirectory is automatically created, called `rekbmtf_YYYY-MM-DD_hh-mm-ss_{data/mc}_{data_label}/`, which in the following is referred to as `submit_path`
+- In the directory `analysis_controller/submissions/`, a subdirectory is automatically created, called `rekbmtf_YYYY-MM-DD_hh-mm-ss_{data/mc}_{data_label}/`, which in the following is referred to as `submit_path`
 - In the `submit_path`, the submit config file `submit_config.yaml` is stored, which holds the relevant information about the submitted task, to monitor it, and to retrieve the outputs from it
 - Also, all other related files to the submission are stored in the `submit_path`, such as the CRAB project directory, the CMSSW and CRAB config files, and others 
 - Monitor the execution of the submitted analysis step, when pointing to the respective `submit_config.yaml` file and specifying the current analysis step:
