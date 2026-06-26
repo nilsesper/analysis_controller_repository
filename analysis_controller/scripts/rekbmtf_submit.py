@@ -196,7 +196,7 @@ for i in range(n_inputs):
             }
         }
         ### store submit yaml file
-        submit_filename = "submit.yaml"
+        submit_filename = "submit_config.yaml"
         submit_filepath = os.path.join(submit_path, submit_filename)
         file_utils.store_yaml_file(filepath=submit_filepath, yaml_content=submit_yaml)
         cosmetic_utils.print_string(string=f"Created submit file at \"{submit_filepath}\"")
@@ -219,6 +219,7 @@ for i in range(n_inputs):
         bash_commands += f'cd {submit_path}\n'
         # run crab submit command
         bash_commands += f'crab submit -c {crab_config_filepath}\n'
+        #bash_commands += f'crab submit -c {crab_config_filepath} --dryrun\n'
         _ = subprocess.run(
             bash_commands,
             shell=True,
