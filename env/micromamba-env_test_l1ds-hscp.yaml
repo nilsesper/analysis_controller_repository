@@ -1,6 +1,0 @@
-name: env_test_l1ds-hscp
-channels:
-dependencies:
-  - pip
-
-prefix: "/.automount/home/home__home1/institut_3a/esper/micromamba/envs/env_test_l1ds-hscp"

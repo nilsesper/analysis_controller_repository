@@ -1,4 +1,4 @@
 
 ### activate micromamba environment
-micromamba activate env_test_l1ds-hscp
+micromamba activate micromamba_env
 

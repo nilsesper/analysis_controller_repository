@@ -1,5 +1,8 @@
 
 ### initialize micromamba environment manager
+
+### for nils' setup in aachen:
+
 # >>> mamba initialize >>>
 # !! Contents within this block are managed by 'micromamba shell init' !!
 export MAMBA_EXE='/.automount/home/home__home1/institut_3a/esper/~/micromamba/micromamba';
@@ -12,4 +15,6 @@ else
 fi
 unset __mamba_setup
 # <<< mamba initialize <<<
+
+### 
 
