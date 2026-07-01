@@ -10,6 +10,7 @@ import uproot
 import awkward as ak
 import numba as nb
 import numpy as np
+from tabulate import tabulate
 
 from analysis_controller.src import path_utils
 from analysis_controller.src import cosmetic_utils
@@ -39,6 +40,10 @@ arr = roottree.arrays(roottree_branches)
 arr = ak.with_name(arr, name="Events")
 cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Converting ROOT tree \"Events\" to awkward array")
 #print(f"{arr.type.show()}")
+
+### add initial index to arr
+row_indices = ak.local_index(arr, axis=0)
+arr["treeidx"] = row_indices
 
 ### overview of input data array
 """
@@ -106,7 +111,7 @@ arr.type.show() = {
 """
 
 ### select events with at least one kbmtf track
-selection_info = f"arr.nL1KBMTFSkimmed > 0"
+selection_info = f"nL1KBMTFSkimmed > 0"
 selection_n_before = len(arr)
 #--------------
 arr = arr[arr.nL1KBMTFSkimmed > 0]
@@ -117,7 +122,7 @@ cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPAT
 class EventRecord(ak.Record):
 
     def show_info(self):
-        print(f"++++++++++++++++++++++")
+        #print(f"++++++++++++++++++++++")
         #print(f"nL1KBMTFSkimmed:      {self.nL1KBMTFSkimmed},")
         #print(f"L1KBMTFSkimmed_nStub: {self.L1KBMTFSkimmed_nStub},")
         #print(f"L1KBMTFSkimmed_s1Bx:  {self.L1KBMTFSkimmed_s1Bx},")
@@ -132,7 +137,7 @@ class EventRecord(ak.Record):
         #print(f"L1KBMTFSkimmed_s4Bx:  {self.L1KBMTFSkimmed_s4Station},")
         print(f"arr_st_spread():      {self.L1KBMTFSkimmed_stSpread},")
         print(f"arr_pt_from_hwk():    {self.L1KBMTFSkimmed_pt},")
-        print(f"++++++++++++++++++++++")
+        #print(f"++++++++++++++++++++++")
 
 ak.behavior.update({"Events": EventRecord})
 
@@ -142,17 +147,18 @@ def arr_min_bx(events, builder):
     n_events = len(events)
     for i_event in range(n_events):
         builder.begin_list()
-        n_tracks = len(events[i_event].L1KBMTFSkimmed_nStub)
+        event = events[i_event]
+        n_tracks = len(event.L1KBMTFSkimmed_nStub)
         for i_track in range(n_tracks):
             track_min_bx = -1
-            if events[i_event].L1KBMTFSkimmed_nStub[i_track] == 1:
-                track_min_bx = min([events[i_event].L1KBMTFSkimmed_s1Bx[i_track]])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 2:
-                track_min_bx = min([events[i_event].L1KBMTFSkimmed_s1Bx[i_track], events[i_event].L1KBMTFSkimmed_s2Bx[i_track]])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 3:
-                track_min_bx = min([events[i_event].L1KBMTFSkimmed_s1Bx[i_track], events[i_event].L1KBMTFSkimmed_s2Bx[i_track], events[i_event].L1KBMTFSkimmed_s3Bx[i_track]])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 4:
-                track_min_bx = min([events[i_event].L1KBMTFSkimmed_s1Bx[i_track], events[i_event].L1KBMTFSkimmed_s2Bx[i_track], events[i_event].L1KBMTFSkimmed_s3Bx[i_track], events[i_event].L1KBMTFSkimmed_s4Bx[i_track]])
+            if event.L1KBMTFSkimmed_nStub[i_track] == 1:
+                track_min_bx = min([event.L1KBMTFSkimmed_s1Bx[i_track]])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 2:
+                track_min_bx = min([event.L1KBMTFSkimmed_s1Bx[i_track], event.L1KBMTFSkimmed_s2Bx[i_track]])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 3:
+                track_min_bx = min([event.L1KBMTFSkimmed_s1Bx[i_track], event.L1KBMTFSkimmed_s2Bx[i_track], event.L1KBMTFSkimmed_s3Bx[i_track]])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 4:
+                track_min_bx = min([event.L1KBMTFSkimmed_s1Bx[i_track], event.L1KBMTFSkimmed_s2Bx[i_track], event.L1KBMTFSkimmed_s3Bx[i_track], event.L1KBMTFSkimmed_s4Bx[i_track]])
             builder.integer(track_min_bx)
         builder.end_list()
     return builder
@@ -169,18 +175,19 @@ def arr_bx_spread(events, builder):
     n_events = len(events)
     for i_event in range(n_events):
         builder.begin_list()
-        event_min_bx = events[i_event].L1KBMTFSkimmed_firstBx
-        n_tracks = len(events[i_event].L1KBMTFSkimmed_nStub)
+        event = events[i_event]
+        event_min_bx = event.L1KBMTFSkimmed_firstBx
+        n_tracks = len(event.L1KBMTFSkimmed_nStub)
         for i_track in range(n_tracks):
             track_bx_spread = -1
-            if events[i_event].L1KBMTFSkimmed_nStub[i_track] == 1:
-                track_bx_spread = 1000*(events[i_event].L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 2:
-                track_bx_spread = 1000*(events[i_event].L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(events[i_event].L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 3:
-                track_bx_spread = 1000*(events[i_event].L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(events[i_event].L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track]) + 10*(events[i_event].L1KBMTFSkimmed_s3Bx[i_track] - event_min_bx[i_track])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 4:
-                track_bx_spread = 1000*(events[i_event].L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(events[i_event].L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track]) + 10*(events[i_event].L1KBMTFSkimmed_s3Bx[i_track] - event_min_bx[i_track]) + 1*(events[i_event].L1KBMTFSkimmed_s4Bx[i_track] - event_min_bx[i_track])
+            if event.L1KBMTFSkimmed_nStub[i_track] == 1:
+                track_bx_spread = 1000*(event.L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 2:
+                track_bx_spread = 1000*(event.L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(event.L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 3:
+                track_bx_spread = 1000*(event.L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(event.L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track]) + 10*(event.L1KBMTFSkimmed_s3Bx[i_track] - event_min_bx[i_track])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 4:
+                track_bx_spread = 1000*(event.L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(event.L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track]) + 10*(event.L1KBMTFSkimmed_s3Bx[i_track] - event_min_bx[i_track]) + 1*(event.L1KBMTFSkimmed_s4Bx[i_track] - event_min_bx[i_track])
             builder.integer(track_bx_spread)
         builder.end_list()
     return builder
@@ -197,17 +204,18 @@ def arr_st_spread(events, builder):
     n_events = len(events)
     for i_event in range(n_events):
         builder.begin_list()
-        n_tracks = len(events[i_event].L1KBMTFSkimmed_nStub)
+        event = events[i_event]
+        n_tracks = len(event.L1KBMTFSkimmed_nStub)
         for i_track in range(n_tracks):
             track_bx_spread = -1
-            if events[i_event].L1KBMTFSkimmed_nStub[i_track] == 1:
-                track_st_spread = 1000*(events[i_event].L1KBMTFSkimmed_s1Station[i_track])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 2:
-                track_st_spread = 1000*(events[i_event].L1KBMTFSkimmed_s1Station[i_track]) + 100*(events[i_event].L1KBMTFSkimmed_s2Station[i_track])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 3:
-                track_st_spread = 1000*(events[i_event].L1KBMTFSkimmed_s1Station[i_track]) + 100*(events[i_event].L1KBMTFSkimmed_s2Station[i_track]) + 10*(events[i_event].L1KBMTFSkimmed_s3Station[i_track])
-            elif events[i_event].L1KBMTFSkimmed_nStub[i_track] == 4:
-                track_st_spread = 1000*(events[i_event].L1KBMTFSkimmed_s1Station[i_track]) + 100*(events[i_event].L1KBMTFSkimmed_s2Station[i_track]) + 10*(events[i_event].L1KBMTFSkimmed_s3Station[i_track]) + 1*(events[i_event].L1KBMTFSkimmed_s4Station[i_track])
+            if event.L1KBMTFSkimmed_nStub[i_track] == 1:
+                track_st_spread = 1000*(event.L1KBMTFSkimmed_s1Station[i_track])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 2:
+                track_st_spread = 1000*(event.L1KBMTFSkimmed_s1Station[i_track]) + 100*(event.L1KBMTFSkimmed_s2Station[i_track])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 3:
+                track_st_spread = 1000*(event.L1KBMTFSkimmed_s1Station[i_track]) + 100*(event.L1KBMTFSkimmed_s2Station[i_track]) + 10*(event.L1KBMTFSkimmed_s3Station[i_track])
+            elif event.L1KBMTFSkimmed_nStub[i_track] == 4:
+                track_st_spread = 1000*(event.L1KBMTFSkimmed_s1Station[i_track]) + 100*(event.L1KBMTFSkimmed_s2Station[i_track]) + 10*(event.L1KBMTFSkimmed_s3Station[i_track]) + 1*(event.L1KBMTFSkimmed_s4Station[i_track])
             builder.integer(track_st_spread)
         builder.end_list()
     return builder
@@ -222,23 +230,25 @@ def arr_pt_from_hwk(events, builder):
     n_events = len(events)
     for i_event in range(n_events):
         builder.begin_list()
-        n_tracks = len(events[i_event].L1KBMTFSkimmed_nStub)
+        event = events[i_event]
+        n_tracks = len(event.L1KBMTFSkimmed_nStub)
         for i_track in range(n_tracks):
-            track_hwk = events[i_event].L1KBMTFSkimmed_hwK[i_track]
-            track_hwk = track_hwk - 9
+            track_hwk = event.L1KBMTFSkimmed_hwK[i_track]
+            track_hwk = track_hwk - 9.0
             track_abs_hwk = abs(track_hwk)
             if track_abs_hwk > 2047:
                 track_abs_hwk = 2047
-            track_abs_hwk = track_abs_hwk * 1.25 / (1 << 13)
+            #track_abs_hwk = track_abs_hwk * 1.25 / (1 << 13)
+            track_abs_hwk = track_abs_hwk * 1.25 / 2**13
             track_abs_hwk = 0.8569 * track_abs_hwk / (1.0 + 0.1144 * track_abs_hwk)
             track_pt = 0
             if track_abs_hwk != 0:
-                track_pt = 2 / track_abs_hwk
+                track_pt = 2.0 / track_abs_hwk
             if track_pt > 2000:
                 track_pt = 2000
             if track_pt < 8:
                 track_pt = 0
-            track_pt = track_pt / 2
+            track_pt = track_pt / 2.0
             builder.real(track_pt)
         builder.end_list()
     return builder
@@ -247,26 +257,87 @@ builder = ak.ArrayBuilder()
 arr_pt_from_hwk(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_pt"] = builder.snapshot()
 
-### select primary and secondary track
-# track selection order from collection:
-# - largest bxspread,
-# - if same, then largest nstub,
-# - if same, then largest pt
-
-
-
-
-
+### print some entries of the processed arr
+#for i in range(0,5):
+#    print("+++++++++++++++++")
+#    print(i)
+#    arr[i].show_info()
+#    print("+++++++++++++++++")
 
 ### make extra array for two tracks
 arr2 = arr[arr.nL1KBMTFSkimmed == 2]
 
+### select only primary and secondary track
+# track selection order from collection:
+# - largest bxspread,
+# - if same, then largest nstub,
+# - if same, then largest pt
+@nb.jit
+def sel_prim_track_from_arr(events):
+    n_events = len(events)
+    arr_prim_selection = np.zeros(n_events, dtype=np.int16)
+    for i_event in range(n_events):
+        event = events[i_event]
+        n_tracks = len(event.L1KBMTFSkimmed_nStub)
+        if n_tracks == 0:
+            sel_i_track = -1
+        elif n_tracks == 1:
+            sel_i_track = 0
+        else:
+            sel_i_track = 0
+            for i_track in range(n_tracks):
+                if (event.L1KBMTFSkimmed_bxSpread[i_track] > event.L1KBMTFSkimmed_bxSpread[sel_i_track]):
+                    sel_i_track = i_track
+                elif (event.L1KBMTFSkimmed_bxSpread[i_track] == event.L1KBMTFSkimmed_bxSpread[sel_i_track]) and ((event.L1KBMTFSkimmed_nStub[i_track] > event.L1KBMTFSkimmed_nStub[sel_i_track])):
+                    sel_i_track = i_track
+                elif (event.L1KBMTFSkimmed_bxSpread[i_track] == event.L1KBMTFSkimmed_bxSpread[sel_i_track]) and ((event.L1KBMTFSkimmed_nStub[i_track] == event.L1KBMTFSkimmed_nStub[sel_i_track])) and ((event.L1KBMTFSkimmed_pt[i_track] > event.L1KBMTFSkimmed_pt[sel_i_track])):
+                    sel_i_track = i_track
+        arr_prim_selection[i_event] = sel_i_track
+    return arr_prim_selection
 
+row_indices = ak.local_index(arr, axis=0)
+print(row_indices)
+prim_selection_indices = sel_prim_track_from_arr(events=arr)
+print(prim_selection_indices)
 
+#print(arr.type.show())
+#selected = arr[row_indices, prim_selection_indices]
+#print(arr.type.show())
 
+arr_tracks = ak.Array({
+    #--- base info
+    "treeidx": arr.treeidx[row_indices],
+    "run": arr.run[row_indices],
+    "luminosityBlock": arr.luminosityBlock[row_indices],
+    "orbitNumber": arr.orbitNumber[row_indices],
+    "bunchCrossing": arr.bunchCrossing[row_indices],
+    #"is_colliding"
+    #"is_earlier_colliding"
+    #--- primary track
+    "idx1": prim_selection_indices,
+    "nstub1": arr.L1KBMTFSkimmed_nStub[row_indices, prim_selection_indices],
+    "bxspread1": arr.L1KBMTFSkimmed_bxSpread[row_indices, prim_selection_indices],
+    "stationspread1": arr.L1KBMTFSkimmed_stSpread[row_indices, prim_selection_indices],
+    "firstbx1": arr.L1KBMTFSkimmed_firstBx[row_indices, prim_selection_indices],
+    "pt1": arr.L1KBMTFSkimmed_pt[row_indices, prim_selection_indices],
+    "eta1": arr.L1KBMTFSkimmed_eta[row_indices, prim_selection_indices],
+    "phi1": arr.L1KBMTFSkimmed_phi[row_indices, prim_selection_indices],
+    "dxy1": arr.L1KBMTFSkimmed_hwDXY[row_indices, prim_selection_indices],
+    "qual1": arr.L1KBMTFSkimmed_hwQual[row_indices, prim_selection_indices],
+    "charge1": arr.L1KBMTFSkimmed_hwCharge[row_indices, prim_selection_indices],
+    #"isL1MuMatched1"
+    #--- secondary track
+    #--- met
+    #"met_bx0"
+    #"met_bxm1"
+    #"met_bxm2"
+    #"met_bxm3"
+    #"met_bxm4"
+    #"met_bxm5"
+})
 
-
-
+### print some entries of the processed arr
+print(tabulate(arr_tracks[:20].tolist(), headers='keys', tablefmt='grid', showindex=True))
 
 
 
