@@ -291,17 +291,25 @@ dependencies:
     - awkward_cpp==53
     - certifi==2026.6.17
     - charset-normalizer==3.4.7
+    - contourpy==1.3.3
     - cramjam==2.11.0
+    - cycler==0.12.1
+    - fonttools==4.63.0
     - frozenlist==1.8.0
     - fsspec==2026.6.0
     - idna==3.18
+    - kiwisolver==1.5.0
+    - matplotlib==3.11.0
     - multidict==6.7.1
-    - numpy==2.5.0
     - packaging==26.2
+    - pillow==12.3.0
     - propcache==0.5.2
+    - pyparsing==3.3.2
     - requests==2.34.2
+    - tabulate==0.10.0
     - uproot==5.7.4
     - urllib3==2.7.0
+    - vector==1.8.1
     - xxhash==3.8.0
     - yarl==1.24.2
 
