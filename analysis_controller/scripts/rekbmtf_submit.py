@@ -27,18 +27,20 @@ cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPAT
 ### ARGUMENT PARSER
 
 parser = argparse.ArgumentParser()
+# mandatory:
 parser.add_argument(
-        "--input_config",
-        help=f"path to input config yaml file \"{analysis_step}_input\" (str)",
-        type=str,
-        required=True,
-    )
+    "--input_config",
+    help=f"path to input config yaml file \"{analysis_step}_input\" (str)",
+    type=str,
+    required=True,
+)
 parser.add_argument(
-        "--params_config",
-        help=f"path to params config yaml file \"{analysis_step}_params\" (str)",
-        type=str,
-        required=True,
-    )
+    "--params_config",
+    help=f"path to params config yaml file \"{analysis_step}_params\" (str)",
+    type=str,
+    required=True,
+)
+# optional:
 args = parser.parse_args()
 
 #############################

@@ -19,12 +19,14 @@ cosmetic_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTR
 ### ARGUMENT PARSER
 
 parser = argparse.ArgumentParser()
+# mandatory:
 parser.add_argument(
-        "--input_config",
-        help="path to input config yaml file \"rekbmtf_input\" (str)",
-        type=str,
-        required=True,
-    )
+    "--input_config",
+    help="path to input config yaml file \"rekbmtf_input\" (str)",
+    type=str,
+    required=True,
+)
+# optional:
 args = parser.parse_args()
 
 #############################
