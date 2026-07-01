@@ -13,6 +13,3 @@ fi
 unset __mamba_setup
 # <<< mamba initialize <<<
 
-### activate micromamba environment
-micromamba activate env_test_l1ds-hscp
-
