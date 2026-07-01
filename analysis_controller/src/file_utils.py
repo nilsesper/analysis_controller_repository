@@ -14,7 +14,7 @@ from analysis_controller.src import console_utils
 from analysis_controller.src import cosmetic_utils
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
-_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_REPOPATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
+_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
 
 ############################
 ### HELPER FUNCTIONS & CLASSES (with prefix "_")
@@ -65,7 +65,8 @@ def _replace_wildcard_if_possible(*, value):
     new_value = value
     if _bool_check_value_type(value=value, value_type="str"):
         wildcards = {
-            r"%%%ANALYSIS_CONTROLLER%%%": _ANALYSIS_CONTROLLER_REPOPATH,
+            r"%%%ANALYSIS_CONTROLLER_PATH%%%": _ANALYSIS_CONTROLLER_PATH,
+            r"%%%ANALYSIS_CONTROLLER_REPO_PATH%%%": _ANALYSIS_CONTROLLER_REPO_PATH,
         }
         for wildcard, wildcard_replacement in wildcards.items():
             new_value = new_value.replace(wildcard, wildcard_replacement)

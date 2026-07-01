@@ -16,7 +16,7 @@ from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
-_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_REPOPATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
+_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = relative_path_analysis_controller(filepath=_FILEPATH)
 cosmetic_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH)
 
 ### define analysis step
@@ -92,7 +92,7 @@ for i in range(n_inputs):
     submit_name = f"{analysis_step}_{submit_timestamp}_{data_type}_{data_label}"
 
     ### submission directory, where all info about this submission is stored
-    submit_path = os.path.join(_ANALYSIS_CONTROLLER_REPOPATH, "submissions", submit_name)
+    submit_path = os.path.join(_ANALYSIS_CONTROLLER_REPO_PATH, "submissions", submit_name)
     # create submitdir
     os.mkdir(submit_path)
     # print

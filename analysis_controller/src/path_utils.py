@@ -17,10 +17,11 @@ def relative_path_analysis_controller(*, filepath):
     if "analysis_controller/" not in filepath:
         raise Exception("Invalid analysis_controller file dir. Must contain \"analysis_controller/\".")
     _filepath = os.path.join("analysis_controller", filepath.split("analysis_controller/")[-1])
-    _repopath = os.path.abspath(os.path.join(filepath.split("analysis_controller/")[0], "analysis_controller"))
-    return _filepath, _repopath
+    _analysiscontrollerpath = os.path.abspath(os.path.join(filepath.split("analysis_controller/")[0], "analysis_controller"))
+    _analysiscontrollerrepopath = os.path.abspath(os.path.join(filepath.split("analysis_controller/")[0]))
+    return _filepath, _analysiscontrollerpath, _analysiscontrollerrepopath
 
-_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_REPOPATH = relative_path_analysis_controller(filepath=_FILEPATH)
+_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = relative_path_analysis_controller(filepath=_FILEPATH)
 
 ############################
 ### HELPER FUNCTIONS & CLASSES (with prefix "_")
