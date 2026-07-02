@@ -12,6 +12,7 @@ import numba as nb
 import numpy as np
 from tabulate import tabulate
 import vector
+import time
 
 from analysis_controller.src import path_utils
 from analysis_controller.src import cosmetic_utils
@@ -21,6 +22,9 @@ from analysis_controller.src import console_utils
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
 _ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
 cosmetic_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH)
+
+start_time = time.time()
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Starting execution at time.time() value of {start_time} seconds")
 
 vector.register_awkward()
 
@@ -121,11 +125,12 @@ arr.type.show() = {
 """
 
 ### select events with at least one kbmtf track
-selection_info = f"nL1KBMTFSkimmed > 0"
+selection_info = f"(nL1KBMTFSkimmed > 0)"
 selection_n_before = len(arr)
 #--------------
-arr = arr[arr.nL1KBMTFSkimmed > 0]
+arr_mask = (arr.nL1KBMTFSkimmed > 0)
 #--------------
+arr = arr[arr_mask]
 selection_n_after = len(arr)
 cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
 
@@ -305,7 +310,34 @@ arr["L1KBMTFSkimmed_fourVec"] = ak.zip(
 # - if same, then largest nstub,
 # - if same, then largest pt
 # only select secondary track if delta_r > 0.1 to primary track
+### for all tracks of one event
 delta_r_min = 0.1
+@nb.jit
+def sel_tracks_from_event(nStubs, bxSpreads, fourVecs):
+    n_tracks = len(nStubs)
+    pts = fourVecs["pt"]
+    sel_i_prim_track = -1
+    sel_i_sec_track = -1
+    if n_tracks == 1:
+        sel_i_prim_track = 0
+    elif n_tracks > 1:
+        sel_i_prim_track = 0
+        # select prim track
+        for i_track in range(n_tracks):
+            if (bxSpreads[i_track] > bxSpreads[sel_i_prim_track]) or ((bxSpreads[i_track] == bxSpreads[sel_i_prim_track]) and (nStubs[i_track] > nStubs[sel_i_prim_track])) or ((bxSpreads[i_track] == bxSpreads[sel_i_prim_track]) and (nStubs[i_track] == nStubs[sel_i_prim_track]) and (pts[i_track] > pts[sel_i_prim_track])):
+                sel_i_prim_track = i_track
+        # select sec track
+        for i_track in range(n_tracks):
+            if i_track == sel_i_prim_track:
+                continue
+            elif fourVecs[i_track].deltaR(fourVecs[sel_i_prim_track]) <= delta_r_min:
+                continue
+            if sel_i_sec_track == -1:
+                sel_i_sec_track = i_track
+            elif (bxSpreads[i_track] > bxSpreads[sel_i_sec_track]) or ((bxSpreads[i_track] == bxSpreads[sel_i_sec_track]) and (nStubs[i_track] > nStubs[sel_i_sec_track])) or ((bxSpreads[i_track] == bxSpreads[sel_i_sec_track]) and (nStubs[i_track] == nStubs[sel_i_sec_track]) and (pts[i_track] > pts[sel_i_sec_track])):
+                sel_i_sec_track = i_track
+    return sel_i_prim_track, sel_i_sec_track
+## for ak arr
 @nb.jit
 def sel_tracks_from_arr(events):
     n_events = len(events)
@@ -313,83 +345,94 @@ def sel_tracks_from_arr(events):
     arr_sec_selection = np.zeros(n_events, dtype=np.int8)
     for i_event in range(n_events):
         event = events[i_event]
-        n_tracks = len(event.L1KBMTFSkimmed_nStub)
-        best_bxSpread_prim_track = 0
-        best_nStub_prim_track = 0
-        best_pt_prim_track = 0
-        best_bxSpread_sec_track = 0
-        best_nStub_sec_track = 0
-        best_pt_sec_track = 0
-        if n_tracks == 0:
-            sel_i_prim_track = -1
-            sel_i_sec_track = -1
-        elif n_tracks == 1:
-            sel_i_prim_track = 0
-            sel_i_sec_track = -1
-        else:
-            sel_i_prim_track = -1
-            sel_i_sec_track = -1
-            for i_track in range(n_tracks):
-                if (event.L1KBMTFSkimmed_bxSpread[i_track] > best_bxSpread_prim_track) or ((event.L1KBMTFSkimmed_bxSpread[i_track] == best_bxSpread_prim_track) and ((event.L1KBMTFSkimmed_nStub[i_track] > best_nStub_prim_track))) or ((event.L1KBMTFSkimmed_bxSpread[i_track] == best_bxSpread_prim_track) and ((event.L1KBMTFSkimmed_nStub[i_track] == best_nStub_prim_track)) and ((event.L1KBMTFSkimmed_pt[i_track] > best_pt_prim_track))):
-                    sel_i_prim_track = i_track
-                    best_bxSpread_prim_track = event.L1KBMTFSkimmed_bxSpread[sel_i_prim_track]
-                    best_nStub_prim_track = event.L1KBMTFSkimmed_bxSpread[sel_i_prim_track]
-                    best_pt_prim_track = event.L1KBMTFSkimmed_bxSpread[sel_i_prim_track]
-            for i_track in range(n_tracks):
-                if i_track == sel_i_prim_track:
-                    continue
-                elif event.L1KBMTFSkimmed_fourVec[i_track].deltaR(event.L1KBMTFSkimmed_fourVec[sel_i_prim_track]) <= delta_r_min:
-                    continue
-                elif (event.L1KBMTFSkimmed_bxSpread[i_track] > best_bxSpread_sec_track) or ((event.L1KBMTFSkimmed_bxSpread[i_track] == best_bxSpread_sec_track) and ((event.L1KBMTFSkimmed_nStub[i_track] > best_nStub_sec_track))) or ((event.L1KBMTFSkimmed_bxSpread[i_track] == best_bxSpread_sec_track) and ((event.L1KBMTFSkimmed_nStub[i_track] == best_nStub_sec_track)) and ((event.L1KBMTFSkimmed_pt[i_track] > best_pt_sec_track))):
-                    sel_i_sec_track = i_track
-                    best_bxSpread_sec_track = event.L1KBMTFSkimmed_bxSpread[sel_i_sec_track]
-                    best_nStub_sec_track = event.L1KBMTFSkimmed_bxSpread[sel_i_sec_track]
-                    best_pt_sec_track = event.L1KBMTFSkimmed_bxSpread[sel_i_sec_track]
+        sel_i_prim_track, sel_i_sec_track = sel_tracks_from_event(nStubs=event.L1KBMTFSkimmed_nStub, bxSpreads=event.L1KBMTFSkimmed_bxSpread, fourVecs=event.L1KBMTFSkimmed_fourVec)
         arr_prim_selection[i_event] = sel_i_prim_track
         arr_sec_selection[i_event] = sel_i_sec_track
     return arr_prim_selection, arr_sec_selection
-
+### for ak arr
+#delta_r_min = 0.1
+#@nb.jit
+#def sel_tracks_from_arr(events):
+#    n_events = len(events)
+#    arr_prim_selection = np.zeros(n_events, dtype=np.int8)
+#    arr_sec_selection = np.zeros(n_events, dtype=np.int8)
+#    for i_event in range(n_events):
+#        event = events[i_event]
+#        n_tracks = len(event.L1KBMTFSkimmed_nStub)
+#        sel_i_prim_track = -1
+#        sel_i_sec_track = -1
+#        if n_tracks == 1:
+#            sel_i_prim_track = 0
+#        elif n_tracks > 1:
+#            best_bxSpread_prim_track = 0
+#            best_nStub_prim_track = 0
+#            best_pt_prim_track = 0
+#            for i_track in range(n_tracks):
+#                if (event.L1KBMTFSkimmed_bxSpread[i_track] > best_bxSpread_prim_track) or ((event.L1KBMTFSkimmed_bxSpread[i_track] == best_bxSpread_prim_track) and (event.L1KBMTFSkimmed_nStub[i_track] > best_nStub_prim_track)) or ((event.L1KBMTFSkimmed_bxSpread[i_track] == best_bxSpread_prim_track) and (event.L1KBMTFSkimmed_nStub[i_track] == best_nStub_prim_track) and (event.L1KBMTFSkimmed_pt[i_track] > best_pt_prim_track)):
+#                    sel_i_prim_track = i_track
+#                    best_bxSpread_prim_track = event.L1KBMTFSkimmed_bxSpread[sel_i_prim_track]
+#                    best_nStub_prim_track = event.L1KBMTFSkimmed_nStub[sel_i_prim_track]
+#                    best_pt_prim_track = event.L1KBMTFSkimmed_pt[sel_i_prim_track]
+#            if sel_i_prim_track != -1:
+#                best_bxSpread_sec_track = 0
+#                best_nStub_sec_track = 0
+#                best_pt_sec_track = 0
+#                for i_track in range(n_tracks):
+#                    if i_track == sel_i_prim_track:
+#                        continue
+#                    elif event.L1KBMTFSkimmed_fourVec[i_track].deltaR(event.L1KBMTFSkimmed_fourVec[sel_i_prim_track]) <= delta_r_min:
+#                        continue
+#                    elif (event.L1KBMTFSkimmed_bxSpread[i_track] > best_bxSpread_sec_track) or ((event.L1KBMTFSkimmed_bxSpread[i_track] == best_bxSpread_sec_track) and (event.L1KBMTFSkimmed_nStub[i_track] > best_nStub_sec_track)) or ((event.L1KBMTFSkimmed_bxSpread[i_track] == best_bxSpread_sec_track) and (event.L1KBMTFSkimmed_nStub[i_track] == best_nStub_sec_track) and (event.L1KBMTFSkimmed_pt[i_track] > best_pt_sec_track)):
+#                        sel_i_sec_track = i_track
+#                        best_bxSpread_sec_track = event.L1KBMTFSkimmed_bxSpread[sel_i_sec_track]
+#                        best_nStub_sec_track = event.L1KBMTFSkimmed_nStub[sel_i_sec_track]
+#                        best_pt_sec_track = event.L1KBMTFSkimmed_pt[sel_i_sec_track]
+#        arr_prim_selection[i_event] = sel_i_prim_track
+#        arr_sec_selection[i_event] = sel_i_sec_track
+#    return arr_prim_selection, arr_sec_selection
+## determine arr indices of tracks to be selected
 row_indices = ak.local_index(arr, axis=0)
 prim_selection_indices, sec_selection_indices = sel_tracks_from_arr(events=arr)
 prim_selection_indices_valid = (prim_selection_indices >= 0)
 sec_selection_indices_valid = (sec_selection_indices >= 0)
 n_sel_tracks = np.array(prim_selection_indices_valid, dtype=np.int8) + np.array(sec_selection_indices_valid, dtype=np.int8)
 
+## apply selection and generate new flat arr_tracks
 arr_tracks = ak.Array({
     #--- base info
-    "treeidx": arr.treeidx[row_indices],
-    "run": arr.run[row_indices],
-    "luminosityBlock": arr.luminosityBlock[row_indices],
-    "orbitNumber": arr.orbitNumber[row_indices],
-    "bunchCrossing": arr.bunchCrossing[row_indices],
+    "treeidx":          arr.treeidx[row_indices],
+    "run":              arr.run[row_indices],
+    "luminosityBlock":  arr.luminosityBlock[row_indices],
+    "orbitNumber":      arr.orbitNumber[row_indices],
+    "bunchCrossing":    arr.bunchCrossing[row_indices],
     #"is_colliding"
     #"is_earlier_colliding"
-    "nseltracks": n_sel_tracks,
+    "nseltracks":       n_sel_tracks,
     #--- primary track
-    "idx1": ak.where(prim_selection_indices_valid, prim_selection_indices, -1), #prim_selection_indices,
-    "nstub1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_nStub[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_nStub[row_indices, prim_selection_indices],
-    "bxspread1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_bxSpread[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_bxSpread[row_indices, prim_selection_indices],
-    "stationspread1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_stSpread[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_stSpread[row_indices, prim_selection_indices],
-    "firstbx1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_firstBx[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_firstBx[row_indices, prim_selection_indices],
-    "pt1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_pt[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_pt[row_indices, prim_selection_indices],
-    "eta1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_eta[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_eta[row_indices, prim_selection_indices],
-    "phi1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_phi[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_phi[row_indices, prim_selection_indices],
-    "dxy1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_hwDXY[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_hwDXY[row_indices, prim_selection_indices],
-    "qual1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_hwQual[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_hwQual[row_indices, prim_selection_indices],
-    "charge1": ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_hwCharge[row_indices, prim_selection_indices], -1), #arr.L1KBMTFSkimmed_hwCharge[row_indices, prim_selection_indices],
+    "idx1":             ak.where(prim_selection_indices_valid, prim_selection_indices, -1),
+    "nstub1":           ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_nStub[row_indices, prim_selection_indices], -1),
+    "bxspread1":        ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_bxSpread[row_indices, prim_selection_indices], -1),
+    "stationspread1":   ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_stSpread[row_indices, prim_selection_indices], -1),
+    "firstbx1":         ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_firstBx[row_indices, prim_selection_indices], -1),
+    "pt1":              ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_pt[row_indices, prim_selection_indices], -1),
+    "eta1":             ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_eta[row_indices, prim_selection_indices], -1),
+    "phi1":             ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_phi[row_indices, prim_selection_indices], -1),
+    "dxy1":             ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_hwDXY[row_indices, prim_selection_indices], -1),
+    "qual1":            ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_hwQual[row_indices, prim_selection_indices], -1),
+    "charge1":          ak.where(prim_selection_indices_valid, arr.L1KBMTFSkimmed_hwCharge[row_indices, prim_selection_indices], -1),
     #"isL1MuMatched1"
     #--- secondary track
-    "idx2": ak.where(sec_selection_indices_valid, sec_selection_indices, -1), #sec_selection_indices,
-    "nstub2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_nStub[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_nStub[row_indices, sec_selection_indices],
-    "bxspread2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_bxSpread[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_bxSpread[row_indices, sec_selection_indices],
-    "stationspread2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_stSpread[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_stSpread[row_indices, sec_selection_indices],
-    "firstbx2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_firstBx[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_firstBx[row_indices, sec_selection_indices],
-    "pt2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_pt[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_pt[row_indices, sec_selection_indices],
-    "eta2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_eta[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_eta[row_indices, sec_selection_indices],
-    "phi2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_phi[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_phi[row_indices, sec_selection_indices],
-    "dxy2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_hwDXY[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_hwDXY[row_indices, sec_selection_indices],
-    "qual2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_hwQual[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_hwQual[row_indices, sec_selection_indices],
-    "charge2": ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_hwCharge[row_indices, sec_selection_indices], -1), #arr.L1KBMTFSkimmed_hwCharge[row_indices, sec_selection_indices],
+    "idx2":             ak.where(sec_selection_indices_valid, sec_selection_indices, -1),
+    "nstub2":           ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_nStub[row_indices, sec_selection_indices], -1),
+    "bxspread2":        ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_bxSpread[row_indices, sec_selection_indices], -1),
+    "stationspread2":   ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_stSpread[row_indices, sec_selection_indices], -1),
+    "firstbx2":         ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_firstBx[row_indices, sec_selection_indices], -1),
+    "pt2":              ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_pt[row_indices, sec_selection_indices], -1),
+    "eta2":             ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_eta[row_indices, sec_selection_indices], -1),
+    "phi2":             ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_phi[row_indices, sec_selection_indices], -1),
+    "dxy2":             ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_hwDXY[row_indices, sec_selection_indices], -1),
+    "qual2":            ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_hwQual[row_indices, sec_selection_indices], -1),
+    "charge2":          ak.where(sec_selection_indices_valid, arr.L1KBMTFSkimmed_hwCharge[row_indices, sec_selection_indices], -1),
     #"isL1MuMatched2"
     #--- met
     #"met_bx0"
@@ -400,12 +443,34 @@ arr_tracks = ak.Array({
     #"met_bxm5"
 })
 
+### select events with at least one track over more than one bx
+selection_info = f"(bxspread1 > 0) | (bxspread2 > 0)"
+selection_n_before = len(arr_tracks)
+#--------------
+arr_mask = (arr_tracks.bxspread1 > 0) | (arr_tracks.bxspread2 > 0)
+#--------------
+arr_tracks = arr_tracks[arr_mask]
+selection_n_after = len(arr_tracks)
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+
+### select events with two tracks
 arr_tracks = arr_tracks[arr_tracks.idx2 != -1]
 
 ### print some entries of the processed arr
-print(tabulate(arr_tracks[:20].tolist(), headers='keys', tablefmt='grid', showindex=True))
+list_of_dict_per_row = []
+for i in range(0,20):
+    row_dict = {}
+    for rk in ["idx1", "firstbx1", "bxspread1", "nstub1", "pt1", "idx2", "firstbx2", "bxspread2", "nstub2", "pt2"]:
+        for k,v in arr_tracks[i].tolist().items():
+            if rk == k:
+                row_dict[k] = v
+    list_of_dict_per_row.append(row_dict)
+print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid")) #, showindex=True
 
 #****************************
 #############################
 
+stop_time = time.time()
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Finshing execution at time.time() value of {start_time} seconds")
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"The execution took {stop_time - start_time} seconds")
 cosmetic_utils.print_console_footer()
