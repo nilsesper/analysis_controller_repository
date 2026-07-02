@@ -150,6 +150,20 @@ cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPAT
 #ak.behavior.update({"Events": EventRecord})
 
 ### calculate min_bx for arr
+## for single track
+@nb.jit
+def track_first_bx(nStub, s1Bx, s2Bx, s3Bx, s4Bx):
+    first_bx = -1
+    if nStub == 1:
+        first_bx = min([s1Bx])
+    elif nStub == 2:
+        first_bx = min([s1Bx, s2Bx])
+    elif nStub == 3:
+        first_bx = min([s1Bx, s2Bx, s3Bx])
+    elif nStub == 4:
+        first_bx = min([s1Bx, s2Bx, s3Bx, s4Bx])
+    return first_bx
+## generate ak arr
 @nb.jit
 def arr_min_bx(events, builder):
     n_events = len(events)
@@ -158,16 +172,8 @@ def arr_min_bx(events, builder):
         event = events[i_event]
         n_tracks = len(event.L1KBMTFSkimmed_nStub)
         for i_track in range(n_tracks):
-            track_min_bx = -1
-            if event.L1KBMTFSkimmed_nStub[i_track] == 1:
-                track_min_bx = min([event.L1KBMTFSkimmed_s1Bx[i_track]])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 2:
-                track_min_bx = min([event.L1KBMTFSkimmed_s1Bx[i_track], event.L1KBMTFSkimmed_s2Bx[i_track]])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 3:
-                track_min_bx = min([event.L1KBMTFSkimmed_s1Bx[i_track], event.L1KBMTFSkimmed_s2Bx[i_track], event.L1KBMTFSkimmed_s3Bx[i_track]])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 4:
-                track_min_bx = min([event.L1KBMTFSkimmed_s1Bx[i_track], event.L1KBMTFSkimmed_s2Bx[i_track], event.L1KBMTFSkimmed_s3Bx[i_track], event.L1KBMTFSkimmed_s4Bx[i_track]])
-            builder.integer(track_min_bx)
+            first_bx = track_first_bx(nStub=event.L1KBMTFSkimmed_nStub[i_track], s1Bx=event.L1KBMTFSkimmed_s1Bx[i_track], s2Bx=event.L1KBMTFSkimmed_s2Bx[i_track], s3Bx=event.L1KBMTFSkimmed_s3Bx[i_track], s4Bx=event.L1KBMTFSkimmed_s4Bx[i_track])
+            builder.integer(first_bx)
         builder.end_list()
     return builder
 
@@ -178,28 +184,33 @@ arr["L1KBMTFSkimmed_firstBx"] = builder.snapshot()
 ### calculate bx_spread for arr
 # because of inner order of kbmtf algo, the order is always outer station -> inner station
 # therefore a good track coming from the interaction point has outer bx >= inner bx
+## for single track
+@nb.jit
+def track_bx_spread(nStub, firstBx, s1Bx, s2Bx, s3Bx, s4Bx):
+    bx_spread = -1
+    if nStub == 1:
+        bx_spread = 1000*(s1Bx - firstBx)
+    elif nStub == 2:
+        bx_spread = 1000*(s1Bx - firstBx) + 100*(s2Bx - firstBx)
+    elif nStub == 3:
+        bx_spread = 1000*(s1Bx - firstBx) + 100*(s2Bx - firstBx) + 10*(s3Bx - firstBx)
+    elif nStub == 4:
+        bx_spread = 1000*(s1Bx - firstBx) + 100*(s2Bx - firstBx) + 10*(s3Bx - firstBx) + 1*(s4Bx - firstBx)
+    return bx_spread
+## generate ak arr
 @nb.jit
 def arr_bx_spread(events, builder):
     n_events = len(events)
     for i_event in range(n_events):
         builder.begin_list()
         event = events[i_event]
-        event_min_bx = event.L1KBMTFSkimmed_firstBx
         n_tracks = len(event.L1KBMTFSkimmed_nStub)
         for i_track in range(n_tracks):
-            track_bx_spread = -1
-            if event.L1KBMTFSkimmed_nStub[i_track] == 1:
-                track_bx_spread = 1000*(event.L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 2:
-                track_bx_spread = 1000*(event.L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(event.L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 3:
-                track_bx_spread = 1000*(event.L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(event.L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track]) + 10*(event.L1KBMTFSkimmed_s3Bx[i_track] - event_min_bx[i_track])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 4:
-                track_bx_spread = 1000*(event.L1KBMTFSkimmed_s1Bx[i_track] - event_min_bx[i_track]) + 100*(event.L1KBMTFSkimmed_s2Bx[i_track] - event_min_bx[i_track]) + 10*(event.L1KBMTFSkimmed_s3Bx[i_track] - event_min_bx[i_track]) + 1*(event.L1KBMTFSkimmed_s4Bx[i_track] - event_min_bx[i_track])
-            builder.integer(track_bx_spread)
+            bx_spread = track_bx_spread(nStub=event.L1KBMTFSkimmed_nStub[i_track], firstBx=event.L1KBMTFSkimmed_firstBx[i_track], s1Bx=event.L1KBMTFSkimmed_s1Bx[i_track], s2Bx=event.L1KBMTFSkimmed_s2Bx[i_track], s3Bx=event.L1KBMTFSkimmed_s3Bx[i_track], s4Bx=event.L1KBMTFSkimmed_s4Bx[i_track])
+            builder.integer(bx_spread)
         builder.end_list()
     return builder
-
+## add field to arr
 builder = ak.ArrayBuilder()
 arr_bx_spread(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_bxSpread"] = builder.snapshot()
@@ -207,6 +218,20 @@ arr["L1KBMTFSkimmed_bxSpread"] = builder.snapshot()
 ### calculate st_spread for arr
 # because of inner order of kbmtf algo, the order is always outer station -> inner station
 # therefore always st_spread monotnically decreasing
+## for single track
+@nb.jit
+def track_st_spread(nStub, s1Station, s2Station, s3Station, s4Station):
+    st_spread = -1
+    if nStub == 1:
+        st_spread = 1000*(s1Station)
+    elif nStub == 2:
+        st_spread = 1000*(s1Station) + 100*(s2Station)
+    elif nStub == 3:
+        st_spread = 1000*(s1Station) + 100*(s2Station) + 10*(s3Station)
+    elif nStub == 4:
+        st_spread = 1000*(s1Station) + 100*(s2Station) + 10*(s3Station) + 1*(s4Station)
+    return st_spread
+## generate ak arr
 @nb.jit
 def arr_st_spread(events, builder):
     n_events = len(events)
@@ -215,24 +240,36 @@ def arr_st_spread(events, builder):
         event = events[i_event]
         n_tracks = len(event.L1KBMTFSkimmed_nStub)
         for i_track in range(n_tracks):
-            track_bx_spread = -1
-            if event.L1KBMTFSkimmed_nStub[i_track] == 1:
-                track_st_spread = 1000*(event.L1KBMTFSkimmed_s1Station[i_track])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 2:
-                track_st_spread = 1000*(event.L1KBMTFSkimmed_s1Station[i_track]) + 100*(event.L1KBMTFSkimmed_s2Station[i_track])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 3:
-                track_st_spread = 1000*(event.L1KBMTFSkimmed_s1Station[i_track]) + 100*(event.L1KBMTFSkimmed_s2Station[i_track]) + 10*(event.L1KBMTFSkimmed_s3Station[i_track])
-            elif event.L1KBMTFSkimmed_nStub[i_track] == 4:
-                track_st_spread = 1000*(event.L1KBMTFSkimmed_s1Station[i_track]) + 100*(event.L1KBMTFSkimmed_s2Station[i_track]) + 10*(event.L1KBMTFSkimmed_s3Station[i_track]) + 1*(event.L1KBMTFSkimmed_s4Station[i_track])
-            builder.integer(track_st_spread)
+            st_spread = track_st_spread(nStub=event.L1KBMTFSkimmed_nStub[i_track], s1Station=event.L1KBMTFSkimmed_s1Station[i_track], s2Station=event.L1KBMTFSkimmed_s2Station[i_track], s3Station=event.L1KBMTFSkimmed_s3Station[i_track], s4Station=event.L1KBMTFSkimmed_s4Station[i_track])
+            builder.integer(st_spread)
         builder.end_list()
     return builder
-
+## add field to arr
 builder = ak.ArrayBuilder()
 arr_st_spread(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_stSpread"] = builder.snapshot()
 
 ### calculate track pt from curvature hwK for arr
+## for single track
+@nb.jit
+def track_pt(hwK):
+    hwK = hwK - 9.0
+    abs_hwk = abs(hwK)
+    if abs_hwk > 2047:
+        abs_hwk = 2047
+    #abs_hwk = abs_hwk * 1.25 / (1 << 13)
+    abs_hwk = abs_hwk * 1.25 / 2**13
+    abs_hwk = 0.8569 * abs_hwk / (1.0 + 0.1144 * abs_hwk)
+    pt = 0
+    if abs_hwk != 0:
+        pt = 2.0 / abs_hwk
+    if pt > 2000:
+        pt = 2000
+    if pt < 8:
+        pt = 0
+    pt = pt / 2.0
+    return pt
+## generate ak arr
 @nb.jit
 def arr_pt_from_hwk(events, builder):
     n_events = len(events)
@@ -241,26 +278,11 @@ def arr_pt_from_hwk(events, builder):
         event = events[i_event]
         n_tracks = len(event.L1KBMTFSkimmed_nStub)
         for i_track in range(n_tracks):
-            track_hwk = event.L1KBMTFSkimmed_hwK[i_track]
-            track_hwk = track_hwk - 9.0
-            track_abs_hwk = abs(track_hwk)
-            if track_abs_hwk > 2047:
-                track_abs_hwk = 2047
-            #track_abs_hwk = track_abs_hwk * 1.25 / (1 << 13)
-            track_abs_hwk = track_abs_hwk * 1.25 / 2**13
-            track_abs_hwk = 0.8569 * track_abs_hwk / (1.0 + 0.1144 * track_abs_hwk)
-            track_pt = 0
-            if track_abs_hwk != 0:
-                track_pt = 2.0 / track_abs_hwk
-            if track_pt > 2000:
-                track_pt = 2000
-            if track_pt < 8:
-                track_pt = 0
-            track_pt = track_pt / 2.0
-            builder.real(track_pt)
+            pt = track_pt(hwK=event.L1KBMTFSkimmed_hwK[i_track])
+            builder.real(pt)
         builder.end_list()
     return builder
-
+## add field to arr
 builder = ak.ArrayBuilder()
 arr_pt_from_hwk(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_pt"] = builder.snapshot()
