@@ -7,6 +7,7 @@
 
 import os
 import argparse
+import time
 
 from analysis_controller.src import path_utils
 from analysis_controller.src import cosmetic_utils
@@ -14,6 +15,9 @@ from analysis_controller.src import cosmetic_utils
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
 _ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
 cosmetic_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH)
+
+start_time = time.time()
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Starting execution at time.time() value of {start_time} seconds")
 
 #############################
 ### ARGUMENT PARSER
@@ -38,4 +42,7 @@ args = parser.parse_args()
 #****************************
 #############################
 
+stop_time = time.time()
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Finshing execution at time.time() value of {start_time} seconds")
+cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"The execution took {stop_time - start_time} seconds")
 cosmetic_utils.print_console_footer()
