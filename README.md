@@ -75,7 +75,7 @@ Their code was very kindly provided to me, and adapted accordingly for my analys
     > ```
 - Submit the analysis step for execution:  
     ```
-    python analysis_controller/scripts/rekbmtf_submit.py --input_config config/rekbmtf_input_config.yaml --params_config config/rekbmtf_params_config.yaml
+    python analysis_controller/scripts_controller/rekbmtf_submit.py --input_config config/rekbmtf_input_config.yaml --params_config config/rekbmtf_params_config.yaml
     ```
 - Now the analysis has been submitted and is running (remotely).  
 - In the directory `submissions/`, a subdirectory is automatically created, called `rekbmtf_YYYY-MM-DD_hh-mm-ss_{data_type_}_{data_label}/`, which in the following is referred to as `submit_path`  
@@ -83,11 +83,11 @@ Their code was very kindly provided to me, and adapted accordingly for my analys
 - Also, all other related files to the submission are stored in the `submit_path`, such as the CRAB project directory, the CMSSW and CRAB config files, and others   
 - Monitor the execution of the submitted analysis step, when pointing to the respective `submit_config.yaml` file and specifying the current analysis step:  
     ```
-    python analysis_controller/scripts/monitor_submission.py --action monitor --step rekbmtf --submit_config submissions/rekbmtf_2026-06-25_18-21-34_data_Scouting_2024G/submit_config.yaml
+    python analysis_controller/scripts_controller/monitor_submission.py --action monitor --step rekbmtf --submit_config submissions/rekbmtf_2026-06-25_18-21-34_data_Scouting_2024G/submit_config.yaml
     ```
 - Run another user-specified command `{user_command}` on the submitted analysis step, e.g. resubmission of some jobs in case of problems:
     ```
-    python analysis_controller/scripts/monitor_submission.py --action command --command "{user_command}" --step rekbmtf --submit_config submissions/rekbmtf_2026-06-25_18-21-34_data_Scouting_2024G/submit_config.yaml
+    python analysis_controller/scripts_controller/monitor_submission.py --action command --command "{user_command}" --step rekbmtf --submit_config submissions/rekbmtf_2026-06-25_18-21-34_data_Scouting_2024G/submit_config.yaml
     ```
 
 ### **`skimming`:** Extract relevant data and calculating higher-level quantities
