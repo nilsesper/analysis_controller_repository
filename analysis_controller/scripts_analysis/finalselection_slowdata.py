@@ -585,7 +585,7 @@ for i in range(0,min(n_entries,n_to_print)):
     row_dict = {}
     for rk in [
         "treeidx", "arridx",
-        "run", "luminosityBlock", "orbitNumber", "bunchCrossing",
+        "run", "orbitNumber", "bunchCrossing",
         "is_colliding", "is_earlier_colliding",
         ]:
         for k,v in arr_tracks[i].tolist().items():
