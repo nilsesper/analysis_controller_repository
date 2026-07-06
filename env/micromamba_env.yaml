@@ -297,6 +297,7 @@ dependencies:
     - fonttools==4.63.0
     - frozenlist==1.8.0
     - fsspec==2026.6.0
+    - fsspec_xrootd==0.5.5
     - idna==3.18
     - kiwisolver==1.5.0
     - matplotlib==3.11.0
@@ -310,6 +311,7 @@ dependencies:
     - uproot==5.7.4
     - urllib3==2.7.0
     - vector==1.8.1
+    - xrootd==6.1.0
     - xxhash==3.8.0
     - yarl==1.24.2
 
