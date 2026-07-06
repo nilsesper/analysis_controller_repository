@@ -36,8 +36,10 @@ vector.register_awkward()
 ### MAIN PART
 
 ### import root file
-#rootfile_path = os.path.join(_ANALYSIS_CONTROLLER_PATH, "dev", "rekbmtf_example_output.root")
-rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/output.root"
+#rootfile_path = os.path.join(_ANALYSIS_CONTROLLER_PATH, "scripts_analysis", "rekbmtf_example_output.root")
+#rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/output.root"
+rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/rekbmtf_example_output_1.root"
+
 cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Opening ROOT file from \"{rootfile_path}\"")
 rootfile = uproot.open(rootfile_path)
 
@@ -127,25 +129,6 @@ arr.type.show() = {
 ???
 """
 
-#class EventRecord(ak.Record):
-#    def show_info(self):
-#        #print(f"++++++++++++++++++++++")
-#        #print(f"nL1KBMTFSkimmed:      {self.nL1KBMTFSkimmed},")
-#        #print(f"L1KBMTFSkimmed_nStub: {self.L1KBMTFSkimmed_nStub},")
-#        #print(f"L1KBMTFSkimmed_s1Bx:  {self.L1KBMTFSkimmed_s1Bx},")
-#        #print(f"L1KBMTFSkimmed_s2Bx:  {self.L1KBMTFSkimmed_s2Bx},")
-#        #print(f"L1KBMTFSkimmed_s3Bx:  {self.L1KBMTFSkimmed_s3Bx},")
-#        #print(f"L1KBMTFSkimmed_s4Bx:  {self.L1KBMTFSkimmed_s4Bx},")
-#        print(f"arr_min_bx():         {self.L1KBMTFSkimmed_firstBx},")
-#        print(f"arr_bx_spread():      {self.L1KBMTFSkimmed_bxSpread},")
-#        #print(f"L1KBMTFSkimmed_s1Bx:  {self.L1KBMTFSkimmed_s1Station},")
-#        #print(f"L1KBMTFSkimmed_s2Bx:  {self.L1KBMTFSkimmed_s2Station},")
-#        #print(f"L1KBMTFSkimmed_s3Bx:  {self.L1KBMTFSkimmed_s3Station},")
-#        #print(f"L1KBMTFSkimmed_s4Bx:  {self.L1KBMTFSkimmed_s4Station},")
-#        print(f"arr_st_spread():      {self.L1KBMTFSkimmed_stSpread},")
-#        print(f"arr_pt_from_hwk():    {self.L1KBMTFSkimmed_pt},")
-#        #print(f"++++++++++++++++++++++")
-#ak.behavior.update({"Events": EventRecord})
 
 ### calculate min_bx for arr
 ## for single track
@@ -317,7 +300,7 @@ def track_find_l1muon_match(trackFourVec, l1muFourVecs):
     for i_muon in range(n_muons):
         if trackFourVec.deltaR(l1muFourVecs[i_muon]) < analysis_params.delta_r_max_for_track_l1mu_match:
             matched_i_muon = i_muon
-            break
+            #break
     return matched_i_muon
 ## for ak arr
 @nb.jit
@@ -339,10 +322,6 @@ arr["L1KBMTFSkimmed_l1muMatchedIdx"] = builder.snapshot()
 
 ### add boolean field whether there was a l1 muon match
 arr["L1KBMTFSkimmed_isL1muMatched"] = ak.where(arr.L1KBMTFSkimmed_l1muMatchedIdx > -1, True, False)
-
-### prepare map of colliding bunches
-run_to_lhcscheme = analysis_params.nb_run_to_lhcscheme
-lhcscheme_to_filledbx = analysis_params.nb_lhcscheme_to_filledbx
 
 ### select only primary and secondary track
 # track selection order from collection:
@@ -398,10 +377,6 @@ aki_arr_sec_selection = analysis_utils.gen_akindex_from_indexlist(indexlist=i_ar
 ### generate no of selected tracks for each event
 n_sel_tracks = np.array((i_arr_prim_selection != -1), dtype=np.int8) + np.array((i_arr_sec_selection != -1), dtype=np.int8)
 
-#prim_selection_indices_valid = (prim_selection_indices >= 0)
-#sec_selection_indices_valid = (sec_selection_indices >= 0)
-#n_sel_tracks = np.array(prim_selection_indices_valid, dtype=np.int8) + np.array(sec_selection_indices_valid, dtype=np.int8)
-
 ## determine arr indices of tracks to be selected
 row_indices_arr = ak.local_index(arr, axis=0)
 
@@ -414,8 +389,6 @@ arr_tracks = ak.Array({
     "luminosityBlock":          arr.luminosityBlock[row_indices_arr],
     "orbitNumber":              arr.orbitNumber[row_indices_arr],
     "bunchCrossing":            arr.bunchCrossing[row_indices_arr],
-    #"is_colliding":             arr.isColliding[row_indices_arr],
-    #"is_earlier_colliding":     arr.isEarlierColliding[row_indices_arr],
     "nseltracks":               n_sel_tracks,
     #--- primary track
     "idx1":             i_arr_prim_selection,
@@ -478,6 +451,10 @@ arr_tracks["l1MuPhi2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_phi, a
 arr_tracks["l1MuDxy2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwDXY, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
 arr_tracks["l1MuQual2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwQual, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
 arr_tracks["l1MuCharge2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwCharge, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
+
+### prepare map of colliding bunches
+run_to_lhcscheme = analysis_params.nb_run_to_lhcscheme
+lhcscheme_to_filledbx = analysis_params.nb_lhcscheme_to_filledbx
 
 ### determine whether current event is in colliding bunch
 # take as reference bx not the event bx, but the firstbx1
