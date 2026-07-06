@@ -20,7 +20,7 @@ _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSI
 console_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH)
 
 start_time = time.time()
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Starting execution at time.time() value of \"{start_time} seconds\"")
+
 
 ### define analysis step
 analysis_step = "rekbmtf"
@@ -226,6 +226,5 @@ for i in range(n_inputs):
 #############################
 
 stop_time = time.time()
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finshing execution at time.time() value of \"{stop_time} seconds\"")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The execution took \"{stop_time - start_time} seconds\"")
 console_utils.print_console_footer()
