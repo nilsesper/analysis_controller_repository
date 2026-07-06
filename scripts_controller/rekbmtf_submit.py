@@ -213,8 +213,6 @@ for i in range(n_inputs):
         #bash_commands += f'crab submit -c {crab_config_filepath} --dryrun\n'
         # execute commands
         _, _ = console_utils.run_command(bash_command=bash_commands)
-        # print
-        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished executing the commands for the CRAB submission")
     
     #=============================================================================
     else:

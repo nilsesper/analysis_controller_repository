@@ -103,9 +103,8 @@ if output_type == "cern-grid":
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to list output path on GRID \"{gfal_basepath}\"")
         bash_commands = f''
         # ls grid files
-        _, _ = console_utils.run_command(bash_command=f'gfal-ls -lH {gfal_basepath}\n')
-        # print
-        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished executing the commands for the CRAB status polling")
+        root_file_list = file_utils.recursive_file_scan(basepath="~/promotion/test_analysis_hscp_l1/_localtest/", ls_command="ls -l", file_suffix=".root", maxdepth=5, verbose=1)
+        #root_file_list = file_utils.recursive_file_scan(basepath=gfal_basepath, ls_command="gfal-ls -l", file_suffix=".root", maxdepth=5, verbose=1)
 
     #== 
     else:

@@ -71,6 +71,80 @@ def _replace_wildcard_if_possible(*, value):
             new_value = new_value.replace(wildcard, wildcard_replacement)
     return new_value
 
+### determination of file type (file, directory) with first char of permissions (from ls -lH output)
+_perm_to_type = {
+    "-": "file",
+    "d": "directory",
+    "l": "symlink",
+    "b": "block",
+    "c": "char",
+    "s": "socket",
+    "p": "fifo",
+}
+
+### recursive scan for files in subdirs
+def _recursive_file_scan(*, cur_basepath, ls_command, file_suffix="", maxdepth=9999, verbose=1, cur_found_files=[], cur_depth=0):
+    # check whether depth is not too high, else immediately exit
+    if cur_depth > maxdepth:
+        return cur_found_files
+    # run ls command
+    returnvalue, cmdout = console_utils.run_command(bash_command=f'{ls_command} {cur_basepath}\n', verbose=verbose)
+    # analyze output of ls command
+    subdir_basepaths = []
+    for ls_line in cmdout.split("\n"):
+        # make sure line is not empty
+        if ls_line.lower().startswith("total"):
+            continue
+        if len(ls_line) == 0:
+            continue
+        # extract information from ls output
+        ls_line_parts = ls_line.split(maxsplit=8) # maxsplit=8 ensures that spaces in last column (filename) are not misinterpreted
+        ls_line_parts = [console_utils.remove_console_characters(input_str=ls_item) for ls_item in ls_line_parts]
+        perms, links, owner, group, size, month, day, time_or_year, name = ls_line_parts
+        # determine type from permission string
+        perms_firstchar = perms[0]
+        dtype = _perm_to_type[perms_firstchar]
+        # remove trailing spaces from name
+        name = name.rstrip()
+        # determine rel filepath / objpath
+        rel_objath = os.path.join(cur_basepath, name)
+        # check if directory: call recursively (later)
+        if dtype == "directory":
+            subdir_basepaths.append(rel_objath)
+        # skip if not file
+        if dtype != "file":
+            continue
+        # check file suffix (if desired)
+        if file_suffix != None:
+            if not name.endswith(file_suffix):
+                continue
+        # add found file to list, use rel filepath as key
+        cur_found_files.append({
+            "path": rel_objath,
+            "perms": perms,
+            "links": links,
+            "owner": owner,
+            "group": group,
+            "size": int(size),
+            "month": month,
+            "day": day,
+            "time_or_year": time_or_year,
+            "dtype": dtype,
+        })
+    # recusively analyze subdirs, if depth not too high
+    next_depth = cur_depth+1
+    for subdir_basepath in subdir_basepaths:
+        cur_found_files = _recursive_file_scan(cur_basepath=subdir_basepath, ls_command=ls_command, file_suffix=file_suffix, maxdepth=maxdepth, verbose=verbose, cur_found_files=cur_found_files, cur_depth=next_depth)
+    return cur_found_files
+
+### convert file size in bytes to human readable value
+def _bytes_to_human_readable_value(bytesize, suffix="B"):
+    for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
+        if abs(bytesize) < 1024.0:
+            return f"{bytesize:3.1f} {unit}{suffix}"
+        bytesize /= 1024.0
+    return f"{bytesize:.1f} Yi{suffix}"
+
 ############################
 ### MAIN FUNCTIONS & CLASSES
 
@@ -265,4 +339,29 @@ def load_config(*, filepath, config_type, verbose=1):
     ### return config file
     return config
 
-
+### recursively scan for files
+# basepath: path from where to start the recursive scan
+# ls_command: "ls -h"-like command that produces the following output format, e.g. "ls -h" or "gfal-ls -h":
+#   "drwxrwxrwx  0 0     0        0.0    Jun 27 00:43 260626_075212" for directory
+#   "-rw-------. 1 esper inst3a   205275 Jun 17 12:07 output.root" for file
+# file_suffix: optional file suffix to filter on, e.g. ".root"
+# maxdepth: max directory depth of recursive search
+# verbose: change print statement behavior
+## returns: [{path (wrt basepath), perms, links, owner, group, size (in bytes), month, day, time_or_year, dtype}]
+def recursive_file_scan(*, basepath, ls_command="ls -l", file_suffix="", maxdepth=9999, verbose=1):
+    # print
+    if verbose >= 1:
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Attempting to recursively find files with the command \"{ls_command}\" starting from path \"{basepath}\"")
+    # recursive scan, starting at basepath
+    found_files = _recursive_file_scan(cur_basepath=basepath, ls_command=ls_command, file_suffix=file_suffix, maxdepth=maxdepth, verbose=max(0,verbose-1))
+    # calculate file no
+    n_files = len(found_files)
+    # calculate file size
+    total_size = 0
+    for file in found_files:
+        total_size += file["size"]
+    total_size_str = _bytes_to_human_readable_value(bytesize=total_size)
+    # print
+    if verbose >= 1:
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Found \"{n_files}\" files with a total size of \"{total_size_str}\"")
+    return found_files

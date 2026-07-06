@@ -174,8 +174,6 @@ if submission_type == "cern-crab":
         bash_commands += f'crab {command_arg} -d {crab_submitpath}\n'
         # execute commands
         _, _ = console_utils.run_command(bash_command=bash_commands)
-        # print
-        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished executing the specified command with CRAB")
 
     #== 
     else:

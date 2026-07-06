@@ -8,6 +8,7 @@
 import os
 import sys
 import subprocess
+import re
 
 from analysis_controller.src import path_utils
 
@@ -16,6 +17,9 @@ _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSI
 
 ############################
 ### HELPER FUNCTIONS & CLASSES (with prefix "_")
+
+### helper for console format string remover
+_ANSI_RE = re.compile(r'\x1b\[[0-9;]*[mK]')
 
 ############################
 ### MAIN FUNCTIONS & CLASSES
@@ -123,7 +127,7 @@ def print_string(*, topic="", string="", verbose=1, highlightquotes=True, highli
 ### run console command as subprocess
 # bash_command: command string to be executed
 # copy_env: if True, copy current bash env, else use clear env
-def run_command(bash_command="", *, copy_env=False, verbose=1, print_cmd=True, print_stdout=True, print_stderr=True, always_print_when_retval_not_zero=True):
+def run_command(*, bash_command="", copy_env=False, verbose=1, print_cmd=True, print_cmdout=True, always_print_when_retval_not_zero=True, crash_when_retval_not_zero=True):
     # print info
     already_printed_cmd = False
     if verbose >= 1:
@@ -168,24 +172,31 @@ def run_command(bash_command="", *, copy_env=False, verbose=1, print_cmd=True, p
             text=True,
         )
     # extract info
-    retval = completed_process.returncode
-    stdout = completed_process.stdout
+    returnvalue = completed_process.returncode
+    cmdout = completed_process.stdout
     # stderr remains always empty due to the construction
     # print info
-    if verbose >= 1 or (always_print_when_retval_not_zero == True and retval != 0):
-        print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Completed bash command with return code \"{retval}\"")
+    if verbose >= 1 or (always_print_when_retval_not_zero == True and returnvalue != 0):
+        print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Completed bash command with return value \"{returnvalue}\"")
         if print_cmd == True and len(bash_command) > 0 and already_printed_cmd == False: # only print cmd once...
             for bash_command_line in bash_command.split("\n"):
                 if bash_command_line != "":
                     print_prefix_string(prefix=">BASHCMD>", string=bash_command_line)
-        if print_stdout == True and len(stdout) > 0:
-            for stdout_line in stdout.split("\n"):
-                if stdout_line != "":
-                    if retval == 0:
-                        print_prefix_string(prefix=">BASHOUT>", string=stdout_line)
+        if print_cmdout == True and len(cmdout) > 0:
+            for cmdout_line in cmdout.split("\n"):
+                if cmdout_line != "":
+                    if returnvalue == 0:
+                        print_prefix_string(prefix=">BASHOUT>", string=cmdout_line)
                     else:
-                        print_prefix_string(prefix=">BASHERR>", string=stdout_line, highlightcolor=color.red)
+                        print_prefix_string(prefix=">BASHERR>", string=cmdout_line, highlightcolor=color.red)
+    # raise exception if desired
+    if crash_when_retval_not_zero == True and returnvalue != 0:
+        raise Exception(f"{color.red}Bash command completed with return value \"{returnvalue}\"{color.reset}")
     # return info
-    return retval, stdout
+    return returnvalue, cmdout
 
+### remove all console color / formatting characters
+def remove_console_characters(*, input_str):
+    output_str = _ANSI_RE.sub("", input_str)
+    return output_str
 
