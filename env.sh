@@ -7,10 +7,10 @@ YELLOW="\033[0;33m"
 RED="\033[0;31m"
 RESET="\033[0m"
 
-printf "${CYAN}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
-printf "${CYAN}+++${WHITEBOLD} ANALYSIS_CONTROLLER: l1 scouting slow hscp analysis ${CYAN}+++${RESET}\n"
-printf "${CYAN}+++${WHITE} env.sh                                              ${CYAN}+++${RESET}\n"
-printf "${CYAN}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
+printf "${CYAN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
+printf "${CYAN}+++${WHITEBOLD} ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis ${CYAN}+++${RESET}\n"
+printf "${CYAN}+++${WHITE} env.sh                                                         ${CYAN}+++${RESET}\n"
+printf "${CYAN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
 #                                                                              |{CYAN}
 
 printf "${YELLOW}Locating the repository directory.${RESET}\n"
@@ -51,4 +51,4 @@ source env/init_micromamba.sh
 printf "${YELLOW}Activating micromamba environment.${RESET}\n"
 source env/activate_micromamba_env.sh
 
-printf "${CYAN}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
+printf "${CYAN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"

@@ -7,10 +7,10 @@ YELLOW="\033[0;33m"
 RED="\033[0;31m"
 RESET="\033[0m"
 
-printf "${CYAN}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
-printf "${CYAN}+++${WHITEBOLD} ANALYSIS_CONTROLLER: l1 scouting slow hscp analysis ${CYAN}+++${RESET}\n"
-printf "${CYAN}+++${WHITE} env/install-from-file_micromamba_env.sh             ${CYAN}+++${RESET}\n"
-printf "${CYAN}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
+printf "${CYAN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
+printf "${CYAN}+++${WHITEBOLD} ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis ${CYAN}+++${RESET}\n"
+printf "${CYAN}+++${WHITE} env/install-from-file_micromamba_env.sh                        ${CYAN}+++${RESET}\n"
+printf "${CYAN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
 #                                                                              |{CYAN}
 
 ### find script abs path when not executing but sourcing the script and cd into it
@@ -38,4 +38,4 @@ printf "${YELLOW}Re-installing micromamba environment from file \"env/micromamba
 ### install new environment from file
 yes | micromamba env create -f micromamba_env.yaml
 
-printf "${CYAN}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
+printf "${CYAN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
