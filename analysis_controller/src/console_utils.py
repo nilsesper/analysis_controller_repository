@@ -69,6 +69,16 @@ class noprint:
         sys.stdout.close()
         sys.stdout = self.original_stdout
 
+### make all text in quotes "" color-highlighted
+def _highlight_quotes(input_str, highlightcolor=color.cyan):
+    output_str = ""
+    is_highlighted = False
+    for part in input_str.split("\""):
+        output_str += f"{highlightcolor if is_highlighted == True else color.reset}{part}"
+        is_highlighted = not is_highlighted
+    output_str += f"{color.reset}"
+    return output_str
+
 ### print header with relative file path
 def print_console_header(*, filepath="", analysis_controller_filepath="", verbose=1):
     if analysis_controller_filepath != "":
@@ -87,19 +97,27 @@ def print_console_footer(*, verbose=1):
     print(f"{color.cyan}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++{color.reset}")
 
 ### print string with highlighted topic and normal string in the format "[topic] string"
-def print_topic_string(*, topic="", string="", verbose=1, highlightcolor=color.yellow):
+def print_topic_string(*, topic="", string="", verbose=1, highlightcolor=color.yellow, highlightquotes=True, highlightquotescolor=color.cyan):
+    if highlightquotes == True:
+        string = _highlight_quotes(input_str=string, highlightcolor=highlightquotescolor)
     print(f"{highlightcolor}[ {topic} ]{color.reset} {string}")
 
 ### print string with highlighted prefix and normal string in the format "prefix string"
-def print_prefix_string(*, prefix="", string="", verbose=1, highlightcolor=color.yellow):
+def print_prefix_string(*, prefix="", string="", verbose=1, highlightcolor=color.yellow, highlightquotes=True, highlightquotescolor=color.cyan):
+    if highlightquotes == True:
+        string = _highlight_quotes(input_str=string, highlightcolor=highlightquotescolor)
     print(f"{highlightcolor}{prefix} {color.reset} {string}")
 
 ### print highlighted string in the format "string"
-def print_highlight_string(*, topic="", string="", verbose=1, highlightcolor=color.yellow):
+def print_highlight_string(*, topic="", string="", verbose=1, highlightcolor=color.yellow, highlightquotes=True, highlightquotescolor=color.cyan):
+    if highlightquotes == True:
+        string = _highlight_quotes(input_str=string, highlightcolor=highlightquotescolor)
     print(f"{highlightcolor}{string}{color.reset}")
 
 ### print normal string in the format "string"
-def print_string(*, topic="", string="", verbose=1):
+def print_string(*, topic="", string="", verbose=1, highlightquotes=True, highlightquotescolor=color.cyan):
+    if highlightquotes == True:
+        string = _highlight_quotes(input_str=string, highlightcolor=highlightquotescolor)
     print(f"{string}")
 
 ### run console command as subprocess
