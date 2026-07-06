@@ -12,20 +12,19 @@ from datetime import datetime
 import time
 
 from analysis_controller.src import path_utils
-from analysis_controller.src import cosmetic_utils
 from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
-_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = relative_path_analysis_controller(filepath=_FILEPATH)
-cosmetic_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH)
+_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
+console_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH)
 
 start_time = time.time()
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Starting execution at time.time() value of {start_time} seconds")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Starting execution at time.time() value of {start_time} seconds")
 
 ### define analysis step
 analysis_step = "rekbmtf"
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Analysis step is \"{analysis_step}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Analysis step is \"{analysis_step}\"")
 
 #############################
 ### ARGUMENT PARSER
@@ -67,12 +66,12 @@ params_config = file_utils.load_config(
 ### define submission timestamp
 submit_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 # print
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Setting submission timestamp for all datasets as \"{submit_timestamp}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting submission timestamp for all datasets as \"{submit_timestamp}\"")
 
 
 ### do submission individually for each data_input entry
 for i in range(n_inputs):
-    cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Attempting to submit dataset {i+1} / {n_inputs}: data_type=\"{input_config[i]['data_type']}\", data_label=\"{input_config[i]['data_label']}\"")
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit dataset {i+1} / {n_inputs}: data_type=\"{input_config[i]['data_type']}\", data_label=\"{input_config[i]['data_label']}\"")
 
     ### prepare variables from config files
     data_type = input_config[i]["data_type"]
@@ -100,15 +99,15 @@ for i in range(n_inputs):
     # create submitdir
     os.mkdir(submit_path)
     # print
-    cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Prepared submission directory for current dataset at \"{submit_path}\"")
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared submission directory for current dataset at \"{submit_path}\"")
 
     #=============================================================================
     #== SUBMISSION_TYPE: CERN-CRAB  &&  OUTPUT_TYPE: CERN-GRID
     if submission_type == "cern-crab" and output_type == "cern-grid":
 
         # print
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Submission type of this dataset is \"{submission_type}\"")
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Output type of this dataset is \"{output_type}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this dataset is \"{submission_type}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this dataset is \"{output_type}\"")
 
         ### prepare variables
         crab_requestname = submit_name
@@ -122,14 +121,7 @@ for i in range(n_inputs):
         cmssw_config_filename = f"cmssw_cfg.py"
         cmssw_config_filepath = os.path.join(submit_path, cmssw_config_filename)
         # copy template file
-        bash_commands = f''
-        bash_commands += f'cp {cmssw_config_template_filepath} {cmssw_config_filepath}\n'
-        _ = subprocess.run(
-            bash_commands,
-            shell=True,
-            check=True,
-            executable="/bin/bash",
-        )
+        _, _ = console_utils.run_command(bash_command=f'cp {cmssw_config_template_filepath} {cmssw_config_filepath}\n')
         # prepare cmssw wildcards
         cmssw_config_wildcards = {
             
@@ -137,23 +129,16 @@ for i in range(n_inputs):
         # open cmssw template, and replace wildcards
         content = file_utils.load_file(filepath=cmssw_config_filepath)
         new_content = file_utils.replace_wildcards_if_possible(content=content, wildcards=cmssw_config_wildcards)
-        file_utils.store_file(filepath=cmssw_config_filepath, new_content=new_content)
+        file_utils.store_local_file(filepath=cmssw_config_filepath, new_content=new_content)
         # print
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Prepared CMSSW config file for current dataset at \"{cmssw_config_filepath}\", based on template file \"{cmssw_config_template_filepath}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared CMSSW config file for current dataset at \"{cmssw_config_filepath}\", based on template file \"{cmssw_config_template_filepath}\"")
 
         ### prepare crab config file
         # copy crab template file to submitpath
         crab_config_filename = f"crab_cfg.py"
         crab_config_filepath = os.path.join(submit_path, crab_config_filename)
         # copy template file
-        bash_commands = f''
-        bash_commands += f'cp {crab_config_template_filepath} {crab_config_filepath}\n'
-        _ = subprocess.run(
-            bash_commands,
-            shell=True,
-            check=True,
-            executable="/bin/bash",
-        )
+        _, _ = console_utils.run_command(bash_command=f'ccp {crab_config_template_filepath} {crab_config_filepath}\n')
         # prepare crab wildcards
         crab_config_wildcards = {
             "++++CRAB_REQUESTNAME++++": crab_requestname,
@@ -167,9 +152,9 @@ for i in range(n_inputs):
         # open crab template, and replace wildcards
         content = file_utils.load_file(filepath=crab_config_filepath)
         new_content = file_utils.replace_wildcards_if_possible(content=content, wildcards=crab_config_wildcards)
-        file_utils.store_file(filepath=crab_config_filepath, new_content=new_content)
+        file_utils.store_local_file(filepath=crab_config_filepath, new_content=new_content)
         # print
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Prepared CRAB config file for current dataset at \"{crab_config_filepath}\", based on template file \"{crab_config_template_filepath}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared CRAB config file for current dataset at \"{crab_config_filepath}\", based on template file \"{crab_config_template_filepath}\"")
 
         ### prepare submit yaml file with all information, for the next analyis steps and the job monitoring
         submit_yaml = {
@@ -204,13 +189,13 @@ for i in range(n_inputs):
         ### store submit yaml file
         submit_filename = "submit_config.yaml"
         submit_filepath = os.path.join(submit_path, submit_filename)
-        file_utils.store_yaml_file(filepath=submit_filepath, yaml_content=submit_yaml)
-        cosmetic_utils.print_string(string=f"Created submit file at \"{submit_filepath}\"")
+        file_utils.store_local_yaml_file(filepath=submit_filepath, yaml_content=submit_yaml)
+        console_utils.print_string(string=f"Created submit file at \"{submit_filepath}\"")
         # print
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Prepared submit config file for current dataset at \"{submit_filepath}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared submit config file for current dataset at \"{submit_filepath}\"")
 
         ### finally: submit to crab
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Attempting to submit to CRAB, using the CRAB workarea \"{crab_workarea}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit to CRAB, using the CRAB workarea \"{crab_workarea}\"")
         bash_commands = f''
         bash_commands += f'\n'
         # source cms base env
@@ -223,17 +208,13 @@ for i in range(n_inputs):
         bash_commands += f'cmsenv\n'
         # cd into submitpath
         bash_commands += f'cd {submit_path}\n'
-        # run crab submit command
+        # crab submit command
         bash_commands += f'crab submit -c {crab_config_filepath}\n'
         #bash_commands += f'crab submit -c {crab_config_filepath} --dryrun\n'
-        _ = subprocess.run(
-            bash_commands,
-            shell=True,
-            check=True,
-            executable="/bin/bash",
-        )
+        # execute commands
+        _, _ = console_utils.run_command(bash_command=bash_commands)
         # print
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Finished executing the commands for the CRAB submission")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished executing the commands for the CRAB submission")
     
     #=============================================================================
     else:
@@ -241,12 +222,12 @@ for i in range(n_inputs):
     #=============================================================================
 
     # print
-    cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Finished submitting the specified datasets")
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished submitting the specified datasets")
 
 #****************************
 #############################
 
 stop_time = time.time()
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Finshing execution at time.time() value of {start_time} seconds")
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"The execution took {stop_time - start_time} seconds")
-cosmetic_utils.print_console_footer()
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finshing execution at time.time() value of {stop_time} seconds")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The execution took {stop_time - start_time} seconds")
+console_utils.print_console_footer()

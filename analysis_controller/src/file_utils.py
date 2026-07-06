@@ -11,10 +11,9 @@ import yaml
 
 from analysis_controller.src import path_utils
 from analysis_controller.src import console_utils 
-from analysis_controller.src import cosmetic_utils
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
-_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
+_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
 
 ############################
 ### HELPER FUNCTIONS & CLASSES (with prefix "_")
@@ -75,16 +74,16 @@ def _replace_wildcard_if_possible(*, value):
 ############################
 ### MAIN FUNCTIONS & CLASSES
 
-### load file
-def load_file(*, filepath):
+### load local file
+def load_local_file(*, filepath):
     if not os.path.isfile(filepath):
         raise Exception(f"{console_utils.color.red} Could not find the file \"{filepath}\" {console_utils.color.reset}")
     with open(filepath, "r") as file:
         content = str(file.read())
     return content
 
-### store file
-def store_file(*, filepath, new_content):
+### store local file
+def store_local_file(*, filepath, new_content):
     with open(filepath, "w") as file:
         file.write(new_content)
 
@@ -97,16 +96,16 @@ def replace_wildcards_if_possible(*, content, wildcards):
         new_content = new_content.replace(wildcard, wildcard_replacement)
     return new_content
 
-### load yaml file
-def load_yaml_file(*, filepath):
+### load local yaml file
+def load_local_yaml_file(*, filepath):
     if not os.path.isfile(filepath):
         raise Exception(f"{console_utils.color.red} Could not find the file \"{filepath}\" {console_utils.color.reset}")
     with open(filepath, "r") as file:
         yaml_content = yaml.safe_load(file)
     return yaml_content
 
-### store yaml file
-def store_yaml_file(*, filepath, yaml_content):
+### store local yaml file
+def store_local_yaml_file(*, filepath, yaml_content):
     content = yaml.safe_dump(yaml_content)
     with open(filepath, "w") as file:
         file.write(content)
@@ -117,9 +116,9 @@ def load_config(*, filepath, config_type, verbose=1):
     filepath = os.path.abspath(filepath)
     ### print statement
     if verbose >= 1:
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH} {sys._getframe().f_code.co_name}()", string=f"Attempting to import config file of type \"{config_type}\" from path \"{filepath}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Attempting to import config file of type \"{config_type}\" from path \"{filepath}\"")
     ### load yaml contents
-    config = load_yaml_file(filepath=filepath)
+    config = load_local_yaml_file(filepath=filepath)
     #--------------------------------------------------
     ### rekbmtf_input ----------------------------
     if config_type == "rekbmtf_input":
@@ -262,7 +261,7 @@ def load_config(*, filepath, config_type, verbose=1):
         raise Exception(f"{console_utils.color.red}Undefined config_type \"{config_type}\"{console_utils.color.reset}")
     ### print statement
     if verbose >= 1:
-        cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH} {sys._getframe().f_code.co_name}()", string=f"Successfully config file of type \"{config_type}\" from path \"{filepath}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Successfully imported config file")
     ### return config file
     return config
 

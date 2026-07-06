@@ -15,7 +15,6 @@ import vector
 import time
 
 from analysis_controller.src import path_utils
-from analysis_controller.src import cosmetic_utils
 from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
 
@@ -23,11 +22,11 @@ from analysis_controller.src import analysis_utils
 from analysis_controller.src import analysis_params
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
-_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
-cosmetic_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH)
+_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
+console_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH)
 
 start_time = time.time()
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Starting execution at time.time() value of {start_time} seconds")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Starting execution at time.time() value of {start_time} seconds")
 
 vector.register_awkward()
 
@@ -36,28 +35,29 @@ vector.register_awkward()
 ### MAIN PART
 
 ### import root file
-#rootfile_path = os.path.join(_ANALYSIS_CONTROLLER_PATH, "scripts_analysis", "rekbmtf_example_output.root")
 #rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/output.root"
-rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/rekbmtf_example_output_1.root"
+#rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/rekbmtf_example_output_1.root"
+#rootfile_path = "root://xrootd-cms.infn.it///store/user/nesper/test_analysis_hscp_l1/L1Scouting/crab_Scouting_2024H/260618_105926/0000/output_1.root"
+rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/hadd_test_output_0.root"
 
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Opening ROOT file from \"{rootfile_path}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Opening ROOT file from \"{rootfile_path}\"")
 rootfile = uproot.open(rootfile_path)
 
 ### extract "Events" root tree
 roottree = rootfile["Events"]
 roottree_branches = roottree.keys()
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"ROOT tree \"Events\" contains branches {roottree_branches}")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"ROOT tree \"Events\" contains branches {roottree_branches}")
 
 ### convert root tree to awkward array
 arr = roottree.arrays(roottree_branches)
 arr = ak.with_name(arr, name="Events")
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Converting ROOT tree \"Events\" to awkward array")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Converting ROOT tree \"Events\" to awkward array")
 
 ### add initial index to arr
 row_indices = ak.local_index(arr, axis=0)
 arr["treeidx"] = row_indices
 n_entries = len(row_indices)
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"The imported dataset has {n_entries} events")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The imported dataset has {n_entries} events")
 
 ### overview of input array
 # for data:
@@ -519,7 +519,7 @@ arr_mask = (arr_tracks.nseltracks > 0)
 #--------------
 arr_tracks = arr_tracks[arr_mask]
 selection_n_after = len(arr_tracks)
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
 
 ### select events with at >= 1 track over more than one bx
 selection_info = f"(bxspread1 > 0) | (bxspread2 > 0)"
@@ -529,7 +529,7 @@ arr_mask = (arr_tracks.bxspread1 > 0) | (arr_tracks.bxspread2 > 0)
 #--------------
 arr_tracks = arr_tracks[arr_mask]
 selection_n_after = len(arr_tracks)
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
 
 # ### select events with two tracks
 # selection_info = f"(nseltracks == 2)"
@@ -539,7 +539,7 @@ cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPAT
 # #--------------
 # arr_tracks = arr_tracks[arr_mask]
 # selection_n_after = len(arr_tracks)
-# cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
 
 # ### select events with matched l1mu
 # selection_info = f"(isL1MuMatched1 == True) | (isL1MuMatched2 == True)"
@@ -549,7 +549,7 @@ cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPAT
 # #--------------
 # arr_tracks = arr_tracks[arr_mask]
 # selection_n_after = len(arr_tracks)
-# cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
 
 
 
@@ -610,6 +610,6 @@ print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=
 #############################
 
 stop_time = time.time()
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"Finshing execution at time.time() value of {start_time} seconds")
-cosmetic_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_RELATIVE_FILEPATH}", string=f"The execution took {stop_time - start_time} seconds")
-cosmetic_utils.print_console_footer()
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finshing execution at time.time() value of {stop_time} seconds")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The execution took {stop_time - start_time} seconds")
+console_utils.print_console_footer()
