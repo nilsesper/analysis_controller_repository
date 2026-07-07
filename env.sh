@@ -31,6 +31,14 @@ printf "  ANALYSIS_CONTROLLER_PATH = ${REPO_PATH}\n"
 
 printf "${YELLOW}Adding variables to PYTHONPATH.${RESET}\n"
 
+### init micromamba
+printf "${YELLOW}Initializing micromamba environment manager.${RESET}\n"
+source env/init_micromamba.sh
+
+### activate micromamba env
+printf "${YELLOW}Activating micromamba environment.${RESET}\n"
+source env/activate_micromamba_env.sh
+
 ### add repo directory (minicrate-testing-software) to pythonpath
 export PYTHONPATH="${PYTHONPATH}:${REPO_PATH}"
 printf "  PYTHONPATH += ${REPO_PATH}\n"
@@ -42,13 +50,5 @@ source /cvmfs/cms.cern.ch/cmsset_default.sh
 ### init voms proxy
 printf "${YELLOW}Initializing CMS VOMS proxy.${RESET}\n"
 voms-proxy-init --rfc --voms cms -valid 192:00
-
-### init micromamba
-printf "${YELLOW}Initializing micromamba environment manager.${RESET}\n"
-source env/init_micromamba.sh
-
-### activate micromamba env
-printf "${YELLOW}Activating micromamba environment.${RESET}\n"
-source env/activate_micromamba_env.sh
 
 printf "${CYAN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
