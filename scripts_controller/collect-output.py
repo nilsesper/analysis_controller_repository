@@ -98,13 +98,15 @@ if output_type == "cern-grid":
         input_das_name_firstword = input_das_name.split("/")[1] # extract first word of input_das_name: "L1Scouting" = first word of "/L1Scouting/Run2024I-v1/L1SCOUT"
         output_path = f"{output_basepath}/{input_das_name_firstword}/crab_{crab_requestname}"
 
-        ### poll status from crab
+        ### obtain list of output files on grid storage
         gfal_basepath = f"davs://grid-webdav.physik.rwth-aachen.de:2889/{output_path}/"
-        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to list output path on GRID \"{gfal_basepath}\"")
-        bash_commands = f''
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to list root files in GRID output path \"{gfal_basepath}\"")
         # ls grid files
-        root_file_list = file_utils.recursive_file_scan(basepath="~/promotion/test_analysis_hscp_l1/_localtest/", ls_command="ls -l", file_suffix=".root", maxdepth=5, verbose=1)
-        #root_file_list = file_utils.recursive_file_scan(basepath=gfal_basepath, ls_command="gfal-ls -l", file_suffix=".root", maxdepth=5, verbose=1)
+        #root_file_list = file_utils.recursive_file_scan(basepath="~/promotion/test_analysis_hscp_l1/_localtest/", ls_command="ls -l", file_suffix=".root", maxdepth=5, verbose=1)
+        root_file_list = file_utils.recursive_file_scan(basepath=gfal_basepath, ls_command="gfal-ls -l", file_suffix=".root", maxdepth=5, verbose=1)
+
+        ### group together output files
+        root_file_groups = file_utils.group_files(file_list=root_file_list, target_group_size="1 GiB")
 
     #== 
     else:

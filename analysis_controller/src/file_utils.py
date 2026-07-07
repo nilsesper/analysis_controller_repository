@@ -137,13 +137,27 @@ def _recursive_file_scan(*, cur_basepath, ls_command, file_suffix="", maxdepth=9
         cur_found_files = _recursive_file_scan(cur_basepath=subdir_basepath, ls_command=ls_command, file_suffix=file_suffix, maxdepth=maxdepth, verbose=verbose, cur_found_files=cur_found_files, cur_depth=next_depth)
     return cur_found_files
 
-### convert file size in bytes to human readable value
-def _bytes_to_human_readable_value(bytesize, suffix="B"):
+### convert file size in bytes to human readable file size
+# human readable format: "1.3 GiB"
+def byte_size_to_human_readable_size(*, bytesize, suffix="B"):
     for unit in ("", "Ki", "Mi", "Gi", "Ti", "Pi", "Ei", "Zi"):
         if abs(bytesize) < 1024.0:
-            return f"{bytesize:3.1f} {unit}{suffix}"
+            return f"{bytesize:3.1f} {unit}B"
         bytesize /= 1024.0
-    return f"{bytesize:.1f} Yi{suffix}"
+    return f"{bytesize:.1f} YiB"
+
+### convert human readable file size to byte file size
+# human readable format: "1.3 GiB"
+def human_readable_size_to_byte_size(*, humanreadablesize):
+    units = {"":1, "Ki":1024, "Mi":1024**2, "Gi":1024**3,
+             "Ti":1024**4, "Pi":1024**5, "Ei":1024**6,
+             "Zi":1024**7, "Yi":1024**8}
+    import re
+    m = re.match(r'^\s*([0-9.]+)\s*([KMGTPEZY]?i?)?\s*B?\s*$', humanreadablesize, re.I)
+    if not m: raise ValueError
+    num = float(m.group(1))
+    unit = (m.group(2) or "").title()
+    return int(round(num * units[unit]))
 
 ############################
 ### MAIN FUNCTIONS & CLASSES
@@ -347,7 +361,7 @@ def load_config(*, filepath, config_type, verbose=1):
 # file_suffix: optional file suffix to filter on, e.g. ".root"
 # maxdepth: max directory depth of recursive search
 # verbose: change print statement behavior
-## returns: [{path (wrt basepath), perms, links, owner, group, size (in bytes), month, day, time_or_year, dtype}]
+## returns: found_files: [{path (wrt basepath), perms, links, owner, group, size (in bytes), month, day, time_or_year, dtype}]
 def recursive_file_scan(*, basepath, ls_command="ls -l", file_suffix="", maxdepth=9999, verbose=1):
     # print
     if verbose >= 1:
@@ -360,8 +374,40 @@ def recursive_file_scan(*, basepath, ls_command="ls -l", file_suffix="", maxdept
     total_size = 0
     for file in found_files:
         total_size += file["size"]
-    total_size_str = _bytes_to_human_readable_value(bytesize=total_size)
+    total_size_str = byte_size_to_human_readable_size(bytesize=total_size)
     # print
     if verbose >= 1:
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Found \"{n_files}\" files with a total size of \"{total_size_str}\"")
     return found_files
+
+### combine files into groups which should be hadd-ed together, respecting the file sizes
+# file_list: [files = {size, path}]
+# target_group_size: target size of group of files (if group >= this size, a new group is begun), in human readable form
+## returns:
+# file_group_list: [{size (sum of all file sizes in group), paths: [path of files in group]}]
+def group_files(*, file_list, target_group_size="1 GiB", verbose=1):
+        n_files = len(file_list)
+        # print
+        if verbose >= 1:
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Attempting to build file groups of target size \"{target_group_size}\" from \"{n_files}\" input files")
+        # parse target size
+        target_file_group_size = human_readable_size_to_byte_size(humanreadablesize=target_group_size)
+        # build groups
+        file_group_list = []
+        file_group = {"size": 0, "paths": []}
+        for i_file, file in enumerate(file_list):
+            # continue to fill current group
+            file_group["size"] += file["size"]
+            file_group["paths"].append(file["path"])
+            # if too large or last file, stop current group and start new group
+            if file_group["size"] > target_file_group_size or i_file == n_files-1:
+                file_group_list.append(file_group)
+                file_group = {"size": 0, "paths": []}
+        n_file_groups = len(file_group_list)
+        # print
+        if verbose >= 1:
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Built \"{n_file_groups}\" file groups")
+        return file_group_list
+
+
+
