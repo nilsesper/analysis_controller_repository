@@ -1,7 +1,8 @@
 
 RekbmtfCollection:
 
-    target_file_size: "500 MiB"
+    hadd_file_size: "500 MiB"
+    hadd_file_prefix: "rekbmtf_output_"
 
     output_type: "aachen-net"
     output_site: ""

@@ -108,17 +108,26 @@ if RekbmtfParams.output_type == "cern-grid":
             file_utils.replace_substring_filepath(file_list=input_file_list, subs_from=gfal_prefix, subs_with=xrootd_redirector_prefix)
 
             ### group together output files
-            file_groups = file_utils.group_files(file_list=input_file_list, target_group_size=RekbmtfCollection.target_file_size)
+            input_file_groups = file_utils.group_files(file_list=input_file_list, target_group_size=RekbmtfCollection.hadd_file_size)
 
-            ### make sure output dir exists
+            ### prepare collection basepath
+            collection_basepath = os.path.join(RekbmtfCollection.output_basepath, collection_name)
+
+            ### make sure output basepath exists
             if not os.path.isdir(RekbmtfCollection.output_basepath):
                 console_utils.raise_exception(string=f"The output base path \"{RekbmtfCollection.output_basepath}\" does not exist")
+            
+            ### create collection basepath and make sure it did not exist before
+            if os.path.isdir(collection_basepath):
+                console_utils.raise_exception(string=f"The collection base path subdirectory \"{collection_basepath}\" does not exist")
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create collection base path subdirectory \"{collection_basepath}\"")
+            os.mkdir(collection_basepath)
 
-            ### prepare hadd-ed file paths (add grouppath to file_group dict)
+            ### generate hadd file paths from file groups
+            collection_file_list = file_utils.hadd_names_from_file_groups(file_group_list=input_file_groups, hadd_basepath=collection_basepath, hadd_name_prefix=RekbmtfCollection.hadd_file_prefix, verbose=1)
 
-            # ### hadd together grouped output files, and store them in target file path
-            # hadd_output_basepath = ""
-            # merged_files = file_utils.hadd_file_groups(file_groups=file_groups)
+            ### actually perform hadd-ing of files
+            collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True)
 
             ### prepare output object
             RekbmtfOutput = config_utils.create_config(
@@ -128,8 +137,8 @@ if RekbmtfParams.output_type == "cern-grid":
                     "input_files": input_file_list,
                     "input_size": input_total_size,
                     
-                    "collection_basepath": "", #collection_basepath,
-                    "collection_files": [], #collection_file_list,
+                    "collection_basepath": collection_basepath,
+                    "collection_files": collection_file_list,
                     "collection_timestamp": collection_timestamp,
                 }
             )

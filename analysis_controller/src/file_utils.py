@@ -204,6 +204,72 @@ def group_files(*, file_list, target_group_size="1 GiB", verbose=1):
             console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Built \"{n_file_groups}\" file groups")
         return file_group_list
 
-### hadd together file groups
+### generate hadd file paths from file groups
+# file_group_list: [{size (sum of all file sizes in group), files: [file dict for all files in group]}]
+# hadd_basepath: base dir where hadd file names should be
+# hadd_name_prefix: prefix of hadd file name. will be "{prefix}{index}.root"
+## returns:
+# hadd_file_list: [{input_files, input_size, path}]
+def hadd_names_from_file_groups(*, file_group_list, hadd_basepath, hadd_name_prefix="output_", verbose=1):
+    hadd_file_list = []
+    for i in range(len(file_group_list)):
+        hadd_file_name = f"{hadd_name_prefix}{i}.root"
+        hadd_file_path = os.path.join(hadd_basepath, hadd_file_name)
+        hadd_file_list.append({
+            "input_files": file_group_list[i]["files"],
+            "input_size": file_group_list[i]["size"],
+            "path": hadd_file_path,
+        })
+    return hadd_file_list
+
+### actually hadd the files together
+# hadd_file_list: [{input_files, input_size, path}]
+# hadd_command: string of hadd command to be executed, e.g. if you like special arguments
+# check_exists: if True, ask user whether to overwrite file
+# also measure size of output file
+## returns:
+# hadd_output_file_list: [{input_files, input_size, path, size}]
+def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exists=True, verbose=1):
+    hadd_output_file_list = []
+    n_hadd_files = len(hadd_file_list)
+    # check any hadd file with same name already exists
+    if check_exists:
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Checking whether any of the target hadd files already exists")
+        already_exists = False
+        for i in range(n_hadd_files):
+            hadd_file_path = hadd_file_list[i]["path"]
+            if os.path.isfile(hadd_file_path):
+                already_exists = True
+        # ask user whether he wants to continue
+        if already_exists:
+            console_utils.raise_exception(string="Aborted because any of the target hadd files already exists")
+    # perform actual hadd-ing
+    for i in range(n_hadd_files):
+        if i > 0: break
+        hadd_file_path = hadd_file_list[i]["path"]
+        # print
+        if verbose >= 1:
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Running \"hadd\" command for file group \"{i+1} / {n_hadd_files} ({(i+1)/n_hadd_files*100:03f} %)\"")
+        # prepare string of input files
+        input_str = ""
+        for file in hadd_file_list[i]["input_files"]:
+            input_file_path = file["path"]
+            input_str += f"{input_file_path} "
+        # run hadd command
+        bash_command = f'{hadd_command} {hadd_file_path} {input_str}'
+        returnvalue, cmdout = console_utils.run_command(bash_command=bash_command, verbose=verbose)
+        # check if hadd file was actually created
+        if not os.path.isfile(hadd_file_path):
+            console_utils.raise_exception(string="The hadd command was executed but the output file could not be found")
+        # measure size of created hadd file
+        hadd_file_size = 0
+        # create output entry
+        hadd_output_file_list.append({
+            "input_files": hadd_file_list[i]["input_files"],
+            "input_size": hadd_file_list[i]["input_size"],
+            "path": hadd_file_path,
+            "size": hadd_file_size,
+        })
+    return hadd_output_file_list
 
 

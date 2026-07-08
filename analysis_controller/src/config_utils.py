@@ -89,7 +89,8 @@ DictBlueprints = {
         "crab_workarea": "str",
     },
     "RekbmtfCollection": {
-        "target_file_size": "str",
+        "hadd_file_size": "str",
+        "hadd_file_prefix": "str",
 
         "output_type": "str",
         "output_site": "str",
@@ -139,20 +140,20 @@ def check_dict(*, dictionary, dictionary_name="", blueprint="", top_level=True):
     blueprint_obj = None
     # check input type
     if type(dictionary) != PythonTypes["dict"] and type(dictionary) != PythonTypes["attridict"]:
-        err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary was not actually a dictionary but had the type \"{type(dictionary)}\".{console_utils.color.reset}")
+        err_list.append(f"\"{dictionary_name}\" dictionary was not actually a dictionary but had the type \"{type(dictionary)}\".")
     else:
         # get blueprint_obj
         if blueprint not in DictBlueprints.keys():
-            err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary has an unexpected element blueprint. The DictBlueprint \"{blueprint}\" does not exist.{console_utils.color.reset}")
+            err_list.append(f"\"{dictionary_name}\" dictionary has an unexpected element blueprint. The DictBlueprint \"{blueprint}\" does not exist.")
         else:
             blueprint_obj = DictBlueprints[blueprint]
             # check exactly same keys
             for key in blueprint_obj.keys():
                 if key not in dictionary.keys():
-                    err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary did not include the required key \"{key}\".{console_utils.color.reset}")
+                    err_list.append(f"\"{dictionary_name}\" dictionary did not include the required key \"{key}\".")
             for key in dictionary.keys():
                 if key not in blueprint_obj.keys():
-                    err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary did include the unexpected key \"{key}\".{console_utils.color.reset}")
+                    err_list.append(f"\"{dictionary_name}\" dictionary did include the unexpected key \"{key}\".")
             # check value types & recursively lists and dicts
             for key, value in dictionary.items():
                 if key in blueprint_obj.keys():
@@ -161,11 +162,14 @@ def check_dict(*, dictionary, dictionary_name="", blueprint="", top_level=True):
     # generate error message if top level
     if len(err_list) > 0:
         if blueprint_obj != None:
-            err_list.append(f"{console_utils.color.yellow}INFO: One expects the following structure for a \"{dictionary_name}\" dictionary:  {blueprint_obj}.{console_utils.color.reset}")
+            err_list.append(f"INFO: One expects the following structure for a \"{dictionary_name}\" dictionary:  \"{blueprint_obj}\".")
         if top_level:
-            err_str = "\n"
-            for err in err_list:
-                err_str += f"{err}\n"
+            err_str = ""
+            n_err = len(err_list)
+            for i in range(n_err):
+                err_str += f"- {err_list[i]}"
+                if i < n_err-1:
+                    err_str += "\n"
             console_utils.raise_exception(string=err_str)
     return err_list
 
@@ -176,18 +180,18 @@ def check_one_element(*, key, value, blueprintvalue, dictionary_name="", top_lev
     # if python type: do normal type check
     if blueprintvalue in PythonTypes.keys():
         if type(value) != PythonTypes[blueprintvalue]:
-            err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{PythonTypes[blueprintvalue]}\" but found type \"{type(value)}\".{console_utils.color.reset}")
+            err_list.append(f"\"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{PythonTypes[blueprintvalue]}\" but found type \"{type(value)}\".")
     # if list: check all list elements (only possible for list of dicts)
     if blueprintvalue.startswith("list::"):
         if type(value) != PythonTypes["list"]:
-            err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{blueprintvalue}\" but found type \"{type(value)}\".{console_utils.color.reset}")
+            err_list.append(f"\"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{blueprintvalue}\" but found type \"{type(value)}\".")
         # check list elements
         newblueprint = blueprintvalue.split("list::")[-1]
         err_list.extend( check_list(listobj=value, list_name=f"{dictionary_name} -> {key}", elementblueprint=newblueprint, top_level=False) )
     # if dict: check dict keys and values
     elif blueprintvalue.startswith("dict::"):
         if type(value) != PythonTypes["dict"] and type(value) != PythonTypes["attridict"]:
-            err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{blueprintvalue}\" but found type \"{type(value)}\".{console_utils.color.reset}")
+            err_list.append(f"\"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{blueprintvalue}\" but found type \"{type(value)}\".")
         # check dict keys and values
         newblueprint = blueprintvalue.split("dict::")[-1]
         err_list.extend( check_dict(dictionary=value, dictionary_name=f"{dictionary_name} -> {key}", blueprint=newblueprint, top_level=False) )
@@ -199,27 +203,30 @@ def check_list(*, listobj, list_name="", elementblueprint="", top_level=True):
     err_list = []
     # check input type
     if type(listobj) != PythonTypes["list"]:
-        err_list.append(f"{console_utils.color.red}A \"{list_name}\" list was not actually a list but had the type \"{type(listobj)}\".{console_utils.color.reset}")
+        err_list.append(f"\"{list_name}\" list was not actually a list but had the type \"{type(listobj)}\".")
     else:
         # get blueprint_obj
         if elementblueprint not in DictBlueprints.keys():
-            err_list.append(f"{console_utils.color.red}A \"{list_name}\" list has an unexpected element blueprint. The DictBlueprint \"{elementblueprint}\" does not exist.{console_utils.color.reset}")
+            err_list.append(f"\"{list_name}\" list has an unexpected element blueprint. The DictBlueprint \"{elementblueprint}\" does not exist.")
         else:
             # check dict with blueprint for each element
             for i in range(len(listobj)):
                 listelement = listobj[i]
                 # check type of each list element (if not dict then give alarm)
                 if type(listelement) != PythonTypes["dict"] and type(listelement) != PythonTypes["attridict"]:
-                    err_list.append(f"{console_utils.color.red}A \"{list_name}\" list has an unexpected value type for index {i}. Expected type \"{PythonTypes["dict"]}\" but found type \"{type(listelement)}\".{console_utils.color.reset}")
+                    err_list.append(f"\"{list_name}\" list has an unexpected value type for index {i}. Expected type \"{PythonTypes["dict"]}\" but found type \"{type(listelement)}\".")
                 # check dict at this list position
                 else:
                     err_list.extend( check_dict(dictionary=listelement, dictionary_name=f"{list_name} [{i}]", blueprint=elementblueprint, top_level=False) )
     # generate error message if top level
     if len(err_list) > 0:
         if top_level:
-            err_str = "\n"
-            for err in err_list:
-                err_str += f"{err}\n"
+            err_str = ""
+            n_err = len(err_list)
+            for i in range(n_err):
+                err_str += f"- {err_list[i]}"
+                if i < n_err-1:
+                    err_str += "\n"
             console_utils.raise_exception(string=err_str)
     return err_list
 
