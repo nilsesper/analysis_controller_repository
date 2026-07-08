@@ -45,11 +45,11 @@ args = parser.parse_args()
 ### MAIN PART
 
 ### import submit config file
-ConfigFileRekbmtfSubmission = config_utils.load_ConfigFileRekbmtfSubmission(filepath=args.submit_config, verbose=1)
+ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submit_config, config_type="ConfigRekbmtfSubmission", verbose=1)
 # extract config info
-RekbmtfInput = ConfigFileRekbmtfSubmission.RekbmtfInput
-RekbmtfParams = ConfigFileRekbmtfSubmission.RekbmtfParams
-RekbmtfSubmission = ConfigFileRekbmtfSubmission.RekbmtfSubmission
+RekbmtfInput = ConfigRekbmtfSubmission.RekbmtfInput
+RekbmtfParams = ConfigRekbmtfSubmission.RekbmtfParams
+RekbmtfSubmission = ConfigRekbmtfSubmission.RekbmtfSubmission
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this dataset is \"{RekbmtfParams.submission_type}\"")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this dataset is \"{RekbmtfParams.output_type}\"")
@@ -69,6 +69,8 @@ collect_path = os.path.join(_ANALYSIS_CONTROLLER_REPO_PATH, "collections", colle
 os.mkdir(collect_path)
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared collection directory at \"{collect_path}\"")
+
+exit()
 
 #=============================================================================
 #== OUTPUT_TYPE: CERN-GRID
@@ -105,7 +107,6 @@ if RekbmtfParams.output_type == "cern-grid":
                 print(file_path)
 
         ### prepare hadd-ed file paths (add grouppath to file_group dict)
-
 
         ### prepare collect yaml file with all information, for the next analyis steps and the job monitoring
         collect_yaml = {
