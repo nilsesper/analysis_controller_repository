@@ -62,11 +62,11 @@ if action_type not in allowed_action_types:
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Specified action is \"{action_type}\"")
 
 ### import submit config file
-ConfigFileRekbmtfSubmission = config_utils.load_ConfigFileRekbmtfSubmission(filepath=args.submit_config, verbose=1)
+ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submit_config, config_type="ConfigRekbmtfSubmission", replace_wildcards=True, verbose=1)
 # extract config info
-RekbmtfInput = ConfigFileRekbmtfSubmission.RekbmtfInput
-RekbmtfParams = ConfigFileRekbmtfSubmission.RekbmtfParams
-RekbmtfSubmission = ConfigFileRekbmtfSubmission.RekbmtfSubmission
+RekbmtfInput = ConfigRekbmtfSubmission.RekbmtfInput
+RekbmtfParams = ConfigRekbmtfSubmission.RekbmtfParams
+RekbmtfSubmission = ConfigRekbmtfSubmission.RekbmtfSubmission
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this dataset is \"{RekbmtfParams.submission_type}\"")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this dataset is \"{RekbmtfParams.output_type}\"")

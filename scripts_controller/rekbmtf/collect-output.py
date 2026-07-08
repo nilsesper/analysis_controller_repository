@@ -45,7 +45,7 @@ args = parser.parse_args()
 ### MAIN PART
 
 ### import submit config file
-ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submit_config, config_type="ConfigRekbmtfSubmission", verbose=1)
+ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submit_config, config_type="ConfigRekbmtfSubmission", replace_wildcards=True, verbose=1)
 # extract config info
 RekbmtfInput = ConfigRekbmtfSubmission.RekbmtfInput
 RekbmtfParams = ConfigRekbmtfSubmission.RekbmtfParams
@@ -70,8 +70,6 @@ os.mkdir(collect_path)
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared collection directory at \"{collect_path}\"")
 
-exit()
-
 #=============================================================================
 #== OUTPUT_TYPE: CERN-GRID
 if RekbmtfParams.output_type == "cern-grid":
@@ -89,9 +87,10 @@ if RekbmtfParams.output_type == "cern-grid":
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to recursively list root files in GRID output path \"{gfal_basepath}\"")
         # ls grid files recursively
         file_list = file_utils.recursive_file_scan(basepath=gfal_basepath, ls_command="gfal-ls -l", file_suffix=".root", maxdepth=5, verbose=1)
-
+        
         ### group together output files
-        file_groups = file_utils.group_files(file_list=file_list, target_group_size="1 GiB")
+        target_group_size = "1 GiB"
+        file_groups = file_utils.group_files(file_list=file_list, target_group_size=target_group_size)
 
         ### prepare file paths (remove gfal prefix, add xrootd redirector prefix)
         xrootd_redirector_prefix = "root://xrootd-cms.infn.it//"
@@ -104,42 +103,50 @@ if RekbmtfParams.output_type == "cern-grid":
                 file_path = f"{xrootd_redirector_prefix}{file_path}"
                 # replace file path
                 file_groups[i_group]["paths"][i_file] = file_path
-                print(file_path)
+                #print(file_path)
 
         ### prepare hadd-ed file paths (add grouppath to file_group dict)
 
-        ### prepare collect yaml file with all information, for the next analyis steps and the job monitoring
-        collect_yaml = {
-            f"{analysis_step}_collection":
-            {
-                "collect_name": collect_name,
-                "collect_path": collect_path,
-                "collect_timestamp": collect_timestamp,
+        # ### hadd together grouped output files, and store them in target file path
+        # hadd_output_basepath = ""
+        # merged_files = file_utils.hadd_file_groups(file_groups=file_groups)
 
-                "input_files": file_list,
-                "input_file_groups": file_groups,
+        ### prepare output object
+        RekbmtfOutput = config_utils.create_config(
+            config_type="RekbmtfOutput",
+            replace_wildcards=True, verbose=1,
+            **{
+                "output_files": file_list,
+                "output_file_groups": file_groups,
+                "target_output_file_size": target_group_size,
+                "collection_output_type": "",
+                "collection_output_site": "",
+                "collection_basepath": "",
+                "collected_files": [],
             }
-        } | {
-            f"{analysis_step}_submission": submit_config
-        }
-        ### store submit yaml file
-        collect_filename = "collect_config.yaml"
-        collect_filepath = os.path.join(collect_path, collect_filename)
-        file_utils.store_local_yaml_file(filepath=collect_filepath, yaml_content=collect_yaml)
-        # print
-        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared collect config file at \"{collect_filepath}\"")
-
-        ### hadd together grouped output files, and store them in target file path
-        hadd_output_basepath = ""
-        merged_files = file_utils.hadd_file_groups(file_groups=file_groups)
+        )
+        ### prepare and store config file object
+        collection_filename = "ConfigRekbmtfOutput.yaml"
+        collection_filepath = os.path.join(collect_path, collection_filename)
+        ConfigRekbmtfOutput = config_utils.create_config(
+            config_type="ConfigRekbmtfOutput",
+            replace_wildcards=True, verbose=1,
+            **{
+                "RekbmtfInput": RekbmtfInput,
+                "RekbmtfParams": RekbmtfParams,
+                "RekbmtfSubmission": RekbmtfSubmission,
+                "RekbmtfOutput": RekbmtfOutput,
+            }
+        )
+        config_utils.store_config_file(filepath=collection_filepath, config=ConfigRekbmtfOutput, config_type="ConfigRekbmtfOutput", verbose=1)
 
     #== 
     else:
-        raise Exception(f"{console_utils.color.red}Unsupported submission type \"{submission_type}\"{console_utils.color.reset}")
+        raise Exception(f"{console_utils.color.red}Unsupported submission type \"{RekbmtfParams.submission_type}\"{console_utils.color.reset}")
 
 #=============================================================================
 else:
-    raise Exception(f"{console_utils.color.red}Unsupported output type \"{output_type}\"{console_utils.color.reset}")
+    raise Exception(f"{console_utils.color.red}Unsupported output type \"{RekbmtfParams.output_type}\"{console_utils.color.reset}")
 #=============================================================================
 
 # print

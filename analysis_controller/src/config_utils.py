@@ -19,24 +19,15 @@ _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSI
 ############################
 ### HELPER FUNCTIONS & CLASSES (with prefix "_")
 
-### bool check value type (true if same value)
-# value_type can be = int, str, list, float, dict
-# for custom classes use value_type = "CLASSNAME" (with location of class, e.g. "analysis_controller.src.config_utils.RekbmtfInput")
-def _bool_check_value_type(*, value, value_type):
-    _value_type = f"<class '{value_type}'>"
-    if f"{type(value)}" != _value_type:
-        return False
-    return True
-### replace wildcard if possible
+### replace wildcard in str if possible
 def _replace_wildcard_if_possible(*, value):
     new_value = value
-    if _bool_check_value_type(value=value, value_type="str"):
-        wildcards = {
-            r"%%%ANALYSIS_CONTROLLER_PATH%%%": _ANALYSIS_CONTROLLER_PATH,
-            r"%%%ANALYSIS_CONTROLLER_REPO_PATH%%%": _ANALYSIS_CONTROLLER_REPO_PATH,
-        }
-        for wildcard, wildcard_replacement in wildcards.items():
-            new_value = new_value.replace(wildcard, wildcard_replacement)
+    wildcards = {
+        r"%%%ANALYSIS_CONTROLLER_PATH%%%": _ANALYSIS_CONTROLLER_PATH,
+        r"%%%ANALYSIS_CONTROLLER_REPO_PATH%%%": _ANALYSIS_CONTROLLER_REPO_PATH,
+    }
+    for wildcard, wildcard_replacement in wildcards.items():
+        new_value = new_value.replace(wildcard, wildcard_replacement)
     return new_value
 
 ###### blueprints
@@ -48,6 +39,7 @@ PythonTypes = {
     "str": type(""),
     "dict": type({}),
     "list": type([]),
+    "attridict": attridict.AttriDict,
 }
 
 DictBlueprints = {
@@ -105,15 +97,13 @@ DictBlueprints = {
         "RekbmtfParams": "dict::RekbmtfParams",
         "RekbmtfSubmission": "dict::RekbmtfSubmission",
     },
+    "ConfigRekbmtfOutput": {
+        "RekbmtfInput": "dict::RekbmtfInput",
+        "RekbmtfParams": "dict::RekbmtfParams",
+        "RekbmtfSubmission": "dict::RekbmtfSubmission",
+        "RekbmtfOutput": "dict::RekbmtfOutput",
+    },
 }
-
-# self.output_basepath = _replace_wildcard_if_possible( value=self.output_basepath )
-# self.crab_config_template_filepath = os.path.abspath(_replace_wildcard_if_possible( value=self.crab_config_template_filepath ))
-# self.cmssw_src_path = os.path.abspath(_replace_wildcard_if_possible( value=self.cmssw_src_path ))
-# self.cmssw_config_template_filepath = os.path.abspath(_replace_wildcard_if_possible( value=self.cmssw_config_template_filepath )) 
-
-############################
-### MAIN FUNCTIONS & CLASSES
 
 ### check dict
 # check if exactly the same keys as in blueprint are in dict
@@ -123,8 +113,9 @@ DictBlueprints = {
 def check_dict(*, dictionary, dictionary_name="", blueprint="", top_level=True):
     #print(f"check_dict : {dictionary_name}\n   dictionary = {dictionary}\n   blueprint = {blueprint}")
     err_list = []
+    blueprint_obj = None
     # check input type
-    if type(dictionary) != PythonTypes["dict"]:
+    if type(dictionary) != PythonTypes["dict"] and type(dictionary) != PythonTypes["attridict"]:
         err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary was not actually a dictionary but had the type \"{type(dictionary)}\".{console_utils.color.reset}")
     else:
         # get blueprint_obj
@@ -146,9 +137,10 @@ def check_dict(*, dictionary, dictionary_name="", blueprint="", top_level=True):
                 err_list.extend( check_one_element(key=key, value=value, blueprintvalue=blueprintvalue, dictionary_name=dictionary_name, top_level=False) )
     # generate error message if top level
     if len(err_list) > 0:
-        err_list.append(f"{console_utils.color.yellow}INFO: One expects the following structure for a \"{dictionary_name}\" dictionary:  {blueprint_obj}.{console_utils.color.reset}")
+        if blueprint_obj != None:
+            err_list.append(f"{console_utils.color.yellow}INFO: One expects the following structure for a \"{dictionary_name}\" dictionary:  {blueprint_obj}.{console_utils.color.reset}")
         if top_level:
-            err_str = ""
+            err_str = "\n"
             for err in err_list:
                 err_str += f"{err}\n"
             raise Exception(err_str)
@@ -165,14 +157,14 @@ def check_one_element(*, key, value, blueprintvalue, dictionary_name="", top_lev
     # if list: check all list elements (only possible for list of dicts)
     if blueprintvalue.startswith("list::"):
         if type(value) != PythonTypes["list"]:
-            err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{PythonTypes[blueprintvalue]}\" but found type \"{type(value)}\".{console_utils.color.reset}")
+            err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{blueprintvalue}\" but found type \"{type(value)}\".{console_utils.color.reset}")
         # check list elements
         newblueprint = blueprintvalue.split("list::")[-1]
         err_list.extend( check_list(listobj=value, list_name=f"{dictionary_name} -> {key}", elementblueprint=newblueprint, top_level=False) )
     # if dict: check dict keys and values
     elif blueprintvalue.startswith("dict::"):
-        if type(value) != PythonTypes["dict"]:
-            err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{PythonTypes[blueprintvalue]}\" but found type \"{type(value)}\".{console_utils.color.reset}")
+        if type(value) != PythonTypes["dict"] and type(value) != PythonTypes["attridict"]:
+            err_list.append(f"{console_utils.color.red}A \"{dictionary_name}\" dictionary has an unexpected value type for the key \"{key}\". Expect type \"{blueprintvalue}\" but found type \"{type(value)}\".{console_utils.color.reset}")
         # check dict keys and values
         newblueprint = blueprintvalue.split("dict::")[-1]
         err_list.extend( check_dict(dictionary=value, dictionary_name=f"{dictionary_name} -> {key}", blueprint=newblueprint, top_level=False) )
@@ -182,6 +174,7 @@ def check_one_element(*, key, value, blueprintvalue, dictionary_name="", top_lev
 def check_list(*, listobj, list_name="", elementblueprint="", top_level=True):
     #print(f"check_list : {list_name}\n   listobj = {listobj}\n   elementblueprint = {elementblueprint}")
     err_list = []
+    blueprint_obj = None
     # check input type
     if type(listobj) != PythonTypes["list"]:
         err_list.append(f"{console_utils.color.red}A \"{list_name}\" list was not actually a list but had the type \"{type(listobj)}\".{console_utils.color.reset}")
@@ -195,23 +188,39 @@ def check_list(*, listobj, list_name="", elementblueprint="", top_level=True):
         for i in range(len(listobj)):
             listelement = listobj[i]
             # check type of each list element (if not dict then give alarm)
-            if type(listelement) != PythonTypes["dict"]:
+            if type(listelement) != PythonTypes["dict"] and type(listelement) != PythonTypes["attridict"]:
                 err_list.append(f"{console_utils.color.red}A \"{list_name}\" list has an unexpected value type for index {i}. Expected type \"{PythonTypes["dict"]}\" but found type \"{type(listelement)}\".{console_utils.color.reset}")
             # check dict at this list position
             else:
                 err_list.extend( check_dict(dictionary=listelement, dictionary_name=f"{list_name} [i]", blueprint=elementblueprint_obj, top_level=False) )
     # generate error message if top level
     if len(err_list) > 0:
-        err_list.append(f"{console_utils.color.yellow}INFO: One expects the following structure for a \"{list_name}\" list:  [ {elementblueprint_obj} ].{console_utils.color.reset}")
+        if blueprint_obj != None:
+            err_list.append(f"{console_utils.color.yellow}INFO: One expects the following structure for a \"{list_name}\" list:  [ {elementblueprint_obj} ].{console_utils.color.reset}")
         if top_level:
-            err_str = ""
+            err_str = "\n"
             for err in err_list:
                 err_str += f"{err}\n"
             raise Exception(err_str)
     return err_list
 
+### replace wildcards in dictionary
+def replace_wildcards_dict_recursive(*, dictionary):
+    for k in dictionary.keys():
+        if type(dictionary[k]) == PythonTypes["str"]:
+            dictionary[k] = _replace_wildcard_if_possible(value=dictionary[k])
+        elif type(dictionary[k]) == PythonTypes["dict"] or type(dictionary[k]) == PythonTypes["attridict"]:
+            dictionary[k] = replace_wildcards_dict_recursive(dictionary=dictionary[k])
+        elif type(dictionary[k]) == PythonTypes["list"]: # assume list of dicts
+            for i in range(len(dictionary[k])):
+                dictionary[k][i] = replace_wildcards_dict_recursive(dictionary=dictionary[k][i])
+    return dictionary
+
+############################
+### MAIN FUNCTIONS & CLASSES
+
 ### generic config file import
-def load_config_file(*, filepath, config_type="", verbose=1):
+def load_config_file(*, filepath, config_type="", replace_wildcards=True, verbose=1):
     # print statement
     if verbose >= 1:
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Attempting to import config file of type \"{config_type}\" from \"{filepath}\"")
@@ -220,6 +229,9 @@ def load_config_file(*, filepath, config_type="", verbose=1):
     config = file_utils.load_local_yaml_file(filepath=filepath)
     # check config file dict
     check_dict(dictionary=config, dictionary_name=config_type, blueprint=config_type, top_level=True)
+    # replace wildcards
+    if replace_wildcards == True:
+        config = replace_wildcards_dict_recursive(dictionary=config)
     # create attridict
     config = attridict(config)
     return config
@@ -234,4 +246,24 @@ def store_config_file(*, filepath, config, config_type="", verbose=1):
     # store yaml contents
     filepath = os.path.abspath(filepath)
     file_utils.store_local_yaml_file(filepath=filepath, yaml_content=config)
+
+### create config dict
+# use keywords of function as input kwargs for config
+# check that all keys are there for given config_type
+def create_config(*, config_type="", replace_wildcards=True, verbose=1, **attrs):
+    # print statement
+    if verbose >= 1:
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Attempting to create config of type \"{config_type}\"")
+    # create dict from attrs / kwargs
+    config = {}
+    config.update(attrs)
+    # check config file dict
+    check_dict(dictionary=config, dictionary_name=config_type, blueprint=config_type, top_level=True)
+    # replace wildcards
+    if replace_wildcards == True:
+        config = replace_wildcards_dict_recursive(dictionary=config)
+    # create attridict
+    config = attridict(config)
+    return config
+
 
