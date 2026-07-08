@@ -95,14 +95,14 @@ if RekbmtfParams.output_type == "cern-grid":
         ### prepare file paths (remove gfal prefix, add xrootd redirector prefix)
         xrootd_redirector_prefix = "root://xrootd-cms.infn.it//"
         for i_group in range(len(file_groups)):
-            for i_file in range(len(file_groups[i_group]["paths"])):
-                file_path = file_groups[i_group]["paths"][i_file]
+            for i_file in range(len(file_groups[i_group]["files"])):
+                file_path = file_groups[i_group]["files"][i_file]["path"]
                 # remove gfal prefix from file path
                 file_path = file_path.replace(gfal_prefix, "")
                 # add xrootd redirector prefix to file path
                 file_path = f"{xrootd_redirector_prefix}{file_path}"
                 # replace file path
-                file_groups[i_group]["paths"][i_file] = file_path
+                file_groups[i_group]["files"][i_file]["path"] = file_path
                 #print(file_path)
 
         ### prepare hadd-ed file paths (add grouppath to file_group dict)

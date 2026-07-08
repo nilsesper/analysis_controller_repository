@@ -173,10 +173,10 @@ def recursive_file_scan(*, basepath, ls_command="ls -l", file_suffix="", maxdept
     return found_files
 
 ### combine files into groups which should be hadd-ed together, respecting the file sizes
-# file_list: [files = {size, path}]
+# file_list: [files = {path (wrt basepath), perms, links, owner, group, size (in bytes), month, day, time_or_year, dtype}]
 # target_group_size: target size of group of files (if group >= this size, a new group is begun), in human readable form
 ## returns:
-# file_group_list: [{size (sum of all file sizes in group), paths: [path of files in group]}]
+# file_group_list: [{size (sum of all file sizes in group), files: [file dict for all files in group]}]
 def group_files(*, file_list, target_group_size="1 GiB", verbose=1):
         n_files = len(file_list)
         # print
@@ -186,15 +186,15 @@ def group_files(*, file_list, target_group_size="1 GiB", verbose=1):
         target_file_group_size = human_readable_size_to_byte_size(humanreadablesize=target_group_size)
         # build groups
         file_group_list = []
-        file_group = {"size": 0, "paths": []}
+        file_group = {"size": 0, "files": []}
         for i_file, file in enumerate(file_list):
             # continue to fill current group
             file_group["size"] += file["size"]
-            file_group["paths"].append(file["path"])
+            file_group["files"].append(file)
             # if too large or last file, stop current group and start new group
             if file_group["size"] > target_file_group_size or i_file == n_files-1:
                 file_group_list.append(file_group)
-                file_group = {"size": 0, "paths": []}
+                file_group = {"size": 0, "files": []}
         n_file_groups = len(file_group_list)
         # print
         if verbose >= 1:
