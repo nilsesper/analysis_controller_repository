@@ -43,24 +43,21 @@ PythonTypes = {
 }
 
 DictBlueprints = {
-    ### lower-level dicts
+    #########################
+    ### lower-level dicts (part of info dicts)
     "_LsFile": {
         "path": "str",
-        "perms": "str",
-        "links": "str",
-        "owner": "str",
-        "group": "str",
         "size": "int",
-        "month": "str",
-        "day": "str",
-        "time_or_year": "str",
-        "dtype": "str",
     },
-    "_FileGroup": {
+    "_CollectionFileGroup": {
+        "input_files": "list::_LsFile",
+        "input_size": "int",
+        
+        "path": "str",
         "size": "int",
-        "files": "list::_LsFile",
     },
-    ### info dicts (part of configs)
+    #########################
+    ### info dicts (part of config file dicts)
     "RekbmtfInput": {
         "data_type": "str",
         "data_label": "str",
@@ -91,18 +88,23 @@ DictBlueprints = {
         "crab_requestname": "str",
         "crab_workarea": "str",
     },
-    "RekbmtfOutput": {
-        "output_files": "list::_LsFile",
-        "output_file_groups": "list::_FileGroup",
-        "target_output_file_size": "str",
+    "RekbmtfCollection": {
+        "target_file_size": "str",
 
-        "collection_output_type": "str",
-        "collection_output_site": "str",
+        "output_type": "str",
+        "output_site": "str",
+        "output_basepath": "str",
+    },
+    "RekbmtfOutput": {
+        "input_files": "list::_LsFile",
+        "input_size": "int",
         
         "collection_basepath": "str",
-        "collected_files": "list",
+        "collection_files": "list::_CollectionFileGroup",
+        "collection_timestamp": "str",
     },
-    ### configurations
+    #########################
+    ### configuration file dicts
     "ConfigRekbmtfInput": {
         "RekbmtfInput": "dict::RekbmtfInput",
     },
@@ -114,10 +116,14 @@ DictBlueprints = {
         "RekbmtfParams": "dict::RekbmtfParams",
         "RekbmtfSubmission": "dict::RekbmtfSubmission",
     },
+    "ConfigRekbmtfCollection": {
+        "RekbmtfCollection": "dict::RekbmtfCollection",
+    },
     "ConfigRekbmtfOutput": {
         "RekbmtfInput": "dict::RekbmtfInput",
         "RekbmtfParams": "dict::RekbmtfParams",
         "RekbmtfSubmission": "dict::RekbmtfSubmission",
+        "RekbmtfCollection": "dict::RekbmtfCollection",
         "RekbmtfOutput": "dict::RekbmtfOutput",
     },
 }
@@ -160,7 +166,7 @@ def check_dict(*, dictionary, dictionary_name="", blueprint="", top_level=True):
             err_str = "\n"
             for err in err_list:
                 err_str += f"{err}\n"
-            raise Exception(err_str)
+            console_utils.raise_exception(string=err_str)
     return err_list
 
 ### check one element
@@ -214,7 +220,7 @@ def check_list(*, listobj, list_name="", elementblueprint="", top_level=True):
             err_str = "\n"
             for err in err_list:
                 err_str += f"{err}\n"
-            raise Exception(err_str)
+            console_utils.raise_exception(string=err_str)
     return err_list
 
 ### replace wildcards in dictionary

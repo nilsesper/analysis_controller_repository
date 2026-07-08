@@ -31,8 +31,8 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 parser = argparse.ArgumentParser()
 # mandatory:
 parser.add_argument(
-    "--submit_config",
-    help="path to submit config yaml file \"*_submit\" (str)",
+    "--submission",
+    help="path to \"ConfigRekbmtfSubmission\" yaml file (str)",
     type=str,
     required=True,
 )
@@ -58,19 +58,19 @@ args = parser.parse_args()
 action_type = args.action
 allowed_action_types = ["monitor", "command"]
 if action_type not in allowed_action_types:
-    raise Exception(f"{console_utils.color.red}Invalid action \"{action_type}\" specified. Allowed are only {allowed_action_types} {console_utils.color.reset}")
+    console_utils.raise_exception(string=f"Invalid action \"{action_type}\" specified. Allowed are only {allowed_action_types}")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Specified action is \"{action_type}\"")
 
 ### import submit config file
-ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submit_config, config_type="ConfigRekbmtfSubmission", replace_wildcards=True, verbose=1)
+ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submission, config_type="ConfigRekbmtfSubmission", replace_wildcards=True, verbose=1)
 # extract config info
 RekbmtfInput = ConfigRekbmtfSubmission.RekbmtfInput
 RekbmtfParams = ConfigRekbmtfSubmission.RekbmtfParams
 RekbmtfSubmission = ConfigRekbmtfSubmission.RekbmtfSubmission
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this dataset is \"{RekbmtfParams.submission_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this dataset is \"{RekbmtfParams.output_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission timestamp of this dataset is \"{RekbmtfSubmission.submission_timestamp}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParams.submission_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParams.output_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission timestamp of this submission is \"{RekbmtfSubmission.submission_timestamp}\"")
 
 ### parse optional arguments
 command_arg = None
@@ -79,15 +79,15 @@ if args.command:
 
 ### check optional arguments
 if (command_arg == None) and (action_type in ["command"]):
-    raise Exception(f"{console_utils.color.red}Missing argument --command for specified action \"command\" {console_utils.color.reset}")
+    console_utils.raise_exception(string=f"Missing argument --command for specified action \"command\"")
 elif (command_arg != None) and (action_type not in ["command"]):
-    raise Exception(f"{console_utils.color.red}Unexpected argument --command {console_utils.color.reset}")
+    console_utils.raise_exception(string=f"Unexpected argument --command")
 
 #=============================================================================
-#== SUBMISSION_TYPE: CERN-CRAB
+#====== SUBMISSION_TYPE: CERN-CRAB
 if RekbmtfParams.submission_type == "cern-crab":
     
-    #== ACTION_TYPE: MONITOR
+    #====== ACTION_TYPE: MONITOR
     # monitor the crab submission status
     if action_type == "monitor":
 
@@ -115,7 +115,7 @@ if RekbmtfParams.submission_type == "cern-crab":
         # print
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished executing the commands for the CRAB status polling")
 
-    #== ACTION_TYPE: COMMAND
+    #====== ACTION_TYPE: COMMAND
     # manually execute crab command for the current submission
     # execute the following: "crab {command_arg} -d {crab_submitpath}"
     elif action_type == "command":
@@ -142,13 +142,13 @@ if RekbmtfParams.submission_type == "cern-crab":
         # execute commands
         _, _ = console_utils.run_command(bash_command=bash_commands)
 
-    #== 
+    #======
     else:
-        raise Exception(f"{console_utils.color.red}Unsupported action type \"{action_type}\"{console_utils.color.reset}")
+        console_utils.raise_exception(string=f"Unsupported action type \"{action_type}\"")
 
-#=============================================================================
+#======
 else:
-    raise Exception(f"{console_utils.color.red}Unsupported submission type \"{RekbmtfSubmission.submission_type}\"{console_utils.color.reset}")
+    console_utils.raise_exception(string=f"Unsupported submission type \"{RekbmtfSubmission.submission_type}\"")
 #=============================================================================
 
 # print

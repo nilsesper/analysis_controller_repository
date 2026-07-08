@@ -1,5 +1,5 @@
-
 RekbmtfParams:
+
     submission_type: "cern-crab" # job submission evironment: "cern-crab", "aachen-condor"
     submission_splitting: "automatic" # job splitting specification (only for "cern-crab")
     

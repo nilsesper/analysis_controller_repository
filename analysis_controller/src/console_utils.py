@@ -124,6 +124,13 @@ def print_string(*, topic="", string="", verbose=1, highlightquotes=True, highli
         string = _highlight_quotes(input_str=string, highlightcolor=highlightquotescolor)
     print(f"{string}")
 
+### raise exception
+def raise_exception(*, string="", highlightquotes=True, highlightquotescolor=color.cyan):
+    if highlightquotes == True:
+        string = _highlight_quotes(input_str=string, highlightcolor=highlightquotescolor)
+    print(f"{color.red}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++{color.reset}")
+    raise Exception(f"{color.red}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++{color.reset}\n{color.red}{string}{color.reset}\n{color.red}+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++{color.reset}")
+
 ### run console command as subprocess
 # bash_command: command string to be executed
 # copy_env: if True, copy current bash env, else use clear env
@@ -191,7 +198,7 @@ def run_command(*, bash_command="", copy_env=False, verbose=1, print_cmd=True, p
                         print_prefix_string(prefix=">BASHERR>", string=cmdout_line, highlightcolor=color.red)
     # raise exception if desired
     if crash_when_retval_not_zero == True and returnvalue != 0:
-        raise Exception(f"{color.red}Bash command completed with return value \"{returnvalue}\"{color.reset}")
+        raise_exception(string=f"Bash command completed with nonzero return value \"{returnvalue}\"")
     # return info
     return returnvalue, cmdout
 

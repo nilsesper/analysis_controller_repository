@@ -68,15 +68,7 @@ def _recursive_file_scan(*, cur_basepath, ls_command, file_suffix="", maxdepth=9
         # add found file to list, use rel filepath as key
         cur_found_files.append({
             "path": rel_objath,
-            "perms": perms,
-            "links": links,
-            "owner": owner,
-            "group": group,
             "size": int(size),
-            "month": month,
-            "day": day,
-            "time_or_year": time_or_year,
-            "dtype": dtype,
         })
     # recusively analyze subdirs, if depth not too high
     next_depth = cur_depth+1
@@ -112,7 +104,7 @@ def human_readable_size_to_byte_size(*, humanreadablesize):
 ### load local file
 def load_local_file(*, filepath):
     if not os.path.isfile(filepath):
-        raise Exception(f"{console_utils.color.red} Could not find the file \"{filepath}\" {console_utils.color.reset}")
+        console_utils.raise_exception(string=f"Could not find the file \"{filepath}\"")
     with open(filepath, "r") as file:
         content = str(file.read())
     return content
@@ -134,7 +126,7 @@ def replace_wildcards_if_possible(*, content, wildcards):
 ### load local yaml file
 def load_local_yaml_file(*, filepath):
     if not os.path.isfile(filepath):
-        raise Exception(f"{console_utils.color.red} Could not find the file \"{filepath}\" {console_utils.color.reset}")
+        console_utils.raise_exception(string=f"Could not find the file \"{filepath}\"")
     with open(filepath, "r") as file:
         yaml_content = yaml.safe_load(file)
     return yaml_content
@@ -153,7 +145,9 @@ def store_local_yaml_file(*, filepath, yaml_content):
 # file_suffix: optional file suffix to filter on, e.g. ".root"
 # maxdepth: max directory depth of recursive search
 # verbose: change print statement behavior
-## returns: found_files: [{path (wrt basepath), perms, links, owner, group, size (in bytes), month, day, time_or_year, dtype}]
+## returns:
+# found_files: [{path (wrt basepath), size (in bytes)}]
+# total_size: total size of found files in bytes (int)
 def recursive_file_scan(*, basepath, ls_command="ls -l", file_suffix="", maxdepth=9999, verbose=1):
     # print
     if verbose >= 1:
@@ -170,7 +164,16 @@ def recursive_file_scan(*, basepath, ls_command="ls -l", file_suffix="", maxdept
     # print
     if verbose >= 1:
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Found \"{n_files}\" files with a total size of \"{total_size_str}\"")
-    return found_files
+    return found_files, total_size
+
+### replace substring in file path
+# file_list: [{path, size (in bytes)}]
+# subs_from: substring to be replaced
+# subs_with: substring that is inserted instead
+def replace_substring_filepath(*, file_list, subs_from=" ", subs_with=" "):
+    for i in range(len(file_list)):
+        file_list[i]["path"] = file_list[i]["path"].replace(subs_from, subs_with)
+    return file_list
 
 ### combine files into groups which should be hadd-ed together, respecting the file sizes
 # file_list: [files = {path (wrt basepath), perms, links, owner, group, size (in bytes), month, day, time_or_year, dtype}]
@@ -201,5 +204,6 @@ def group_files(*, file_list, target_group_size="1 GiB", verbose=1):
             console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Built \"{n_file_groups}\" file groups")
         return file_group_list
 
+### hadd together file groups
 
 

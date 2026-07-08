@@ -1,0 +1,9 @@
+
+RekbmtfCollection:
+
+    target_file_size: "500 MiB"
+
+    output_type: "aachen-net"
+    output_site: ""
+    output_basepath: "/net/data_cms3a-1/esper/test_analysis_hscp_l1/analysis_controller_output/"
+

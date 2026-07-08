@@ -32,14 +32,14 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 parser = argparse.ArgumentParser()
 # mandatory:
 parser.add_argument(
-    "--input_config",
-    help=f"path to input config yaml file \"{analysis_step}_input\" (str)",
+    "--input",
+    help=f"path to \"ConfigRekbmtfInput\" yaml file (str)",
     type=str,
     required=True,
 )
 parser.add_argument(
-    "--params_config",
-    help=f"path to params config yaml file \"{analysis_step}_params\" (str)",
+    "--params",
+    help=f"path to \"ConfigRekbmtfParams\" yaml file (str)",
     type=str,
     required=True,
 )
@@ -51,20 +51,20 @@ args = parser.parse_args()
 ### MAIN PART
 
 ### import input config file
-ConfigRekbmtfInput = config_utils.load_config_file(filepath=args.input_config, config_type="ConfigRekbmtfInput", replace_wildcards=True, verbose=1)
+ConfigRekbmtfInput = config_utils.load_config_file(filepath=args.input, config_type="ConfigRekbmtfInput", replace_wildcards=True, verbose=1)
 # extract config info
 RekbmtfInput = ConfigRekbmtfInput.RekbmtfInput
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data type of this dataset is \"{RekbmtfInput.data_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data label of this dataset is \"{RekbmtfInput.data_label}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data type of this submission is \"{RekbmtfInput.data_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data label of this submission is \"{RekbmtfInput.data_label}\"")
 
 ### import params config file
-ConfigRekbmtfParams = config_utils.load_config_file(filepath=args.params_config, config_type="ConfigRekbmtfParams", replace_wildcards=True, verbose=1)
+ConfigRekbmtfParams = config_utils.load_config_file(filepath=args.params, config_type="ConfigRekbmtfParams", replace_wildcards=True, verbose=1)
 # extract config info
 RekbmtfParams = ConfigRekbmtfParams.RekbmtfParams
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this dataset is \"{RekbmtfParams.submission_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this dataset is \"{RekbmtfParams.output_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParams.submission_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParams.output_type}\"")
 
 ### define submission timestamp
 submission_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -184,9 +184,9 @@ if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type ==
     )
     config_utils.store_config_file(filepath=submission_filepath, config=ConfigRekbmtfSubmission, config_type="ConfigRekbmtfSubmission", verbose=1)
     
-#=============================================================================
+#======
 else:
-    raise Exception(f"{console_utils.color.red}Unsupported combination of submission type \"{RekbmtfParams.submission_type}\" and output type \"{RekbmtfParams.output_type}\" {console_utils.color.reset}")
+    console_utils.raise_exception(string=f"Unsupported combination of submission type \"{RekbmtfParams.submission_type}\" and output type \"{RekbmtfParams.output_type}\"")
 #=============================================================================
 
 # print
