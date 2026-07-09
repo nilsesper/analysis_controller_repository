@@ -93,11 +93,15 @@ if RekbmtfParams.output_type == "cern-grid":
         #====== SUBMISSION_TYPE: CERN-CRAB
         if RekbmtfParams.submission_type == "cern-crab":
 
+            ########################
+            ### prepare input
+
             ### derive crab submitpath
             input_das_name_firstword = RekbmtfInput.input_das_name.split("/")[1] # extract first word of input_das_name: "L1Scouting" = first word of "/L1Scouting/Run2024I-v1/L1SCOUT"
             output_path = f"{RekbmtfParams.output_basepath}/{input_das_name_firstword}/crab_{RekbmtfSubmission.crab_requestname}"
 
             ### obtain list of output files on grid storage
+            # prepare grid access
             gfal_prefix = "davs://grid-webdav.physik.rwth-aachen.de:2889/"
             gfal_basepath = f"{gfal_prefix}{output_path}/"
             console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to recursively list root files in GRID output path \"{gfal_basepath}\"")
@@ -110,6 +114,9 @@ if RekbmtfParams.output_type == "cern-grid":
             ### group together output files
             input_file_groups = file_utils.group_files(file_list=input_file_list, target_group_size=RekbmtfCollection.hadd_file_size)
 
+            ########################
+            ### merge files
+
             ### prepare collection basepath
             collection_basepath = os.path.join(RekbmtfCollection.output_basepath, collection_name)
 
@@ -117,9 +124,11 @@ if RekbmtfParams.output_type == "cern-grid":
             if not os.path.isdir(RekbmtfCollection.output_basepath):
                 console_utils.raise_exception(string=f"The output base path \"{RekbmtfCollection.output_basepath}\" does not exist")
             
-            ### create collection basepath and make sure it did not exist before
+            ### create collection basepath
+            # make sure it did not exist before
             if os.path.isdir(collection_basepath):
-                console_utils.raise_exception(string=f"The collection base path subdirectory \"{collection_basepath}\" does not exist")
+                console_utils.raise_exception(string=f"The collection base path subdirectory \"{collection_basepath}\" does already exist")
+            # create dir
             console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create collection base path subdirectory \"{collection_basepath}\"")
             os.mkdir(collection_basepath)
 
@@ -128,6 +137,9 @@ if RekbmtfParams.output_type == "cern-grid":
 
             ### actually perform hadd-ing of files
             collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True)
+
+            ########################
+            ### store output object
 
             ### prepare output object
             RekbmtfOutput = config_utils.create_config(
@@ -157,6 +169,20 @@ if RekbmtfParams.output_type == "cern-grid":
                 }
             )
             config_utils.store_config_file(filepath=collection_filepath, config=ConfigRekbmtfOutput, config_type="ConfigRekbmtfOutput", verbose=1)
+
+            ########################
+            ### do some verification
+
+            ### verify file size of created hadd files
+            # get hadd files total size
+            collection_verification_file_list, collection_verification_total_size = file_utils.recursive_file_scan(basepath=collection_basepath, ls_command="ls -l", file_suffix=".root", maxdepth=5, verbose=1)
+            # compare with input file size
+            file_size_abs_diff = abs(collection_verification_total_size - input_total_size)
+            file_size_rel_diff = file_size_abs_diff / collection_verification_total_size
+            file_size_rel_diff_thres = 0.05
+            if file_size_rel_diff > file_size_rel_diff_thres:
+                console_utils.raise_exception(string=f"The created hadd files do not match in size within \"{file_size_rel_diff_thres*100:03f} %\"")
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The created hadd files do match in size within \"{file_size_rel_diff_thres*100:03f} %\"")
 
         #======
         else:

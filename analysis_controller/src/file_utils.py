@@ -30,12 +30,12 @@ _perm_to_type = {
 }
 
 ### recursive scan for files in subdirs
-def _recursive_file_scan(*, cur_basepath, ls_command, file_suffix="", maxdepth=9999, verbose=1, cur_found_files=[], cur_depth=0):
+def _recursive_file_scan(*, cur_basepath, ls_command="ls -l", file_suffix="", maxdepth=9999, verbose=1, cur_found_files=[], cur_depth=0):
     # check whether depth is not too high, else immediately exit
     if cur_depth > maxdepth:
         return cur_found_files
     # run ls command
-    returnvalue, cmdout = console_utils.run_command(bash_command=f'{ls_command} {cur_basepath}\n', verbose=verbose)
+    returnvalue, cmdout = console_utils.run_command(bash_command=f'{ls_command} {cur_basepath}', verbose=verbose)
     # analyze output of ls command
     subdir_basepaths = []
     for ls_line in cmdout.split("\n"):
@@ -153,7 +153,7 @@ def recursive_file_scan(*, basepath, ls_command="ls -l", file_suffix="", maxdept
     if verbose >= 1:
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Attempting to recursively find files with the command \"{ls_command}\" starting from path \"{basepath}\"")
     # recursive scan, starting at basepath
-    found_files = _recursive_file_scan(cur_basepath=basepath, ls_command=ls_command, file_suffix=file_suffix, maxdepth=maxdepth, verbose=max(0,verbose-1))
+    found_files = _recursive_file_scan(cur_basepath=basepath, ls_command=ls_command, file_suffix=file_suffix, maxdepth=maxdepth, verbose=max(0,verbose-1), cur_depth=0, cur_found_files=[])
     # calculate file no
     n_files = len(found_files)
     # calculate file size
@@ -174,6 +174,24 @@ def replace_substring_filepath(*, file_list, subs_from=" ", subs_with=" "):
     for i in range(len(file_list)):
         file_list[i]["path"] = file_list[i]["path"].replace(subs_from, subs_with)
     return file_list
+
+### get file size
+# file_path: path to file
+# ls_command: custom ls -l command (e.g. when on grid)
+def get_file_size(*, file_path, ls_command="ls -l", verbose=1):
+    # run ls command
+    returnvalue, cmdout = console_utils.run_command(bash_command=f'{ls_command} {file_path}', verbose=verbose)
+    # analyze output of ls command
+    ls_lines = cmdout.split("\n")
+    # check if only one line output
+    if len(ls_lines) != 2:
+        console_utils.raise_exception(string="Unexpected behavior of ls command when trying to get the file size")
+    ls_line = ls_lines[0]
+    # extract information from ls output
+    ls_line_parts = ls_line.split(maxsplit=8) # maxsplit=8 ensures that spaces in last column (filename) are not misinterpreted
+    ls_line_parts = [console_utils.remove_console_characters(input_str=ls_item) for ls_item in ls_line_parts]
+    perms, links, owner, group, size, month, day, time_or_year, name = ls_line_parts
+    return int(size)
 
 ### combine files into groups which should be hadd-ed together, respecting the file sizes
 # file_list: [files = {path (wrt basepath), perms, links, owner, group, size (in bytes), month, day, time_or_year, dtype}]
@@ -234,7 +252,8 @@ def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exist
     n_hadd_files = len(hadd_file_list)
     # check any hadd file with same name already exists
     if check_exists:
-        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Checking whether any of the target hadd files already exists")
+        if verbose >= 1:
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Checking whether any of the target hadd files already exists")
         already_exists = False
         for i in range(n_hadd_files):
             hadd_file_path = hadd_file_list[i]["path"]
@@ -243,13 +262,13 @@ def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exist
         # ask user whether he wants to continue
         if already_exists:
             console_utils.raise_exception(string="Aborted because any of the target hadd files already exists")
+        if verbose >= 1:
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"None of the target hadd files already exist")
     # perform actual hadd-ing
     for i in range(n_hadd_files):
-        if i > 0: break
         hadd_file_path = hadd_file_list[i]["path"]
-        # print
         if verbose >= 1:
-            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Running \"hadd\" command for file group \"{i+1} / {n_hadd_files} ({(i+1)/n_hadd_files*100:03f} %)\"")
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Running \"{hadd_command}\" command for file group \"{i+1} / {n_hadd_files} ({(i+1)/n_hadd_files*100:03f} %)\"")
         # prepare string of input files
         input_str = ""
         for file in hadd_file_list[i]["input_files"]:
@@ -257,12 +276,12 @@ def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exist
             input_str += f"{input_file_path} "
         # run hadd command
         bash_command = f'{hadd_command} {hadd_file_path} {input_str}'
-        returnvalue, cmdout = console_utils.run_command(bash_command=bash_command, verbose=verbose)
+        returnvalue, cmdout = console_utils.run_command(bash_command=bash_command, verbose=max(0,verbose-1))
         # check if hadd file was actually created
         if not os.path.isfile(hadd_file_path):
             console_utils.raise_exception(string="The hadd command was executed but the output file could not be found")
         # measure size of created hadd file
-        hadd_file_size = 0
+        hadd_file_size = get_file_size(file_path=hadd_file_path, ls_command="ls -l", verbose=max(0,verbose-1))
         # create output entry
         hadd_output_file_list.append({
             "input_files": hadd_file_list[i]["input_files"],
