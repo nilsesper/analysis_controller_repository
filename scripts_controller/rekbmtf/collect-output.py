@@ -181,8 +181,8 @@ if RekbmtfParams.output_type == "cern-grid":
             file_size_rel_diff = file_size_abs_diff / collection_verification_total_size
             file_size_rel_diff_thres = 0.05
             if file_size_rel_diff > file_size_rel_diff_thres:
-                console_utils.raise_exception(string=f"The created hadd files do not match in size within \"{file_size_rel_diff_thres*100:03f} %\"")
-            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The created hadd files do match in size within \"{file_size_rel_diff_thres*100:03f} %\"")
+                console_utils.raise_exception(string=f"The created hadd files do not match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The created hadd files do match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
 
         #======
         else:
