@@ -38,7 +38,8 @@ vector.register_awkward()
 #rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/output.root"
 #rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/rekbmtf_example_output_1.root"
 #rootfile_path = "root://xrootd-cms.infn.it///store/user/nesper/test_analysis_hscp_l1/L1Scouting/crab_Scouting_2024H/260618_105926/0000/output_1.root"
-rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/hadd_test_output_0.root"
+#rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/hadd_test_output_0.root"
+rootfile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/rekbmtf_data.root"
 
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Opening ROOT file from \"{rootfile_path}\"")
 rootfile = uproot.open(rootfile_path)
@@ -383,45 +384,45 @@ row_indices_arr = ak.local_index(arr, axis=0)
 ## generate new flat arr "arr_tracks" with selected prim and sec tracks info
 arr_tracks = ak.Array({
     #--- basic info
-    "treeidx":                  arr.treeidx[row_indices_arr],
-    "arridx":                   row_indices_arr,
-    "run":                      arr.run[row_indices_arr],
-    "luminosityBlock":          arr.luminosityBlock[row_indices_arr],
-    "orbitNumber":              arr.orbitNumber[row_indices_arr],
-    "bunchCrossing":            arr.bunchCrossing[row_indices_arr],
-    "nseltracks":               n_sel_tracks,
+    "treeidx":                  np.array(arr.treeidx[row_indices_arr], dtype=np.uintc),
+    "arridx":                   np.array(row_indices_arr, dtype=np.uintc),
+    "run":                      np.array(arr.run[row_indices_arr], dtype=np.uintc),
+    "luminosityBlock":          np.array(arr.luminosityBlock[row_indices_arr], dtype=np.uintc),
+    "orbitNumber":              np.array(arr.orbitNumber[row_indices_arr], dtype=np.uintc),
+    "bunchCrossing":            np.array(arr.bunchCrossing[row_indices_arr], dtype=np.uintc),
+    "nseltracks":               np.array(n_sel_tracks, dtype=np.short),
     #--- primary track
     "idx1":             i_arr_prim_selection,
-    "nstub1":           analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_nStub, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "bxspread1":        analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_bxSpread, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "stationspread1":   analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_stSpread, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "firstbx1":         analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_firstBx, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "pt1":              analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_ptOffline, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "hwPt1":            analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_pt, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "hwPtU1":           analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_ptUnconstrained, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "eta1":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_eta, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "phi1":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_phi, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "dxy1":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwDXY, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "qual1":            analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwQual, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "charge1":          analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwCharge, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
-    "isL1MuMatched1":   analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_isL1muMatched, aki=aki_arr_prim_selection, padlen=1, padval=False, firsts=True),
-    "l1MuMatchedIdx1":  analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_l1muMatchedIdx, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True),
+    "nstub1":           analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_nStub, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.short),
+    "bxspread1":        analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_bxSpread, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc),
+    "stationspread1":   analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_stSpread, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc),
+    "firstbx1":         analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_firstBx, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc),
+    "pt1":              analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_ptOffline, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "hwPt1":            analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_pt, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "hwPtU1":           analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_ptUnconstrained, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "eta1":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_eta, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "phi1":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_phi, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "dxy1":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwDXY, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc),
+    "qual1":            analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwQual, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.short),
+    "charge1":          analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwCharge, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.short),
+    "isL1MuMatched1":   analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_isL1muMatched, aki=aki_arr_prim_selection, padlen=1, padval=False, firsts=True, to_numpy=True, numpy_dtype=np.bool),
+    "l1MuMatchedIdx1":  analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_l1muMatchedIdx, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.short),
     #--- secondary track
     "idx2":             i_arr_sec_selection,
-    "nstub2":           analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_nStub, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "bxspread2":        analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_bxSpread, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "stationspread2":   analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_stSpread, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "firstbx2":         analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_firstBx, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "pt2":              analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_ptOffline, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "hwPt2":            analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_pt, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "hwPtU2":           analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_ptUnconstrained, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "eta2":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_eta, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "phi2":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_phi, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "dxy2":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwDXY, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "qual2":            analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwQual, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "charge2":          analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwCharge, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
-    "isL1MuMatched2":   analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_isL1muMatched, aki=aki_arr_sec_selection, padlen=1, padval=False, firsts=True),
-    "l1MuMatchedIdx2":  analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_l1muMatchedIdx, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True),
+    "nstub2":           analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_nStub, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.short),
+    "bxspread2":        analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_bxSpread, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc),
+    "stationspread2":   analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_stSpread, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc),
+    "firstbx2":         analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_firstBx, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc),
+    "pt2":              analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_ptOffline, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "hwPt2":            analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_pt, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "hwPtU2":           analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_ptUnconstrained, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "eta2":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_eta, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "phi2":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_phi, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single),
+    "dxy2":             analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwDXY, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc),
+    "qual2":            analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwQual, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.short),
+    "charge2":          analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_hwCharge, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.short),
+    "isL1MuMatched2":   analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_isL1muMatched, aki=aki_arr_sec_selection, padlen=1, padval=False, firsts=True, to_numpy=True, numpy_dtype=np.bool),
+    "l1MuMatchedIdx2":  analysis_utils.apply_akindex(arr=arr.L1KBMTFSkimmed_l1muMatchedIdx, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.short),
     #--- met
     #"met_bx0"
     #"met_bxm1"
@@ -436,21 +437,21 @@ aki_arr_l1mu_prim_selection = analysis_utils.gen_akindex_from_indexlist(indexlis
 aki_arr_l1mu_sec_selection = analysis_utils.gen_akindex_from_indexlist(indexlist=np.array(arr_tracks.l1MuMatchedIdx2))
 ## add matched prim and sec l1 muon info to flat arr "arr_tracks"
 # prim matched l1 muon
-arr_tracks["l1MuHwPt1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_pt, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuHwPtU1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_ptUnconstrained, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuEta1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_eta, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuPhi1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_phi, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuDxy1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwDXY, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuQual1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwQual, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuCharge1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwCharge, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True)
+arr_tracks["l1MuHwPt1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_pt, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+arr_tracks["l1MuHwPtU1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_ptUnconstrained, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+arr_tracks["l1MuEta1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_eta, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+arr_tracks["l1MuPhi1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_phi, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+arr_tracks["l1MuDxy1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwDXY, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc)
+arr_tracks["l1MuQual1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwQual, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc)
+arr_tracks["l1MuCharge1"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwCharge, aki=aki_arr_l1mu_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc)
 # sec matched l1 muon
-arr_tracks["l1MuHwPt2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_pt, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuHwPtU2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_ptUnconstrained, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuEta2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_eta, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuPhi2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_phi, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuDxy2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwDXY, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuQual2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwQual, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
-arr_tracks["l1MuCharge2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwCharge, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True)
+arr_tracks["l1MuHwPt2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_pt, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+arr_tracks["l1MuHwPtU2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_ptUnconstrained, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+arr_tracks["l1MuEta2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_eta, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+arr_tracks["l1MuPhi2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_phi, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+arr_tracks["l1MuDxy2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwDXY, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc)
+arr_tracks["l1MuQual2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwQual, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc)
+arr_tracks["l1MuCharge2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwCharge, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc)
 
 ### prepare map of colliding bunches
 run_to_lhcscheme = analysis_params.nb_run_to_lhcscheme
@@ -553,58 +554,128 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 
 
 
-### print some entries of the processed arr
-n_to_print = 15
-## general
-list_of_dict_per_row = []
-n_entries = len(arr_tracks)
-for i in range(0,min(n_entries,n_to_print)):
-    row_dict = {}
-    for rk in [
-        "treeidx", "arridx",
-        "run", "orbitNumber", "bunchCrossing",
-        "is_colliding", "is_earlier_colliding",
-        ]:
-        for k,v in arr_tracks[i].tolist().items():
-            if rk == k:
-                row_dict[k] = v
-    list_of_dict_per_row.append(row_dict)
-print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
-## for first track
-list_of_dict_per_row = []
-n_entries = len(arr_tracks)
-for i in range(0,min(n_entries,n_to_print)):
-    row_dict = {}
-    for rk in [
-        "idx1",
-        "firstbx1",
-        #"bxspread1", "nstub1",
-        "pt1", "hwPt1", "hwPtU1",
-        "isL1MuMatched1", "l1MuMatchedIdx1", "l1MuHwPt1", "l1MuHwPtU1",
-        ]:
-        for k,v in arr_tracks[i].tolist().items():
-            if rk == k:
-                row_dict[k] = v
-    list_of_dict_per_row.append(row_dict)
-print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
-## for second track
-list_of_dict_per_row = []
-n_entries = len(arr_tracks)
-for i in range(0,min(n_entries,n_to_print)):
-    row_dict = {}
-    for rk in [
-        "idx2",
-        "firstbx2",
-        #"bxspread2", "nstub2",
-        "pt2", "hwPt2", "hwPtU2",
-        "isL1MuMatched2", "l1MuMatchedIdx2", "l1MuHwPt2", "l1MuHwPtU2",
-        ]:
-        for k,v in arr_tracks[i].tolist().items():
-            if rk == k:
-                row_dict[k] = v
-    list_of_dict_per_row.append(row_dict)
-print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
+# ### print some entries of the processed arr
+# n_to_print = 15
+# ## general
+# list_of_dict_per_row = []
+# n_entries = len(arr_tracks)
+# for i in range(0,min(n_entries,n_to_print)):
+#     row_dict = {}
+#     for rk in [
+#         "treeidx", "arridx",
+#         "run", "orbitNumber", "bunchCrossing",
+#         "is_colliding", "is_earlier_colliding",
+#         ]:
+#         for k,v in arr_tracks[i].tolist().items():
+#             if rk == k:
+#                 row_dict[k] = v
+#     list_of_dict_per_row.append(row_dict)
+# print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
+# ## for first track
+# list_of_dict_per_row = []
+# n_entries = len(arr_tracks)
+# for i in range(0,min(n_entries,n_to_print)):
+#     row_dict = {}
+#     for rk in [
+#         "idx1",
+#         "firstbx1",
+#         #"bxspread1", "nstub1",
+#         "pt1", "hwPt1", "hwPtU1",
+#         "isL1MuMatched1", "l1MuMatchedIdx1", "l1MuHwPt1", "l1MuHwPtU1",
+#         ]:
+#         for k,v in arr_tracks[i].tolist().items():
+#             if rk == k:
+#                 row_dict[k] = v
+#     list_of_dict_per_row.append(row_dict)
+# print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
+# ## for second track
+# list_of_dict_per_row = []
+# n_entries = len(arr_tracks)
+# for i in range(0,min(n_entries,n_to_print)):
+#     row_dict = {}
+#     for rk in [
+#         "idx2",
+#         "firstbx2",
+#         #"bxspread2", "nstub2",
+#         "pt2", "hwPt2", "hwPtU2",
+#         "isL1MuMatched2", "l1MuMatchedIdx2", "l1MuHwPt2", "l1MuHwPtU2",
+#         ]:
+#         for k,v in arr_tracks[i].tolist().items():
+#             if rk == k:
+#                 row_dict[k] = v
+#     list_of_dict_per_row.append(row_dict)
+# print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
 
+
+### overview of output array
+# as it should be / as it was generated by FinalSelection_SlowData.py:
+"""
+bunchCrossing UInt_t
+bxspread1 int
+bxspread2 int
+charge1 short
+charge2 short
+dxy1 short
+dxy2 short
+eta1 float
+eta2 float
+firstbx1 int
+firstbx2 int
+hwPt1 float
+hwPt2 float
+hwPtU1 float
+hwPtU2 float
+idx1 int
+idx2 int
+isL1MuMatched1 bool
+isL1MuMatched2 bool
+is_colliding bool
+is_earlier_colliding bool
+l1MuCharge1 int
+l1MuCharge2 int
+l1MuDxy1 int
+l1MuDxy2 int
+l1MuEta1 float
+l1MuEta2 float
+l1MuHwPt1 float
+l1MuHwPt2 float
+l1MuHwPtU1 float
+l1MuHwPtU2 float
+l1MuMatchedIdx1 int
+l1MuMatchedIdx2 int
+l1MuPhi1 float
+l1MuPhi2 float
+l1MuQual1 int
+l1MuQual2 int
+luminosityBlock UInt_t
+met_bx0 float
+met_bxm1 float
+met_bxm2 float
+met_bxm3 float
+met_bxm4 float
+met_bxm5 float
+nL1KBMTFSkimmed Int_t
+nSkimmedL1Mu Int_t
+nstub1 short
+nstub2 short
+orbitNumber UInt_t
+phi1 float
+phi2 float
+pt1 float
+pt2 float
+qual1 short
+qual2 short
+run UInt_t
+stationspread1 int
+stationspread2 int
+"""
+
+### store output as root ttree
+# prepare output file
+outfile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/finalselection_slowdata.root"
+outfile = uproot.recreate(outfile_path)
+# write ttree
+outfile.mktree("Events", arr_tracks)
 
 #****************************
 #############################

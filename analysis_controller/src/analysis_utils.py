@@ -54,13 +54,18 @@ def gen_akindex_from_indexlist(*, indexlist):
 # padlen: if > 0, pad defaultvalue to each row until there are at least padlen entries in each row
 # padval: value to be padded
 # firsts: it True, collapse inner list and select first element of it
-def apply_akindex(*, arr, aki, padlen=0, padval=None, firsts=True):
+def apply_akindex(*, arr, aki, padlen=0, padval=None, firsts=True, to_numpy=True, numpy_dtype=None):
     # apply ak index to arr
     arr = arr[aki]
     # pad values if desired
     if padlen > 0:
         arr = ak.pad_none(arr, padlen, clip=False)
         arr = ak.fill_none(arr, padval)
-    if firsts == True:
+    if firsts:
         arr = ak.firsts(arr)
+        if to_numpy:
+            if numpy_dtype != None:
+                arr = np.array(arr, dtype=numpy_dtype)
+            else:
+                arr = np.array(arr)
     return arr
