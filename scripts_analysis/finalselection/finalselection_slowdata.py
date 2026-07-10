@@ -18,7 +18,6 @@ import argparse
 from analysis_controller.src import path_utils
 from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
-
 from analysis_controller.src import analysis_utils
 from analysis_controller.src import analysis_params
 
