@@ -66,6 +66,9 @@ outfile_path = args.output
 #infile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/rekbmtf_data.root"
 #outfile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/finalselection_slowdata.root"
 
+###################
+### IMPORT DATA
+
 ### import root file
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Opening input ROOT file from \"{infile_path}\"")
 infile = uproot.open(infile_path)
@@ -84,7 +87,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 row_indices = ak.local_index(arr, axis=0)
 arr["treeidx"] = row_indices
 n_entries = len(row_indices)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The imported dataset has \"{n_entries}\" events")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The imported dataset has \"{n_entries:,}\" events")
 
 ### overview of input array
 # for data:
@@ -156,6 +159,8 @@ arr.type.show() = {
 ???
 """
 
+###################
+### CALCULATE HIGHER-LEVEL QUANTITIES FOR ALL TRACKS
 
 ### calculate min_bx for arr
 ## for single track
@@ -354,6 +359,9 @@ arr["L1KBMTFSkimmed_l1muMatchedIdx"] = builder.snapshot()
 ### add boolean field whether there was a l1 muon match
 arr["L1KBMTFSkimmed_isL1muMatched"] = ak.where(arr.L1KBMTFSkimmed_l1muMatchedIdx > -1, True, False)
 
+###################
+### SELECT UP TO 2 TRACKS PER EVENT
+
 ### select only primary and secondary track
 # track selection order from collection:
 # - largest bxspread,
@@ -485,6 +493,9 @@ arr_tracks["l1MuDxy2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwDXY,
 arr_tracks["l1MuQual2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwQual, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc)
 arr_tracks["l1MuCharge2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwCharge, aki=aki_arr_l1mu_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.intc)
 
+###################
+### CALCULATE HIGHER-LEVEL QUANTITIES FOR SELECTED TRACKS
+
 ### prepare map of colliding bunches
 run_to_lhcscheme = analysis_params.nb_run_to_lhcscheme
 lhcscheme_to_filledbx = analysis_params.nb_lhcscheme_to_filledbx
@@ -545,11 +556,12 @@ def arr_check_earlier_colliding(events, bx_interval, run_to_lhcscheme, lhcscheme
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_earlier_colliding\" for output data")
 arr_tracks["is_earlier_colliding"] = arr_check_earlier_colliding(events=arr_tracks, bx_interval=analysis_params.bx_interval_earlier_colliding, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
 
-
+###################
+### PERFORM CUTS ON SELECTED TRACKS
 
 ### store no of events before all cuts
 selection_n_initial = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_initial}\" events before all cuts")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_initial:,}\" events before all cuts")
 
 ### select events with at least one kbmtf track
 selection_info = f"(nseltracks > 0)"
@@ -559,7 +571,7 @@ arr_mask = (arr_tracks.nseltracks > 0)
 #--------------
 arr_tracks = arr_tracks[arr_mask]
 selection_n_after = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 ### select events with at >= 1 track over more than one bx
 selection_info = f"(bxspread1 > 0) | (bxspread2 > 0)"
@@ -569,7 +581,7 @@ arr_mask = (arr_tracks.bxspread1 > 0) | (arr_tracks.bxspread2 > 0)
 #--------------
 arr_tracks = arr_tracks[arr_mask]
 selection_n_after = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 # ### select events with two tracks
 # selection_info = f"(nseltracks == 2)"
@@ -579,7 +591,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 # #--------------
 # arr_tracks = arr_tracks[arr_mask]
 # selection_n_after = len(arr_tracks)
-# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 # ### select events with matched l1mu
 # selection_info = f"(isL1MuMatched1 == True) | (isL1MuMatched2 == True)"
@@ -589,13 +601,14 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 # #--------------
 # arr_tracks = arr_tracks[arr_mask]
 # selection_n_after = len(arr_tracks)
-# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 ### store no of events before all cuts
 selection_n_final = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_final}\" events after all cuts. Total cut flow: \"{selection_n_final} / {selection_n_initial} = {(selection_n_final/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_final:,}\" events after all cuts. Total cut flow: \"{selection_n_final:,} / {selection_n_initial:,} = {(selection_n_final/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
-
+###################
+### PRINT SOME DATA FOR DEBUGGING
 
 # ### print some entries of the processed arr
 # n_to_print = 15
@@ -648,7 +661,6 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 #                 row_dict[k] = v
 #     list_of_dict_per_row.append(row_dict)
 # print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
-
 
 ### overview of output array
 # as it should be / as it was generated by FinalSelection_SlowData.py:
@@ -713,9 +725,12 @@ stationspread1 int
 stationspread2 int
 """
 
+###################
+### STORE OUTPUT
+
 ### store output as root ttree
 n_arr = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to write \"{n_arr}\" events into output ROOT file \"{outfile_path}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to write \"{n_arr:,}\" events into output ROOT file \"{outfile_path}\"")
 # prepare output file
 outfile = uproot.recreate(outfile_path)
 # write ttree
@@ -726,5 +741,5 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 #############################
 
 stop_time = time.time()
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The execution took \"{stop_time - start_time} seconds\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The execution took \"{(stop_time - start_time):03f} seconds\"")
 console_utils.print_console_footer()
