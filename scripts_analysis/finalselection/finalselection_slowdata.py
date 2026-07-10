@@ -13,6 +13,7 @@ import numpy as np
 from tabulate import tabulate
 import vector
 import time
+import argparse
 
 from analysis_controller.src import path_utils
 from analysis_controller.src import file_utils
@@ -31,23 +32,48 @@ start_time = time.time()
 vector.register_awkward()
 
 #############################
+### ARGUMENT PARSER
+
+parser = argparse.ArgumentParser()
+# mandatory:
+parser.add_argument(
+    "--input",
+    help="path to input root file (str)",
+    type=str,
+    required=True,
+)
+parser.add_argument(
+    "--output",
+    help="path to target output root file (str)",
+    type=str,
+    required=True,
+)
+# optional:
+args = parser.parse_args()
+
+#############################
 #****************************
 ### MAIN PART
 
-### import root file
-#rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/output.root"
-#rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/rekbmtf_example_output_1.root"
-#rootfile_path = "root://xrootd-cms.infn.it///store/user/nesper/test_analysis_hscp_l1/L1Scouting/crab_Scouting_2024H/260618_105926/0000/output_1.root"
-#rootfile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/hadd_test_output_0.root"
-rootfile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/rekbmtf_data.root"
+### parse args
+infile_path = args.input
+outfile_path = args.output
 
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Opening ROOT file from \"{rootfile_path}\"")
-rootfile = uproot.open(rootfile_path)
+#infile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/output.root"
+#infile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/rekbmtf_example_output_1.root"
+#infile_path = "root://xrootd-cms.infn.it///store/user/nesper/test_analysis_hscp_l1/L1Scouting/crab_Scouting_2024H/260618_105926/0000/output_1.root"
+#infile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/hadd_test_output_0.root"
+#infile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/rekbmtf_data.root"
+#outfile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/finalselection_slowdata.root"
+
+### import root file
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Opening input ROOT file from \"{infile_path}\"")
+infile = uproot.open(infile_path)
 
 ### extract "Events" root tree
-roottree = rootfile["Events"]
+roottree = infile["Events"]
 roottree_branches = roottree.keys()
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"ROOT tree \"Events\" contains branches {roottree_branches}")
+#console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"ROOT tree \"Events\" contains branches {roottree_branches}")
 
 ### convert root tree to awkward array
 arr = roottree.arrays(roottree_branches)
@@ -58,7 +84,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 row_indices = ak.local_index(arr, axis=0)
 arr["treeidx"] = row_indices
 n_entries = len(row_indices)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The imported dataset has {n_entries} events")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The imported dataset has \"{n_entries}\" events")
 
 ### overview of input array
 # for data:
@@ -158,7 +184,8 @@ def arr_min_bx(events, builder):
             builder.integer(first_bx)
         builder.end_list()
     return builder
-
+## add field to arr
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"firstbx\" for all tracks")
 builder = ak.ArrayBuilder()
 arr_min_bx(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_firstBx"] = builder.snapshot()
@@ -193,6 +220,7 @@ def arr_bx_spread(events, builder):
         builder.end_list()
     return builder
 ## add field to arr
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"bxspread\" for all tracks")
 builder = ak.ArrayBuilder()
 arr_bx_spread(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_bxSpread"] = builder.snapshot()
@@ -227,6 +255,7 @@ def arr_st_spread(events, builder):
         builder.end_list()
     return builder
 ## add field to arr
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"stspread\" for all tracks")
 builder = ak.ArrayBuilder()
 arr_st_spread(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_stSpread"] = builder.snapshot()
@@ -265,11 +294,13 @@ def arr_pt_from_hwk(events, builder):
         builder.end_list()
     return builder
 ## add field to arr
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"ptoffline\" for all tracks")
 builder = ak.ArrayBuilder()
 arr_pt_from_hwk(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_ptOffline"] = builder.snapshot()
 
 ### create track 4-vectors for arr
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Creating \"fourVec\" for all tracks and l1 muons")
 arr["L1KBMTFSkimmed_fourVec"] = ak.zip(
     {
         "pt": arr.L1KBMTFSkimmed_ptOffline,
@@ -279,8 +310,6 @@ arr["L1KBMTFSkimmed_fourVec"] = ak.zip(
     },
     with_name="Momentum4D",
 )
-
-### create l1muon 4-vectors for arr
 arr["SkimmedL1Mu_fourVec"] = ak.zip(
     {
         "pt": arr.SkimmedL1Mu_pt,
@@ -317,6 +346,7 @@ def arr_find_l1muon_match(events, builder):
         builder.end_list()
     return builder
 ## add field to arr
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Matching tracks and l1 muons")
 builder = ak.ArrayBuilder()
 builder = arr_find_l1muon_match(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_l1muMatchedIdx"] = builder.snapshot()
@@ -369,6 +399,7 @@ def arr_sel_tracks(events):
         arr_sec_selection[i_event] = sel_i_sec_track
     return arr_prim_selection, arr_sec_selection
 ### obtain indexlist of selected primary and secondary tracks from each event in arr
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Selecting up to 2 tracks per event for output data")
 i_arr_prim_selection, i_arr_sec_selection = arr_sel_tracks(events=arr)
 
 ### generate akindex for primary and secondary tracks to select from arr
@@ -382,6 +413,7 @@ n_sel_tracks = np.array((i_arr_prim_selection != -1), dtype=np.int8) + np.array(
 row_indices_arr = ak.local_index(arr, axis=0)
 
 ## generate new flat arr "arr_tracks" with selected prim and sec tracks info
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Preparing output data with information about the selected tracks")
 arr_tracks = ak.Array({
     #--- basic info
     "treeidx":                  np.array(arr.treeidx[row_indices_arr], dtype=np.uintc),
@@ -479,6 +511,7 @@ def arr_check_colliding(events, run_to_lhcscheme, lhcscheme_to_filledbx):
         arr_is_colliding[i_event] = is_colliding
     return arr_is_colliding
 ### add boolean field if is colliding event
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_colliding\" for output data")
 arr_tracks["is_colliding"] = arr_check_colliding(events=arr_tracks, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
 
 ### determine whether current event had colliding bunch within last collisions
@@ -509,10 +542,14 @@ def arr_check_earlier_colliding(events, bx_interval, run_to_lhcscheme, lhcscheme
         arr_is_earlier_colliding[i_event] = is_earlier_colliding
     return arr_is_earlier_colliding
 ### add boolean field if is earlier colliding event
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_earlier_colliding\" for output data")
 arr_tracks["is_earlier_colliding"] = arr_check_earlier_colliding(events=arr_tracks, bx_interval=analysis_params.bx_interval_earlier_colliding, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
 
 
 
+### store no of events before all cuts
+selection_n_initial = len(arr_tracks)
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_initial}\" events before all cuts")
 
 ### select events with at least one kbmtf track
 selection_info = f"(nseltracks > 0)"
@@ -522,7 +559,7 @@ arr_mask = (arr_tracks.nseltracks > 0)
 #--------------
 arr_tracks = arr_tracks[arr_mask]
 selection_n_after = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 ### select events with at >= 1 track over more than one bx
 selection_info = f"(bxspread1 > 0) | (bxspread2 > 0)"
@@ -532,7 +569,7 @@ arr_mask = (arr_tracks.bxspread1 > 0) | (arr_tracks.bxspread2 > 0)
 #--------------
 arr_tracks = arr_tracks[arr_mask]
 selection_n_after = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 # ### select events with two tracks
 # selection_info = f"(nseltracks == 2)"
@@ -542,7 +579,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 # #--------------
 # arr_tracks = arr_tracks[arr_mask]
 # selection_n_after = len(arr_tracks)
-# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 # ### select events with matched l1mu
 # selection_info = f"(isL1MuMatched1 == True) | (isL1MuMatched2 == True)"
@@ -552,7 +589,11 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 # #--------------
 # arr_tracks = arr_tracks[arr_mask]
 # selection_n_after = len(arr_tracks)
-# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing selection step \"{selection_info}\". Cut flow: {selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f}%")
+# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after} / {selection_n_before} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+
+### store no of events before all cuts
+selection_n_final = len(arr_tracks)
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_final}\" events after all cuts. Total cut flow: \"{selection_n_final} / {selection_n_initial} = {(selection_n_final/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 
 
@@ -673,11 +714,13 @@ stationspread2 int
 """
 
 ### store output as root ttree
+n_arr = len(arr_tracks)
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to write \"{n_arr}\" events into output ROOT file \"{outfile_path}\"")
 # prepare output file
-outfile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/finalselection_slowdata.root"
 outfile = uproot.recreate(outfile_path)
 # write ttree
 outfile.mktree("Events", arr_tracks)
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Done writing output ROOT file")
 
 #****************************
 #############################
