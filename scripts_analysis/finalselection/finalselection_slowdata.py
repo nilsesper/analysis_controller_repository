@@ -475,8 +475,7 @@ def arr_check_colliding(events, run_to_lhcscheme, lhcscheme_to_filledbx):
     arr_is_colliding = np.zeros(n_events, dtype=np.bool_)
     for i_event in range(n_events):
         event = events[i_event]
-        bx = event.firstbx1
-        is_colliding = event_check_colliding(run=event.run, bx=bx, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
+        is_colliding = event_check_colliding(run=event.run, bx=event.firstbx1, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
         arr_is_colliding[i_event] = is_colliding
     return arr_is_colliding
 ### add boolean field if is colliding event
@@ -484,16 +483,20 @@ arr_tracks["is_colliding"] = arr_check_colliding(events=arr_tracks, run_to_lhcsc
 
 ### determine whether current event had colliding bunch within last collisions
 # take as reference bx not the event bx, but the firstbx1
-# mark as "earlier colliding" if [bx-1-bx_interval , bx] was colliding bunch, include current bunch
+# mark as "earlier colliding" if [bx-bx_interval , bx] was colliding bunch
+# mask as "earlier colliding", if is currently colliding
 ## for single event
 @nb.jit
-def event_check_earlier_colliding(run, bx, bx_interval, run_to_lhcscheme, lhcscheme_to_filledbx):
+def event_check_earlier_colliding(run, bx, bx_interval, is_colliding, run_to_lhcscheme, lhcscheme_to_filledbx):
     lhcscheme = run_to_lhcscheme[run]
     filledbx_list = lhcscheme_to_filledbx[lhcscheme]
     is_earlier_colliding = False
-    for bx_check in range(bx-bx_interval-1, bx+1): # include current bx, i.e. check [bx-1-bx_interval , bx]
-        if bx_check in filledbx_list:
-            is_earlier_colliding = True
+    if is_colliding == True: # if colliding, also set earlier colliding
+        is_earlier_colliding = True
+    else:
+        for bx_check in range(bx-bx_interval, bx+1): # include current bx, i.e. check [bx-1-bx_interval , bx]
+            if bx_check in filledbx_list:
+                is_earlier_colliding = True
     return is_earlier_colliding
 ## for ak arr
 @nb.jit
@@ -502,8 +505,7 @@ def arr_check_earlier_colliding(events, bx_interval, run_to_lhcscheme, lhcscheme
     arr_is_earlier_colliding = np.zeros(n_events, dtype=np.bool_)
     for i_event in range(n_events):
         event = events[i_event]
-        bx = event.firstbx1
-        is_earlier_colliding = event_check_earlier_colliding(run=event.run, bx=bx, bx_interval=bx_interval, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
+        is_earlier_colliding = event_check_earlier_colliding(run=event.run, bx=event.firstbx1, bx_interval=bx_interval, is_colliding=event.is_colliding, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
         arr_is_earlier_colliding[i_event] = is_earlier_colliding
     return arr_is_earlier_colliding
 ### add boolean field if is earlier colliding event
