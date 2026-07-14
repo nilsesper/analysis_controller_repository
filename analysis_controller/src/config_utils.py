@@ -64,6 +64,7 @@ DictBlueprints = {
 
         "input_das_name": "str",
         "input_lumi_mask": "str",
+        "input_run_range": "str",
     },
     "RekbmtfParams": {
         "submission_type": "str",

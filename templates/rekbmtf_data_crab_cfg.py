@@ -17,6 +17,7 @@ config.Data.inputDBS = "global"
 config.Data.splitting = "Automatic"
 
 config.Data.lumiMask = "++++INPUT_LUMI_MASK++++" #'https://cms-service-dqmdc.web.cern.ch/CAF/certification/Collisions24/Cert_Collisions2024_378981_386951_Golden.json'
+config.Data.runRange = "++++INPUT_RUN_RANGE++++"
 
 config.Data.outLFNDirBase = "++++CRAB_OUTPUT_BASEDIR++++" #'/store/group/cmst3/group/slowmuons/' #"/store/user/nesper/test_analysis_hscp_l1/"
 

@@ -125,6 +125,7 @@ if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type ==
         "++++CMSSW_CONFIGFILE++++": cmssw_config_filepath,
         "++++INPUT_DAS_NAME++++": RekbmtfInput.input_das_name,
         "++++INPUT_LUMI_MASK++++": RekbmtfInput.input_lumi_mask,
+        "++++INPUT_RUN_RANGE++++": RekbmtfInput.input_run_range,
         "++++CRAB_OUTPUT_BASEDIR++++": RekbmtfParams.output_basepath,
         "++++CRAB_STORAGE_SITE++++": RekbmtfParams.output_site,
     }
