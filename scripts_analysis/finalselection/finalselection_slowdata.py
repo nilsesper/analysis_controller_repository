@@ -81,12 +81,12 @@ roottree_branches = roottree.keys()
 arr = roottree.arrays(roottree_branches)
 arr = ak.with_name(arr, name="Events")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Converting ROOT tree \"Events\" to awkward array")
-
-### add initial index to arr
 row_indices = ak.local_index(arr, axis=0)
-arr["treeidx"] = row_indices
 n_entries = len(row_indices)
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The imported dataset has \"{n_entries:,}\" events")
+
+### add initial index to arr
+arr["treeidx"] = row_indices
 
 ### overview of input array
 # for data:
