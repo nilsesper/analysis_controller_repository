@@ -56,8 +56,13 @@ DictBlueprints = {
         "path": "str",
         "size": "int",
     },
+    "_FinalselectionCollection": {
+        "user_label": "str",
+        "rekbmtf_output_config": "str",
+    },
     #########################
     ### info dicts (part of config file dicts)
+    #--- rekbmtf
     "RekbmtfInput": {
         "data_type": "str",
         "data_label": "str",
@@ -105,8 +110,13 @@ DictBlueprints = {
         "collection_files": "list::_CollectionFileGroup",
         "collection_timestamp": "str",
     },
+    #--- finalselection
+    "FinalselectionInput": {
+        "collections": "list::_FinalselectionCollection"
+    },
     #########################
     ### configuration file dicts
+    #--- rekbmtf
     "ConfigRekbmtfInput": {
         "RekbmtfInput": "dict::RekbmtfInput",
     },
@@ -127,6 +137,13 @@ DictBlueprints = {
         "RekbmtfSubmission": "dict::RekbmtfSubmission",
         "RekbmtfCollection": "dict::RekbmtfCollection",
         "RekbmtfOutput": "dict::RekbmtfOutput",
+    },
+    #--- finalselection
+    "ConfigFinalselectionInput": {
+        "FinalselectionInput": "dict::FinalselectionInput",
+    },
+    "ConfigFinalselectionParams": {
+        "FinalselectionParams": "dict::FinalselectionParams",
     },
 }
 

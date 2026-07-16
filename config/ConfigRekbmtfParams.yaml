@@ -1,13 +1,13 @@
 RekbmtfParams:
 
-    submission_type: "cern-crab"
-    submission_splitting: "automatic"
+    submission_type: cern-crab
+    submission_splitting: automatic
     
-    output_type: "cern-grid"
-    output_site: "T2_DE_RWTH"
-    output_basepath: "/store/user/nesper/test_analysis_hscp_l1/"
+    output_type: cern-grid
+    output_site: T2_DE_RWTH
+    output_basepath: /store/user/nesper/test_analysis_hscp_l1/
 
-    crab_config_template_filepath: "%%%ANALYSIS_CONTROLLER_REPO_PATH%%%/templates/rekbmtf_data_crab_cfg.py"
+    crab_config_template_filepath: "%%%ANALYSIS_CONTROLLER_REPO_PATH%%%/templates/rekbtf_crab/rekbmtf_data_crab_cfg.py"
 
     cmssw_src_path: "%%%ANALYSIS_CONTROLLER_REPO_PATH%%%/../1_reKBMTF/CMSSW_14_0_12/src/"
-    cmssw_config_template_filepath: "%%%ANALYSIS_CONTROLLER_REPO_PATH%%%/templates/rekbmtf_data_cmssw_cfg.py"
+    cmssw_config_template_filepath: "%%%ANALYSIS_CONTROLLER_REPO_PATH%%%/templates/rekbtf_crab/rekbmtf_data_cmssw_cfg.py"
