@@ -91,7 +91,7 @@ for i_file in range(n_files):
 ### define bins
 
 low_edge = 0
-high_edge = 1000
+high_edge = 1200
 
 n_bins = 50
 
@@ -185,18 +185,6 @@ PlotHistParams = plot_utils.StructPlotHistParams(
 PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistParams(PlotHistParams=PlotHistParams)
 plot_utils.add_NpHist_to_PlotHistAx(NpHist=difference_NpHist, PlotHistAx=PlotHistAx)
 fig.show()
-
-sel_i_data_pts = np.where(arr_DataPts[0].data_pts < low_edge)
-print("*** input1 < low_edge", arr_DataPts[0].data_pts[ sel_i_data_pts ])
-
-sel_i_data_pts = np.where(arr_DataPts[1].data_pts < low_edge)
-print("*** input2 < low_edge", arr_DataPts[1].data_pts[ sel_i_data_pts ])
-
-sel_i_data_pts = np.where(arr_DataPts[0].data_pts > high_edge)
-print("*** input1 > high_edge", arr_DataPts[0].data_pts[ sel_i_data_pts ])
-
-sel_i_data_pts = np.where(arr_DataPts[1].data_pts > high_edge)
-print("*** input2 > high_edge", arr_DataPts[1].data_pts[ sel_i_data_pts ])
 
 #****************************
 #############################
