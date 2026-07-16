@@ -67,16 +67,13 @@ n_files = 2
 arrs = []
 for i_file in range(n_files):
     infile_path = infile_paths[i_file]
-
     ### import root file
     console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Opening input ROOT file from \"{infile_path}\"")
     infile = uproot.open(infile_path)
-
     ### extract "Events" root tree
     roottree = infile["Events"]
     roottree_branches = roottree.keys()
     #console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"ROOT tree \"Events\" contains branches {roottree_branches}")
-
     ### convert root tree to awkward array
     arr = roottree.arrays(roottree_branches)
     arr = ak.with_name(arr, name="Events")
@@ -84,7 +81,7 @@ for i_file in range(n_files):
     row_indices = ak.local_index(arr, axis=0)
     n_entries = len(row_indices)
     console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The imported dataset has \"{n_entries:,}\" events")
-
+    ###
     arrs.append(arr)
 
 #############################
@@ -93,21 +90,21 @@ for i_file in range(n_files):
 ###--------------------------
 ### define bins
 
-low_edge = 10
-high_edge = 100
-# num_bins = 50
-target_bin_width = 2
-n_bins = (high_edge-low_edge)//target_bin_width
+low_edge = 0
+high_edge = 1000
+
+n_bins = 50
+
+# target_bin_width = 50
+# n_bins = (high_edge-low_edge)//target_bin_width
 
 HistEdges = hist_utils.create_HistEdges_uniform(low_edge=low_edge, high_edge=high_edge, n_bins=n_bins)
 
 arr_DataPts = []
 for i_file in range(n_files):
     arr = arrs[i_file]
-
     data_pts = np.array(arr.pt1)
     DataPts = hist_utils.create_DataPts(data_pts=data_pts)
-
     arr_DataPts.append(DataPts)
 
 ###--------------------------
@@ -116,9 +113,7 @@ for i_file in range(n_files):
 arr_NpHist = []
 for i_file in range(n_files):
     DataPts = arr_DataPts[i_file]
-
     NpHist = hist_utils.create_NpHist_from_DataPts(HistEdges=HistEdges, DataPts=DataPts)
-
     arr_NpHist.append(NpHist)
 
 ### bin by bin difference
@@ -145,14 +140,10 @@ PlotHistParams = plot_utils.StructPlotHistParams(
     xlim=None,
     ylim=None
 )
-
 PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistParams(PlotHistParams=PlotHistParams)
-
 for i_file in range(n_files):
     NpHist = arr_NpHist[i_file]
-
     plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx)
-
 fig.show()
 
 ### log scale
@@ -170,14 +161,10 @@ PlotHistParams = plot_utils.StructPlotHistParams(
     xlim=None,
     ylim=None
 )
-
 PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistParams(PlotHistParams=PlotHistParams)
-
 for i_file in range(n_files):
     NpHist = arr_NpHist[i_file]
-
     plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx)
-
 fig.show()
 
 ### linear scale difference
@@ -195,12 +182,21 @@ PlotHistParams = plot_utils.StructPlotHistParams(
     xlim=None,
     ylim=None
 )
-
 PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistParams(PlotHistParams=PlotHistParams)
-
 plot_utils.add_NpHist_to_PlotHistAx(NpHist=difference_NpHist, PlotHistAx=PlotHistAx)
-
 fig.show()
+
+sel_i_data_pts = np.where(arr_DataPts[0].data_pts < low_edge)
+print("*** input1 < low_edge", arr_DataPts[0].data_pts[ sel_i_data_pts ])
+
+sel_i_data_pts = np.where(arr_DataPts[1].data_pts < low_edge)
+print("*** input2 < low_edge", arr_DataPts[1].data_pts[ sel_i_data_pts ])
+
+sel_i_data_pts = np.where(arr_DataPts[0].data_pts > high_edge)
+print("*** input1 > high_edge", arr_DataPts[0].data_pts[ sel_i_data_pts ])
+
+sel_i_data_pts = np.where(arr_DataPts[1].data_pts > high_edge)
+print("*** input2 > high_edge", arr_DataPts[1].data_pts[ sel_i_data_pts ])
 
 #****************************
 #############################

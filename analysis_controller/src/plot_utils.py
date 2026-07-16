@@ -171,11 +171,6 @@ def add_NpHist_to_PlotHistAx(*, NpHist, PlotHistAx):
     hist_ou_plot = np.concatenate([[NpHist.uf, 0] , NpHist.hist, [0, NpHist.of]])
     err_hist_ou_plot = np.concatenate([[NpHist.err_uf, 0] , NpHist.err_hist, [0, NpHist.err_of]])
 
-    print(NpHist.hist_ou)
-    print(NpHist.err_hist_ou)
-    print(NpHist.err_uf)
-    print(NpHist.err_of)
-
     mh.histplot(H=hist_ou_plot, bins=PlotHistAx.edges_ou_plot, yerr=err_hist_ou_plot, ax=PlotHistAx.ax, histtype="barstep", label="Data")
 
     # set yscale and ylim

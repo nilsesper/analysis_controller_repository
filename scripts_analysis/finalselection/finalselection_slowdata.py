@@ -269,6 +269,8 @@ arr["L1KBMTFSkimmed_stSpread"] = builder.snapshot()
 @nb.jit
 def track_pt(hwK):
     hwK = hwK - 9.0
+    if hwK == 0:
+        hwK = 1
     abs_hwk = abs(hwK)
     if abs_hwk > 2047:
         abs_hwk = 2047
