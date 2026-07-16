@@ -97,10 +97,11 @@ NpHist1 = hist_utils.create_NpHist(HistEdges=HistEdges, DataPts=DataPts)
 NpHist2 = hist_utils.create_NpHist(HistEdges=HistEdges, DataPts=DataPts)
 NpHist = hist_utils.linear_combination_NpHists(NpHists=[NpHist1, NpHist1], factors=[1,2])
 
-### create RootHist, in the end convert to NpHist
+### create RootHist
 RootHist1 = hist_utils.create_RootHist(HistEdges=HistEdges, DataPts=DataPts)
 RootHist2 = hist_utils.create_RootHist(HistEdges=HistEdges, DataPts=DataPts)
 RootHist = hist_utils.linear_combination_RootHists(RootHists=[RootHist1, RootHist2], factors=[1,2])
+# in the end convert only final RootHist to NpHist (for plotting)
 NpHist_from_RootHist = hist_utils.convert_RootHist_to_NpHist(RootHist=RootHist)
 
 ### calculate bin by bin difference

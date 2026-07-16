@@ -241,7 +241,7 @@ def linear_combination_NpHists(*, NpHists, factors=None):
     #   - err_hist_single[bin] = sqrt( sum(weights_single[bin]**2) )
     #   - err_hist_combined[bin] = sqrt{ sum(weights_combined[bin]**2) } = sqrt( sum(weights_0[bin]**2 + weights_1[bin]**2) } = sqrt{ sum(weights_0[bin]**2) + sum(weights_1[bin]**2) } = sqrt{ sqrt( sum(weights_0[bin]**2) )**2 + sqrt( sum(weights_1[bin]**2) )**2 }
     #      = sqrt{ err_hist_0[bin]**2 + err_hist_1[bin]**2 }
-    err_hists_ou = np.array([NpHists[i_hist].err_hist_ou * factors[i_hist] for i_hist in range(n_hists)]) # [i_hist: hist_ou] + apply scaling factor
+    err_hists_ou = np.array([NpHists[i_hist].err_hist_ou * np.abs(factors[i_hist]) for i_hist in range(n_hists)]) # [i_hist: hist_ou] + apply scaling factor
     NpHist_combined.err_hist_ou = np.sqrt(np.sum(err_hists_ou**2, axis=0)) # sum sum of square weights bin by bin
     # NpHist.err_hist_ou = np.sqrt(NpHist1.err_hist_ou**2 + NpHist2.err_hist_ou**2)
     # update internal hist parameters
