@@ -51,10 +51,6 @@ printf "  PYTHONPATH += ${REPO_PATH}\n"
 printf "${YELLOW}Sourcing CMS base environment \"cmsset_default.sh\".${RESET}\n"
 source /cvmfs/cms.cern.ch/cmsset_default.sh
 
-### init voms proxy
-printf "${YELLOW}Initializing CMS VOMS proxy.${RESET}\n"
-voms-proxy-init --rfc --voms cms -valid 192:00
-
 ### go back to original working dir
 printf "${YELLOW}Going back to original working directory.${RESET}\n"
 cd ${CURRENT_WORKING_DIR}
