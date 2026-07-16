@@ -10,6 +10,7 @@ import numpy as np
 import ROOT
 
 from analysis_controller.src import path_utils
+from analysis_controller.src import console_utils
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
 _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
@@ -123,14 +124,15 @@ def create_HistEdges_uniform(*, low_edge, high_edge, n_bins):
 ### create data points
 def create_DataPts(*, data_pts=[], data_weights=None):
     # set weights to one if none given
-    if data_weights == None:
+    if data_weights is None:
         data_weights = np.ones(len(data_pts))
     # create struct
     DataPts = StructDataPts(data_pts=data_pts, data_weights=data_weights)
     return DataPts
 
-### create RootHist with given edges, and optionally fill it with data points
-def create_RootHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
+### create RootHist with given edges
+# and optionally fill it with data points
+def create_RootHist(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
     # prepare root hist
     roothist = ROOT.TH1D("h", "Histogram", HistEdges.n_bins, HistEdges.low_edge, HistEdges.high_edge)
     roothist.Sumw2()
@@ -143,7 +145,7 @@ def create_RootHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[
     return RootHist
 
 ### add data points to RootHist
-def add_DataPts_to_NpHist(*, RootHist, DataPts):
+def add_DataPts_to_RootHist(*, RootHist, DataPts):
     # add data to root hist, with weights
     data_pts_root = np.ascontiguousarray(DataPts.data_pts, dtype=np.float64)
     data_weights_root = np.ascontiguousarray(DataPts.data_weights, dtype=np.float64)
@@ -152,8 +154,39 @@ def add_DataPts_to_NpHist(*, RootHist, DataPts):
     RootHist.update()
     return RootHist
 
-### create NpHist with given edges, and optionally fill it with data points
-def create_NpHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
+### calculate linear combination of N RootHists with factor scaling each hist globally
+def linear_combination_RootHists(*, RootHists, factors=None):
+    n_hists = len(RootHists)
+    # determine hist edges
+    HistEdges = RootHists[0].HistEdges
+    # check if all edges are actually the same
+    has_same_edges = True
+    for i_hist in range(n_hists):
+        # compare edge count
+        has_same_edges &= (HistEdges.n_edges == RootHists[i_hist].HistEdges.n_edges)
+        # compare edge values
+        if has_same_edges:
+            has_same_edges &= all([HistEdges.edges[i_edge] == RootHists[i_hist].HistEdges.edges[i_edge] for i_edge in range(HistEdges.n_edges)])
+    if not has_same_edges:
+        console_utils.raise_exception(string="Histograms must have the same HistEdges in order to add them together")
+    # import factor
+    if factors == None:
+        factors = np.ones(n_hists)
+    factors = np.array(factors)
+    if len(factors) != n_hists:
+        console_utils.raise_exception(string="Factor must have same length as no of histograms")
+    # add roothists together
+    roothist_combined = ROOT.TH1D("h", "Histogram", HistEdges.n_bins, HistEdges.low_edge, HistEdges.high_edge)
+    roothist_combined.Sumw2()
+    for i_hist in range(n_hists):
+        roothist_combined.Add(RootHists[i_hist].roothist, factors[i_hist])
+    # create struct
+    RootHist_combined = StructRootHist(HistEdges=HistEdges, roothist=roothist_combined)
+    return RootHist_combined
+
+### create NpHist with given edges
+# and optionally fill it with data points
+def create_NpHist(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
     # fill np hist, with weights
     hist_ou, _ = np.histogram(a=DataPts.data_pts, bins=HistEdges.edges_ou, weights=DataPts.data_weights)
     # determine hist error
@@ -169,28 +202,51 @@ def create_NpHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[])
 ### add data points to NpHist
 def add_DataPts_to_NpHist(*, NpHist, DataPts):
     ### calculate hist for new data points
-    # fill np hist, with weights
-    _hist_ou, _ = np.histogram(a=DataPts.data_pts, bins=NpHist.HistEdges.edges_ou, weights=DataPts.data_weights)
-    # determine hist error
-    #   root as reference:
-    #   - unweighted histogram: square root of bin content
-    #   - weighted histogram: square root of the bin sum of the weights square
-    _hist_ou_square_weights, _ = np.histogram(a=DataPts.data_pts, bins=NpHist.HistEdges.edges_ou, weights=DataPts.data_weights**2)
-    _err_hist_ou = np.sqrt(_hist_ou_square_weights)
+    NpHist_add = create_NpHist(HistEdges=NpHist.HistEdges, DataPts=DataPts)
     ### merge old histogram with new one
+    NpHist_combined = linear_combination_NpHists(NpHists=[NpHist, NpHist_add])
+    return NpHist_combined
+
+### calculate linear combination of N NpHists with factor scaling each hist globally
+def linear_combination_NpHists(*, NpHists, factors=None):
+    n_hists = len(NpHists)
+    # determine hist edges
+    HistEdges = NpHists[0].HistEdges
+    # check if all edges are actually the same
+    has_same_edges = True
+    for i_hist in range(n_hists):
+        # compare edge count
+        has_same_edges &= (HistEdges.n_edges == NpHists[i_hist].HistEdges.n_edges)
+        # compare edge values
+        if has_same_edges:
+            has_same_edges &= all([HistEdges.edges[i_edge] == NpHists[i_hist].HistEdges.edges[i_edge] for i_edge in range(HistEdges.n_edges)])
+    if not has_same_edges:
+        console_utils.raise_exception(string="Histograms must have the same HistEdges in order to add them together")
+    # import factor
+    if factors == None:
+        factors = np.ones(n_hists)
+    factors = np.array(factors)
+    if len(factors) != n_hists:
+        console_utils.raise_exception(string="Factor must have same length as no of histograms")
+    # prepare new np hist
+    NpHist_combined = create_NpHist(HistEdges=HistEdges)
     # combine histogram bins:
     #   - hist_single[bin] = sum(weights_single[bin])
     #   - hist_combined[bin] = sum(weights_combined[bin]) = sum(weights_0[bin] + weights_1[bin]) = sum(weights_0[bin]) + sum(weights_1[bin])
     #     = hist_0[bin] + hist_1[bin]
-    NpHist.hist_ou = NpHist.hist_ou + _hist_ou
+    hists_ou = np.array([NpHists[i_hist].hist_ou * factors[i_hist] for i_hist in range(n_hists)]) # [i_hist: hist_ou] + apply scaling factor
+    NpHist_combined.hist_ou = np.sum(hists_ou, axis=0) # sum hist entries bin by bin
+    # NpHist.hist_ou = NpHist1.hist_ou + NpHist2.hist_ou
     # combine bin error:
     #   - err_hist_single[bin] = sqrt( sum(weights_single[bin]**2) )
     #   - err_hist_combined[bin] = sqrt{ sum(weights_combined[bin]**2) } = sqrt( sum(weights_0[bin]**2 + weights_1[bin]**2) } = sqrt{ sum(weights_0[bin]**2) + sum(weights_1[bin]**2) } = sqrt{ sqrt( sum(weights_0[bin]**2) )**2 + sqrt( sum(weights_1[bin]**2) )**2 }
     #      = sqrt{ err_hist_0[bin]**2 + err_hist_1[bin]**2 }
-    NpHist.err_hist_ou = np.sqrt(NpHist.err_hist_ou**2 + _err_hist_ou**2)
+    err_hists_ou = np.array([NpHists[i_hist].err_hist_ou * factors[i_hist] for i_hist in range(n_hists)]) # [i_hist: hist_ou] + apply scaling factor
+    NpHist_combined.err_hist_ou = np.sqrt(np.sum(err_hists_ou**2, axis=0)) # sum sum of square weights bin by bin
+    # NpHist.err_hist_ou = np.sqrt(NpHist1.err_hist_ou**2 + NpHist2.err_hist_ou**2)
     # update internal hist parameters
-    NpHist.update()
-    return NpHist
+    NpHist_combined.update()
+    return NpHist_combined
 
 ### convert RootHist to NpHist
 def convert_RootHist_to_NpHist(*, RootHist):

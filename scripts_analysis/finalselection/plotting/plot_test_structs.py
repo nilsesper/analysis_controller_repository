@@ -77,62 +77,106 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 #############################
 ### CREATE HISTOGRAM
 
-###--------------------------
-### define bins
-
+### bin edges
 low_edge = 10
 high_edge = 100
 # num_bins = 50
 target_bin_width = 2
 n_bins = (high_edge-low_edge)//target_bin_width
-
 HistEdges = hist_utils.create_HistEdges_uniform(low_edge=low_edge, high_edge=high_edge, n_bins=n_bins)
 
+### data points
+data_pts = arr.pt1
+common_weight = 0.5
+data_weights = np.ones(len(data_pts))*common_weight
 data_pts = np.array(arr.pt1)
-DataPts = hist_utils.create_DataPts(data_pts=data_pts)
+DataPts = hist_utils.create_DataPts(data_pts=data_pts, data_weights=data_weights)
 
-###--------------------------
-### create hist with numpy
+### create NpHist
+NpHist1 = hist_utils.create_NpHist(HistEdges=HistEdges, DataPts=DataPts)
+NpHist2 = hist_utils.create_NpHist(HistEdges=HistEdges, DataPts=DataPts)
+NpHist = hist_utils.linear_combination_NpHists(NpHists=[NpHist1, NpHist1], factors=[1,2])
 
-fig, ax = plt.subplots(1, 1)
-PlotHistParams = plot_utils.StructPlotHistParams(
-    ax=ax,
-    HistEdges=HistEdges,
-    show_uf=True,
-    show_of=True,
-    xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
-    ylabel=None,
-    xscale="norm",
-    yscale="log",
-    xlim=None,
-    ylim=None
-)
+### create RootHist, in the end convert to NpHist
+RootHist1 = hist_utils.create_RootHist(HistEdges=HistEdges, DataPts=DataPts)
+RootHist2 = hist_utils.create_RootHist(HistEdges=HistEdges, DataPts=DataPts)
+RootHist = hist_utils.linear_combination_RootHists(RootHists=[RootHist1, RootHist2], factors=[1,2])
+NpHist_from_RootHist = hist_utils.convert_RootHist_to_NpHist(RootHist=RootHist)
 
-PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistParams(PlotHistParams=PlotHistParams)
-
-NpHist = hist_utils.create_NpHist(HistEdges=HistEdges, DataPts=DataPts)
-
-###--------------------------
-### create hist with pyroot
-
-# RootHist = hist_utils.create_RootHist(HistEdges=HistEdges, DataPts=DataPts)
-
-###--------------------------
-### generic
-
-# NpHist = hist_utils.convert_RootHist_to_NpHist(RootHist=RootHist)
-
-edges = NpHist.HistEdges.edges
-hist_ou = NpHist.hist_ou
-uf, hist, of = NpHist.uf, NpHist.hist, NpHist.of
-err_hist_ou = NpHist.err_hist_ou
-err_uf, err_hist, err_of = NpHist.err_uf, NpHist.err_hist, NpHist.err_of
+### calculate bin by bin difference
+diff_hist_ou = copy.deepcopy( NpHist.hist_ou - NpHist_from_RootHist.hist_ou )
+diff_err_hist_ou = np.zeros(len(diff_hist_ou))
+NpHist_diff = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=diff_hist_ou, err_hist_ou=diff_err_hist_ou)
+# calculate also bin by bin difference in error
+diff_err_hist_ou = copy.deepcopy( NpHist.err_hist_ou - NpHist_from_RootHist.err_hist_ou )
+diff_err_err_hist_ou = np.zeros(len(diff_err_hist_ou))
+NpHist_diff_err = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=diff_err_hist_ou, err_hist_ou=diff_err_err_hist_ou)
 
 #############################
 ### PLOT HISTOGRAM
 
-plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx)
+### plot hists on top of each other
+fig, ax = plt.subplots(1, 1)
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
+    ax=ax,
+    HistEdges=HistEdges,
+    show_uf=True,
+    show_of=True,
+    yscale="log",
+    show_legend=True,
+)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="NpHist",
+    color=plot_utils.get_color_from_ColorWheel(index=0),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="NpHist_from_RootHist",
+    color=plot_utils.get_color_from_ColorWheel(index=1),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_from_RootHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
+fig.show()
+
+### plot difference between hist bin by bin
+fig, ax = plt.subplots(1, 1)
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
+    ax=ax,
+    HistEdges=HistEdges,
+    show_uf=True,
+    show_of=True,
+    yscale="linear",
+    show_legend=True,
+)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="NpHist $-$ NpHist_from_RootHist",
+    color=plot_utils.get_color_from_ColorWheel(index=0),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_diff, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
+fig.show()
+
+### plot difference between hist error bin by bin
+fig, ax = plt.subplots(1, 1)
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
+    ax=ax,
+    HistEdges=HistEdges,
+    show_uf=True,
+    show_of=True,
+    yscale="linear",
+    show_legend=True,
+)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="NpHist_err $-$ NpHist_from_RootHist_err",
+    color=plot_utils.get_color_from_ColorWheel(index=0),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_diff_err, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
 
 #****************************

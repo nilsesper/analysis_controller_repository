@@ -113,7 +113,7 @@ for i_file in range(n_files):
 arr_NpHist = []
 for i_file in range(n_files):
     DataPts = arr_DataPts[i_file]
-    NpHist = hist_utils.create_NpHist_from_DataPts(HistEdges=HistEdges, DataPts=DataPts)
+    NpHist = hist_utils.create_NpHist(HistEdges=HistEdges, DataPts=DataPts)
     arr_NpHist.append(NpHist)
 
 ### bin by bin difference
@@ -121,6 +121,10 @@ for i_file in range(n_files):
 difference_hist_ou = copy.deepcopy( arr_NpHist[0].hist_ou - arr_NpHist[1].hist_ou )
 difference_err_hist_ou = np.zeros(len(difference_hist_ou))
 difference_NpHist = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=difference_hist_ou, err_hist_ou=difference_err_hist_ou)
+
+difference_err_hist_ou = copy.deepcopy( arr_NpHist[0].err_hist_ou - arr_NpHist[1].err_hist_ou )
+difference_err_err_hist_ou = np.zeros(len(difference_err_hist_ou))
+difference_NpHist_err = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=difference_err_hist_ou, err_hist_ou=difference_err_err_hist_ou)
 
 #############################
 ### PLOT HISTOGRAM
@@ -140,7 +144,7 @@ PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams
 for i_file in range(n_files):
     NpHist = arr_NpHist[i_file]
     PlotHistParams = plot_utils.StructPlotHistParams(
-        label=f"Data {i_file+1}",
+        label=f"Data_{i_file+1}",
         color=plot_utils.get_color_from_ColorWheel(index=i_file),
         show_in_legend=True,
     )
@@ -162,7 +166,7 @@ PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams
 for i_file in range(n_files):
     NpHist = arr_NpHist[i_file]
     PlotHistParams = plot_utils.StructPlotHistParams(
-        label=f"Data {i_file+1}",
+        label=f"Data_{i_file+1}",
         color=plot_utils.get_color_from_ColorWheel(index=i_file),
         show_in_legend=True,
     )
@@ -182,11 +186,31 @@ PlotHistAxParams = plot_utils.StructPlotHistAxParams(
 )
 PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
 PlotHistParams = plot_utils.StructPlotHistParams(
-    label="Data 1 $-$ Data 2",
+    label="Data_1 $-$ Data_2",
     color=plot_utils.get_color_from_ColorWheel(),
     show_in_legend=True,
 )
 PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=difference_NpHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
+fig.show()
+
+### linear scale error difference
+fig, ax = plt.subplots(1, 1)
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
+    ax=ax,
+    HistEdges=HistEdges,
+    show_uf=True,
+    show_of=True,
+    xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
+    yscale="linear",
+    show_legend=True,
+)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="Data_1_err $-$ Data_2_err",
+    color=plot_utils.get_color_from_ColorWheel(),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=difference_NpHist_err, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
 
 #****************************
