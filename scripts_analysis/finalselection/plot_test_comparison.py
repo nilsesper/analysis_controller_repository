@@ -126,64 +126,67 @@ difference_NpHist = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=differe
 ### PLOT HISTOGRAM
 
 ### linear scale
-
 fig, ax = plt.subplots(1, 1)
-PlotHistParams = plot_utils.StructPlotHistParams(
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     ax=ax,
     HistEdges=HistEdges,
     show_uf=True,
     show_of=True,
     xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
-    ylabel=None,
-    xscale="linear",
     yscale="linear",
-    xlim=None,
-    ylim=None
+    show_legend=True,
 )
-PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistParams(PlotHistParams=PlotHistParams)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
 for i_file in range(n_files):
     NpHist = arr_NpHist[i_file]
-    plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx)
+    PlotHistParams = plot_utils.StructPlotHistParams(
+        label=f"Data {i_file+1}",
+        color=plot_utils.get_color_from_ColorWheel(index=i_file),
+        show_in_legend=True,
+    )
+    PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
 
 ### log scale
-
 fig, ax = plt.subplots(1, 1)
-PlotHistParams = plot_utils.StructPlotHistParams(
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     ax=ax,
     HistEdges=HistEdges,
     show_uf=True,
     show_of=True,
     xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
-    ylabel=None,
-    xscale="linear",
     yscale="log",
-    xlim=None,
-    ylim=None
+    show_legend=True,
 )
-PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistParams(PlotHistParams=PlotHistParams)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
 for i_file in range(n_files):
     NpHist = arr_NpHist[i_file]
-    plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx)
+    PlotHistParams = plot_utils.StructPlotHistParams(
+        label=f"Data {i_file+1}",
+        color=plot_utils.get_color_from_ColorWheel(index=i_file),
+        show_in_legend=True,
+    )
+    PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
 
 ### linear scale difference
-
 fig, ax = plt.subplots(1, 1)
-PlotHistParams = plot_utils.StructPlotHistParams(
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     ax=ax,
     HistEdges=HistEdges,
     show_uf=True,
     show_of=True,
     xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
-    ylabel=None,
-    xscale="linear",
     yscale="linear",
-    xlim=None,
-    ylim=None
+    show_legend=True,
 )
-PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistParams(PlotHistParams=PlotHistParams)
-plot_utils.add_NpHist_to_PlotHistAx(NpHist=difference_NpHist, PlotHistAx=PlotHistAx)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="Data 1 $-$ Data 2",
+    color=plot_utils.get_color_from_ColorWheel(),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=difference_NpHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
 
 #****************************
