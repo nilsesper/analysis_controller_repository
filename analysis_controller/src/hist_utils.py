@@ -8,9 +8,6 @@
 import os
 import numpy as np
 import ROOT
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-import mplhep as mh
 
 from analysis_controller.src import path_utils
 
@@ -30,6 +27,8 @@ class StructHistEdges:
         "bins",
         "n_bins",
         "uniform",
+        "mean_bin_width",
+        "total_edges_width",
     )
     def __init__(self, *, edges):
         self.edges = edges
@@ -50,6 +49,10 @@ class StructHistEdges:
         # (this is the case if the distance between neighboring edges is the same everywhere)
         edge_diff = np.diff(self.edges)
         self.uniform = all(x == edge_diff[0] for x in edge_diff)
+        # calculate mean bin width
+        self.mean_bin_width = np.mean(np.diff(self.edges))
+        # calculate total width of edges (without underflow / overflow)
+        self.total_edges_width = self.edges[-1] - self.edges[0]
 
 class StructDataPts:
     __slots__ = (
@@ -90,8 +93,8 @@ class StructNpHist:
         # errors on hist entries w/o underflow and overflow
         self.err_hist = self.err_hist_ou[1:-1]
         # errors on underflow and overflow
-        self.err_uf = self.hist_ou[0]
-        self.err_of = self.hist_ou[-1]
+        self.err_uf = self.err_hist_ou[0]
+        self.err_of = self.err_hist_ou[-1]
 
 class StructRootHist:
     __slots__ = (
@@ -127,7 +130,7 @@ def create_DataPts(*, data_pts=[], data_weights=None):
     return DataPts
 
 ### create root hist with given edges, and optionally fill it with data points
-def create_RootHist(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
+def create_RootHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
     # prepare root hist
     roothist = ROOT.TH1D("h", "Histogram", HistEdges.n_bins, HistEdges.low_edge, HistEdges.high_edge)
     roothist.Sumw2()
@@ -140,7 +143,7 @@ def create_RootHist(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
     return RootHist
 
 ### create np hist with given edges, and optionally fill it with data points
-def create_NpHist(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
+def create_NpHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
     # fill np hist
     hist_ou, edges_ou = np.histogram(a=DataPts.data_pts, bins=HistEdges.edges_ou, weights=DataPts.data_weights)
     err_hist_ou = np.sqrt( np.histogram(a=DataPts.data_pts, bins=HistEdges.edges_ou, weights=DataPts.data_weights**2)[0] )
