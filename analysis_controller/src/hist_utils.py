@@ -113,6 +113,9 @@ class StructRootHist:
 ############################
 ### MAIN FUNCTIONS & CLASSES
 
+#####################
+### hist edges
+
 ### create uniform bin edges in [low_edge, high_edge] with num_bins
 def create_HistEdges_uniform(*, low_edge, high_edge, n_bins):
     # create uniform edges as linspace
@@ -120,6 +123,9 @@ def create_HistEdges_uniform(*, low_edge, high_edge, n_bins):
     # create struct
     HistEdges = StructHistEdges(edges=edges)
     return HistEdges
+
+#####################
+### data points
 
 ### create data points
 def create_DataPts(*, data_pts=[], data_weights=None):
@@ -129,6 +135,9 @@ def create_DataPts(*, data_pts=[], data_weights=None):
     # create struct
     DataPts = StructDataPts(data_pts=data_pts, data_weights=data_weights)
     return DataPts
+
+#####################
+### root hist
 
 ### create RootHist with given edges
 # and optionally fill it with data points
@@ -183,6 +192,16 @@ def linear_combination_RootHists(*, RootHists, factors=None):
     # create struct
     RootHist_combined = StructRootHist(HistEdges=HistEdges, roothist=roothist_combined)
     return RootHist_combined
+
+### convert RootHist to NpHist
+def convert_RootHist_to_NpHist(*, RootHist):
+    hist_ou = np.array([ RootHist.roothist.GetBinContent(i) for i in range(RootHist.HistEdges.n_bins+2) ]) # [uf, hist, of]
+    err_hist_ou = np.array([ RootHist.roothist.GetBinError(i) for i in range(RootHist.HistEdges.n_bins+2) ]) # [err_uf, err_hist, err_of]
+    NpHist = StructNpHist(HistEdges=RootHist.HistEdges, hist_ou=hist_ou, err_hist_ou=err_hist_ou)
+    return NpHist
+
+#####################
+### numpy hist
 
 ### create NpHist with given edges
 # and optionally fill it with data points
@@ -248,14 +267,4 @@ def linear_combination_NpHists(*, NpHists, factors=None):
     NpHist_combined.update()
     return NpHist_combined
 
-### convert RootHist to NpHist
-def convert_RootHist_to_NpHist(*, RootHist):
-    hist_ou = np.array([ RootHist.roothist.GetBinContent(i) for i in range(RootHist.HistEdges.n_bins+2) ]) # [uf, hist, of]
-    err_hist_ou = np.array([ RootHist.roothist.GetBinError(i) for i in range(RootHist.HistEdges.n_bins+2) ]) # [err_uf, err_hist, err_of]
-    NpHist = StructNpHist(HistEdges=RootHist.HistEdges, hist_ou=hist_ou, err_hist_ou=err_hist_ou)
-    return NpHist
 
-### generic of/uf handling
-# edges = edges_ou[1:-1]
-# uf, hist, of = hist_ou[0], hist_ou[1:-1], hist_ou[-1]
-# err_uf, err_hist, err_of = err_hist_ou[0], err_hist_ou[1:-1], err_hist_ou[-1]
