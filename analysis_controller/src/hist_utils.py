@@ -129,12 +129,12 @@ def create_DataPts(*, data_pts=[], data_weights=None):
     DataPts = StructDataPts(data_pts=data_pts, data_weights=data_weights)
     return DataPts
 
-### create root hist with given edges, and optionally fill it with data points
+### create RootHist with given edges, and optionally fill it with data points
 def create_RootHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
     # prepare root hist
     roothist = ROOT.TH1D("h", "Histogram", HistEdges.n_bins, HistEdges.low_edge, HistEdges.high_edge)
     roothist.Sumw2()
-    # fill root hist
+    # fill root hist, with weights
     data_pts_root = np.ascontiguousarray(DataPts.data_pts, dtype=np.float64)
     data_weights_root = np.ascontiguousarray(DataPts.data_weights, dtype=np.float64)
     roothist.FillN(DataPts.n_data_pts, data_pts_root, data_weights_root)
@@ -142,13 +142,54 @@ def create_RootHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[
     RootHist = StructRootHist(HistEdges=HistEdges, roothist=roothist)
     return RootHist
 
-### create np hist with given edges, and optionally fill it with data points
+### add data points to RootHist
+def add_DataPts_to_NpHist(*, RootHist, DataPts):
+    # add data to root hist, with weights
+    data_pts_root = np.ascontiguousarray(DataPts.data_pts, dtype=np.float64)
+    data_weights_root = np.ascontiguousarray(DataPts.data_weights, dtype=np.float64)
+    RootHist.roothist.FillN(DataPts.n_data_pts, data_pts_root, data_weights_root)
+    # update internal hist parameters
+    RootHist.update()
+    return RootHist
+
+### create NpHist with given edges, and optionally fill it with data points
 def create_NpHist_from_DataPts(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
-    # fill np hist
-    hist_ou, edges_ou = np.histogram(a=DataPts.data_pts, bins=HistEdges.edges_ou, weights=DataPts.data_weights)
-    err_hist_ou = np.sqrt( np.histogram(a=DataPts.data_pts, bins=HistEdges.edges_ou, weights=DataPts.data_weights**2)[0] )
+    # fill np hist, with weights
+    hist_ou, _ = np.histogram(a=DataPts.data_pts, bins=HistEdges.edges_ou, weights=DataPts.data_weights)
+    # determine hist error
+    #   root as reference:
+    #   - unweighted histogram: square root of bin content
+    #   - weighted histogram: square root of the bin sum of the weights square
+    hist_ou_square_weights, _ = np.histogram(a=DataPts.data_pts, bins=HistEdges.edges_ou, weights=DataPts.data_weights**2)
+    err_hist_ou = np.sqrt(hist_ou_square_weights)
     # create struct
     NpHist = StructNpHist(HistEdges=HistEdges, hist_ou=hist_ou, err_hist_ou=err_hist_ou)
+    return NpHist
+
+### add data points to NpHist
+def add_DataPts_to_NpHist(*, NpHist, DataPts):
+    ### calculate hist for new data points
+    # fill np hist, with weights
+    _hist_ou, _ = np.histogram(a=DataPts.data_pts, bins=NpHist.HistEdges.edges_ou, weights=DataPts.data_weights)
+    # determine hist error
+    #   root as reference:
+    #   - unweighted histogram: square root of bin content
+    #   - weighted histogram: square root of the bin sum of the weights square
+    _hist_ou_square_weights, _ = np.histogram(a=DataPts.data_pts, bins=NpHist.HistEdges.edges_ou, weights=DataPts.data_weights**2)
+    _err_hist_ou = np.sqrt(_hist_ou_square_weights)
+    ### merge old histogram with new one
+    # combine histogram bins:
+    #   - hist_single[bin] = sum(weights_single[bin])
+    #   - hist_combined[bin] = sum(weights_combined[bin]) = sum(weights_0[bin] + weights_1[bin]) = sum(weights_0[bin]) + sum(weights_1[bin])
+    #     = hist_0[bin] + hist_1[bin]
+    NpHist.hist_ou = NpHist.hist_ou + _hist_ou
+    # combine bin error:
+    #   - err_hist_single[bin] = sqrt( sum(weights_single[bin]**2) )
+    #   - err_hist_combined[bin] = sqrt{ sum(weights_combined[bin]**2) } = sqrt( sum(weights_0[bin]**2 + weights_1[bin]**2) } = sqrt{ sum(weights_0[bin]**2) + sum(weights_1[bin]**2) } = sqrt{ sqrt( sum(weights_0[bin]**2) )**2 + sqrt( sum(weights_1[bin]**2) )**2 }
+    #      = sqrt{ err_hist_0[bin]**2 + err_hist_1[bin]**2 }
+    NpHist.err_hist_ou = np.sqrt(NpHist.err_hist_ou**2 + _err_hist_ou**2)
+    # update internal hist parameters
+    NpHist.update()
     return NpHist
 
 ### convert RootHist to NpHist
