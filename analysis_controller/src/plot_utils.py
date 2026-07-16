@@ -47,12 +47,14 @@ class StructPlotHistAxParams:
         "show_uf", "show_of",
         "xlabel", "ylabel",
         "xscale", "yscale",
-        "xlim", "ylim",
+        "xlim_low", "xlim_high",
+        "ylim_low", "ylim_high",
         "show_legend",
         "xticks_low_power_lim", "xticks_high_power_lim",
         "yticks_low_power_lim", "yticks_high_power_lim",
         "uf_tick_label", "of_tick_label",
         "yscale_if_same_yminmax",
+        "auto_ylim_respect_err",
     )
     def __init__(self, *,
             ax,
@@ -60,12 +62,14 @@ class StructPlotHistAxParams:
             show_uf=True, show_of=True,
             xlabel=None, ylabel=None,
             xscale="linear", yscale="linear",
-            xlim=None, ylim=None,
+            xlim_low=None, xlim_high=None,
+            ylim_low=None, ylim_high=None,
             show_legend=False,
             xticks_low_power_lim = -2, xticks_high_power_lim = 3,
             yticks_low_power_lim = -2, yticks_high_power_lim = 3,
             uf_tick_label="UF", of_tick_label="OF",
             yscale_if_same_yminmax = 0.5,
+            auto_ylim_respect_err=False,
         ):
         self.ax = ax
         self.HistEdges = HistEdges
@@ -75,8 +79,10 @@ class StructPlotHistAxParams:
         self.ylabel = ylabel
         self.xscale = xscale
         self.yscale = yscale
-        self.xlim = xlim
-        self.ylim = ylim
+        self.xlim_low = xlim_low
+        self.xlim_high = xlim_high
+        self.ylim_low = ylim_low
+        self.ylim_high = ylim_high
         self.show_legend = show_legend
         self.xticks_low_power_lim = xticks_low_power_lim
         self.xticks_high_power_lim = xticks_high_power_lim
@@ -85,6 +91,7 @@ class StructPlotHistAxParams:
         self.uf_tick_label = uf_tick_label
         self.of_tick_label = of_tick_label
         self.yscale_if_same_yminmax = yscale_if_same_yminmax
+        self.auto_ylim_respect_err = auto_ylim_respect_err
         self.update()
     def update(self):
         pass
@@ -96,12 +103,14 @@ class StructPlotHistAx:
         "show_uf", "show_of",
         "xlabel", "ylabel",
         "xscale", "yscale",
-        "xlim", "ylim",
+        "xlim_low", "xlim_high",
+        "ylim_low", "ylim_high",
         "show_legend",
         "xticks_low_power_lim", "xticks_high_power_lim",
         "yticks_low_power_lim", "yticks_high_power_lim",
         "uf_tick_label", "of_tick_label",
         "yscale_if_same_yminmax",
+        "auto_ylim_respect_err",
         #---
         "uf_width", "of_width",
         "uf_distance", "of_distance",
@@ -120,8 +129,10 @@ class StructPlotHistAx:
         self.ylabel = PlotHistAxParams.ylabel
         self.xscale = PlotHistAxParams.xscale
         self.yscale = PlotHistAxParams.yscale
-        self.xlim = PlotHistAxParams.xlim
-        self.ylim = PlotHistAxParams.ylim
+        self.xlim_low = PlotHistAxParams.xlim_low
+        self.xlim_high = PlotHistAxParams.xlim_high
+        self.ylim_low = PlotHistAxParams.ylim_low
+        self.ylim_high = PlotHistAxParams.ylim_high
         self.show_legend = PlotHistAxParams.show_legend
         self.xticks_low_power_lim = PlotHistAxParams.xticks_low_power_lim
         self.xticks_high_power_lim = PlotHistAxParams.xticks_high_power_lim
@@ -130,6 +141,7 @@ class StructPlotHistAx:
         self.uf_tick_label = PlotHistAxParams.uf_tick_label
         self.of_tick_label = PlotHistAxParams.of_tick_label
         self.yscale_if_same_yminmax = PlotHistAxParams.yscale_if_same_yminmax
+        self.auto_ylim_respect_err = PlotHistAxParams.auto_ylim_respect_err
         self.update()
     def update(self):
         self.uf_width = self.HistEdges.total_edges_width*0.05
@@ -291,12 +303,21 @@ def add_NpHist_to_PlotHistAx(*, NpHist, PlotHistAx, PlotHistParams):
     if PlotHistAx.yscale == "linear":
         # set yscale
         PlotHistAx.ax.set_yscale("linear")
-        ymin = np.amin(NpHist.hist_ou)*1.2
-        ymax = np.amax(NpHist.hist_ou)*1.2
-        # set ylim
+        # determine ylim
+        if PlotHistAx.auto_ylim_respect_err: # if should include errors in ylim
+            ymin = np.amin(NpHist.hist_ou - NpHist.err_hist_ou)*1.2
+            ymax = np.amax(NpHist.hist_ou + NpHist.err_hist_ou)*1.2
+        else:
+            ymin = np.amin(NpHist.hist_ou)*1.2
+            ymax = np.amax(NpHist.hist_ou)*1.2
+        if PlotHistAx.ylim_low != None:
+            ymin = PlotHistAx.ylim_low
+        if PlotHistAx.ylim_high != None:
+            ymax = PlotHistAx.ylim_high
         if ymin == ymax:
             ymin -= PlotHistAx.yscale_if_same_yminmax/2
             ymax += PlotHistAx.yscale_if_same_yminmax/2
+        # set ylim
         PlotHistAx.ax.set_ylim(ymin=ymin, ymax=ymax)
         # set yticks power limits
         formatter = mpl.ticker.ScalarFormatter(useMathText=True)
@@ -307,8 +328,17 @@ def add_NpHist_to_PlotHistAx(*, NpHist, PlotHistAx, PlotHistParams):
         # set yscale
         PlotHistAx.ax.set_yscale("log")
         # set ylim
-        ymin = 0.5
-        ymax = np.amax(NpHist.hist_ou)*10
+        # determine ylim
+        if PlotHistAx.auto_ylim_respect_err: # if should include errors in ylim
+            ymin = 0.5
+            ymax = np.amax(NpHist.hist_ou + NpHist.err_hist_ou)*10
+        else:
+            ymin = 0.5
+            ymax = np.amax(NpHist.hist_ou)*10
+        if PlotHistAx.ylim_low != None:
+            ymin = PlotHistAx.ylim_low
+        if PlotHistAx.ylim_high != None:
+            ymax = PlotHistAx.ylim_high
         if ymin == ymax:
             ymin -= PlotHistAx.yscale_if_same_yminmax/2
             ymax += PlotHistAx.yscale_if_same_yminmax/2

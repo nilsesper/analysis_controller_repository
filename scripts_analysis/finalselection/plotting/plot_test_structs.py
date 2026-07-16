@@ -105,17 +105,43 @@ NpHist_from_RootHist = hist_utils.convert_RootHist_to_NpHist(RootHist=RootHist)
 
 ### calculate bin by bin difference
 diff_hist_ou = copy.deepcopy( NpHist.hist_ou - NpHist_from_RootHist.hist_ou )
-diff_err_hist_ou = np.zeros(len(diff_hist_ou))
+diff_err_hist_ou = copy.deepcopy( np.sqrt( NpHist.hist_ou**2 + NpHist_from_RootHist.hist_ou**2 ) )
 NpHist_diff = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=diff_hist_ou, err_hist_ou=diff_err_hist_ou)
 # calculate also bin by bin difference in error
 diff_err_hist_ou = copy.deepcopy( NpHist.err_hist_ou - NpHist_from_RootHist.err_hist_ou )
-diff_err_err_hist_ou = np.zeros(len(diff_err_hist_ou))
+diff_err_err_hist_ou = copy.deepcopy( np.sqrt( NpHist.err_hist_ou**2 + NpHist_from_RootHist.err_hist_ou**2 ) )
 NpHist_diff_err = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=diff_err_hist_ou, err_hist_ou=diff_err_err_hist_ou)
 
 #############################
 ### PLOT HISTOGRAM
 
-### plot hists on top of each other
+### plot hists on top of each other -> linear scape
+fig, ax = plt.subplots(1, 1)
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
+    ax=ax,
+    HistEdges=HistEdges,
+    show_uf=True,
+    show_of=True,
+    yscale="linear",
+    show_legend=True,
+)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="NpHist",
+    color=plot_utils.get_color_from_ColorWheel(index=0),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
+
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="NpHist_from_RootHist",
+    color=plot_utils.get_color_from_ColorWheel(index=1),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_from_RootHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
+fig.show()
+
+### plot hists on top of each other -> log scale
 fig, ax = plt.subplots(1, 1)
 PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     ax=ax,
@@ -141,7 +167,27 @@ PlotHistParams = plot_utils.StructPlotHistParams(
 PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_from_RootHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
 
-### plot difference between hist bin by bin
+### plot difference between hist bin by bin -> linear scale, respect yerr for ylim
+fig, ax = plt.subplots(1, 1)
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
+    ax=ax,
+    HistEdges=HistEdges,
+    show_uf=True,
+    show_of=True,
+    yscale="linear",
+    show_legend=True,
+    auto_ylim_respect_err=True,
+)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="NpHist $-$ NpHist_from_RootHist",
+    color=plot_utils.get_color_from_ColorWheel(index=0),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_diff, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
+fig.show()
+
+### plot difference between hist bin by bin -> linear scale, dont respect yerr for ylim
 fig, ax = plt.subplots(1, 1)
 PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     ax=ax,
@@ -160,7 +206,27 @@ PlotHistParams = plot_utils.StructPlotHistParams(
 PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_diff, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
 
-### plot difference between hist error bin by bin
+### plot difference between hist error bin by bin -> linear scale, respect yerr for ylim
+fig, ax = plt.subplots(1, 1)
+PlotHistAxParams = plot_utils.StructPlotHistAxParams(
+    ax=ax,
+    HistEdges=HistEdges,
+    show_uf=True,
+    show_of=True,
+    yscale="linear",
+    show_legend=True,
+    auto_ylim_respect_err=True,
+)
+PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
+PlotHistParams = plot_utils.StructPlotHistParams(
+    label="NpHist_err $-$ NpHist_from_RootHist_err",
+    color=plot_utils.get_color_from_ColorWheel(index=0),
+    show_in_legend=True,
+)
+PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_diff_err, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
+fig.show()
+
+### plot difference between hist error bin by bin -> linear scale, dont respect yerr for ylim
 fig, ax = plt.subplots(1, 1)
 PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     ax=ax,

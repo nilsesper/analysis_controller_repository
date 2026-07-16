@@ -119,11 +119,11 @@ for i_file in range(n_files):
 ### bin by bin difference
 
 difference_hist_ou = copy.deepcopy( arr_NpHist[0].hist_ou - arr_NpHist[1].hist_ou )
-difference_err_hist_ou = np.zeros(len(difference_hist_ou))
+difference_err_hist_ou = copy.deepcopy( np.sqrt( arr_NpHist[0].hist_ou**2 + arr_NpHist[1].hist_ou**2 ) )
 difference_NpHist = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=difference_hist_ou, err_hist_ou=difference_err_hist_ou)
 
 difference_err_hist_ou = copy.deepcopy( arr_NpHist[0].err_hist_ou - arr_NpHist[1].err_hist_ou )
-difference_err_err_hist_ou = np.zeros(len(difference_err_hist_ou))
+difference_err_err_hist_ou = copy.deepcopy( np.sqrt( arr_NpHist[0].err_hist_ou**2 + arr_NpHist[1].err_hist_ou**2 ) )
 difference_NpHist_err = hist_utils.StructNpHist(HistEdges=HistEdges, hist_ou=difference_err_hist_ou, err_hist_ou=difference_err_err_hist_ou)
 
 #############################
