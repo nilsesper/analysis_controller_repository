@@ -147,15 +147,18 @@ class StructPlotHistParams:
         "label",
         "color",
         "show_in_legend",
+        "histtype",
     )
     def __init__(self, *,
             label=None,
             color="b",
             show_in_legend=False,
+            histtype="barstep",
         ):
         self.label = label
         self.color = color
         self.show_in_legend = show_in_legend
+        self.histtype = histtype
         self.update()
     def update(self):
         pass
@@ -275,17 +278,14 @@ def create_PlotHistAx_from_PlotHistAxParams(*, PlotHistAxParams):
 ### add NpHist histogram to existing ax with mplhep
 def add_NpHist_to_PlotHistAx(*, NpHist, PlotHistAx, PlotHistParams):
 
-    # determine hist type
-    histtype = "barstep"
-
     # plot hist
-    mh.histplot(H=NpHist.hist, bins=PlotHistAx.HistEdges.edges, yerr=NpHist.err_hist, ax=PlotHistAx.ax, histtype=histtype, color=PlotHistParams.color)
+    mh.histplot(H=NpHist.hist, bins=PlotHistAx.HistEdges.edges, yerr=NpHist.err_hist, ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color)
     # plot underflow
     if PlotHistAx.show_uf:
-        mh.histplot(H=[NpHist.uf], bins=PlotHistAx.uf_edges, yerr=[NpHist.err_uf], ax=PlotHistAx.ax, histtype=histtype, color=PlotHistParams.color)
+        mh.histplot(H=[NpHist.uf], bins=PlotHistAx.uf_edges, yerr=[NpHist.err_uf], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color)
     # plot overflow
     if PlotHistAx.show_of:
-        mh.histplot(H=[NpHist.of], bins=PlotHistAx.of_edges, yerr=[NpHist.err_of], ax=PlotHistAx.ax, histtype=histtype, color=PlotHistParams.color)
+        mh.histplot(H=[NpHist.of], bins=PlotHistAx.of_edges, yerr=[NpHist.err_of], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color)
 
     # linear yscale:
     if PlotHistAx.yscale == "linear":
