@@ -75,7 +75,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit dataset")
 
 ### submit name
-submission_name = f"{analysis_step}_{submission_timestamp}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}"
+submission_name = f"{analysis_step}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}_{submission_timestamp}"
 
 ### submission path, where all info about this submission is stored
 submission_path = os.path.join(_ANALYSIS_CONTROLLER_REPO_PATH, "submissions", submission_name)

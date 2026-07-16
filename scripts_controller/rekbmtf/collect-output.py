@@ -74,7 +74,7 @@ collection_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting collection timestamp as \"{collection_timestamp}\"")
 
 ### collect name
-collection_name = f"{analysis_step}_{collection_timestamp}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}"
+collection_name = f"{analysis_step}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}_{collection_timestamp}"
 
 ### collection path, where all info about this data collection is stored
 collection_path = os.path.join(_ANALYSIS_CONTROLLER_REPO_PATH, "collections", collection_name)
