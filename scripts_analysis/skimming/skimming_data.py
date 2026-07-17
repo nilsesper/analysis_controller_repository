@@ -588,26 +588,27 @@ arr_tracks["is_earlier_colliding"] = arr_check_earlier_colliding(events=arr_trac
 ### store no of events before all cuts
 selection_n_initial = len(arr_tracks)
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_initial:,}\" events before all cuts")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Applying all user-defined cuts in the following")
 
-### select events with at least one kbmtf track
-selection_info = f"(nseltracks > 0)"
-selection_n_before = len(arr_tracks)
-#--------------
-arr_mask = (arr_tracks.nseltracks > 0)
-#--------------
-arr_tracks = arr_tracks[arr_mask]
-selection_n_after = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+# ### select events with at least one kbmtf track
+# selection_info = f"(nseltracks > 0)"
+# selection_n_before = len(arr_tracks)
+# #--------------
+# arr_mask = (arr_tracks.nseltracks > 0)
+# #--------------
+# arr_tracks = arr_tracks[arr_mask]
+# selection_n_after = len(arr_tracks)
+# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
-### select events with at >= 1 track over more than one bx
-selection_info = f"(bxspread1 > 0) | (bxspread2 > 0)"
-selection_n_before = len(arr_tracks)
-#--------------
-arr_mask = (arr_tracks.bxspread1 > 0) | (arr_tracks.bxspread2 > 0)
-#--------------
-arr_tracks = arr_tracks[arr_mask]
-selection_n_after = len(arr_tracks)
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+# ### select events with at >= 1 track over more than one bx
+# selection_info = f"(bxspread1 > 0) | (bxspread2 > 0)"
+# selection_n_before = len(arr_tracks)
+# #--------------
+# arr_mask = (arr_tracks.bxspread1 > 0) | (arr_tracks.bxspread2 > 0)
+# #--------------
+# arr_tracks = arr_tracks[arr_mask]
+# selection_n_after = len(arr_tracks)
+# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 # ### select events with two tracks
 # selection_info = f"(nseltracks == 2)"
@@ -629,7 +630,8 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 # selection_n_after = len(arr_tracks)
 # console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
-### store no of events before all cuts
+### store no of events after all cuts
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Done applying all user-defined cuts")
 selection_n_final = len(arr_tracks)
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_final:,}\" events after all cuts. Total cut flow: \"{selection_n_final:,} / {selection_n_initial:,} = {(selection_n_final/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
