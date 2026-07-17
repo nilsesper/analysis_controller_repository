@@ -146,9 +146,6 @@ if RekbmtfParams.output_type == "cern-grid":
                 config_type="RekbmtfOutput",
                 replace_wildcards=True, verbose=1,
                 **{
-                    "input_files": input_file_list,
-                    "input_size": input_total_size,
-                    
                     "collection_basepath": collection_basepath,
                     "collection_files": collection_file_list,
                     "collection_timestamp": collection_timestamp,

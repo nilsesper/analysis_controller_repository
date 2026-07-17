@@ -7,7 +7,7 @@ RekbmtfParams:
     output_site: T2_DE_RWTH
     output_basepath: /store/user/nesper/test_analysis_hscp_l1/
 
-    crab_config_template_filepath: "%%%ANALYSIS_CONTROLLER_REPO_PATH%%%/config_analysis/rekbmtf/rekbmtf_data_crab_cfg.py"
+    crab_config_template_filepath: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/config_analysis/rekbmtf/rekbmtf_data_crab_cfg.py
 
-    cmssw_src_path: "%%%ANALYSIS_CONTROLLER_REPO_PATH%%%/../1_reKBMTF/CMSSW_14_0_12/src/"
-    cmssw_config_template_filepath: "%%%ANALYSIS_CONTROLLER_REPO_PATH%%%/config_analysis/rekbmtf/rekbmtf_data_cmssw_cfg.py"
+    cmssw_src_path: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/../1_reKBMTF/CMSSW_14_0_12/src/
+    cmssw_config_template_filepath: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/config_analysis/rekbmtf/rekbmtf_data_cmssw_cfg.py

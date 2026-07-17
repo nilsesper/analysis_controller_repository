@@ -23,8 +23,8 @@ _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSI
 def _replace_wildcard_if_possible(*, value):
     new_value = value
     wildcards = {
-        r"%%%ANALYSIS_CONTROLLER_PATH%%%": _ANALYSIS_CONTROLLER_PATH,
-        r"%%%ANALYSIS_CONTROLLER_REPO_PATH%%%": _ANALYSIS_CONTROLLER_REPO_PATH,
+        f"++++ANALYSIS_CONTROLLER_PATH++++": _ANALYSIS_CONTROLLER_PATH,
+        f"++++ANALYSIS_CONTROLLER_REPO_PATH++++": _ANALYSIS_CONTROLLER_REPO_PATH,
     }
     for wildcard, wildcard_replacement in wildcards.items():
         new_value = new_value.replace(wildcard, wildcard_replacement)
@@ -45,7 +45,7 @@ PythonTypeNames = list(PythonTypes.keys())
 
 DictBlueprints = {
     #########################
-    ### lower-level dicts (part of info dicts)
+    ### *** lower-level dicts (part of info dicts) ***
     "_LsFile": {
         "path": "*str*",
         "size": "*int*",
@@ -53,7 +53,6 @@ DictBlueprints = {
     "_CollectionFileGroup": {
         "input_files": "*list*::_LsFile",
         "input_size": "*int*",
-        
         "path": "*str*",
         "size": "*int*",
     },
@@ -62,7 +61,7 @@ DictBlueprints = {
         "rekbmtf_output_config": "*str*",
     },
     #########################
-    ###*** for scripts_controller ***
+    ### *** scripts_controller configuration files ***
     ### info dicts (part of config file dicts)
     #--- rekbmtf
     "RekbmtfInput": {
@@ -105,28 +104,24 @@ DictBlueprints = {
         "output_basepath": "*str*",
     },
     "RekbmtfOutput": {
-        "input_files": "*list*::_LsFile",
-        "input_size": "*int*",
-        
         "collection_basepath": "*str*",
         "collection_files": "*list*::_CollectionFileGroup",
         "collection_timestamp": "*str*",
     },
-    #--- finalselection
-    "FinalselectionInput": {
-        "collections": "*list*::_FinalselectionCollection"
-    },
-    ###*** for scripts_analysis ***
     #--- skimming
-    "SkimmingParamsAnalysis": {
-        "muon_mass": "*float*",
-        "delta_r_max_for_track_l1mu_match": "*float*",
-        "delta_r_min_distance_between_tracks": "*float*",
-        "bx_interval_earlier_colliding": "*int*",
-        "run_to_lhcscheme": "*dict*::*int*::*str*",
-        "lhcscheme_to_filledbx": "*dict*::*str*::*list*::*int*",
+    "SkimmingInput": {
+        "collections": "*list*::_SkimmingCollection",
     },
-    #########################
+    "SkimmingParamsSubmission": {
+        "submission_type": "*str*",
+        "submission_splitting": "*str*",
+
+        "output_type": "*str*",
+        "output_site": "*str*",
+        "output_basepath": "*str*",
+
+        "params_analysis": "*str*",
+    },
     ### configuration file dicts
     #--- rekbmtf
     "ConfigRekbmtfInput": {
@@ -150,12 +145,25 @@ DictBlueprints = {
         "RekbmtfCollection": "*dict*::RekbmtfCollection",
         "RekbmtfOutput": "*dict*::RekbmtfOutput",
     },
-    #--- finalselection
-    "ConfigFinalselectionInput": {
-        "FinalselectionInput": "*dict*::FinalselectionInput",
+    #--- skimming
+    "ConfigSkimmingInput": {
+        "SkimmingInput": "*dict*::SkimmingInput",
     },
-    "ConfigFinalselectionParamsSubmission": {
-        "FinalselectionParamsSubmission": "*dict*::FinalselectionParamsSubmission",
+    "ConfigSkimmingParamsSubmission": {
+        "SkimmingParamsSubmission": "*dict*::SkimmingParamsSubmission",
+    },
+    #########################
+    ### scripts_analysis configuration files
+    #--- rekbmtf
+    #
+    #--- skimming
+    "SkimmingParamsAnalysis": {
+        "muon_mass": "*float*",
+        "delta_r_max_for_track_l1mu_match": "*float*",
+        "delta_r_min_distance_between_tracks": "*float*",
+        "bx_interval_earlier_colliding": "*int*",
+        "run_to_lhcscheme": "*dict*::*int*::*str*",
+        "lhcscheme_to_filledbx": "*dict*::*str*::*list*::*int*",
     },
 }
 
