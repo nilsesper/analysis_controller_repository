@@ -33,7 +33,7 @@ delta_r_max_for_track_l1mu_match = 0.1 # deltaR upper threshold between kbmtf tr
 
 delta_r_min_distance_between_tracks = 0.1 # deltaR lower threshold between kbmtf track to be selected
 
-bx_interval_earlier_colliding = 4 # width of interval [bx-1-bx_interval , bx-1] where the event is tagged as "isEarlierColliding"
+bx_interval_earlier_colliding = 4 # width of interval [bx-1-bx_interval , bx] where the event is tagged as "isEarlierColliding"
 
 run_to_lhcscheme = {
     383814: "scheme_25ns_v1",
@@ -1546,19 +1546,7 @@ lhcscheme_to_filledbx = {
     "Single_63b_0_0_0_MD13723": [0],
 }
 
-## assign index to each unique lhcscheme
-lhcschemes = list(lhcscheme_to_filledbx.keys())
-lhcschemes_to_idx = {lhcscheme: i for i, lhcscheme in enumerate(lhcschemes)}
 
-## fill numba dictionaries, but use index (integer) instead of lhcscheme (string)
-nb_run_to_lhcscheme = nb.typed.Dict.empty(key_type=nb.types.int64, value_type=nb.types.int64)
-for run, lhcscheme in run_to_lhcscheme.items():
-    lhcscheme_idx = lhcschemes_to_idx[lhcscheme]
-    nb_run_to_lhcscheme[run] = lhcscheme_idx
-nb_lhcscheme_to_filledbx = nb.typed.Dict.empty(key_type=nb.types.int64, value_type=nb.types.int64[:])
-for lhcscheme, filledbx in lhcscheme_to_filledbx.items():
-    lhcscheme_idx = lhcschemes_to_idx[lhcscheme]
-    nb_lhcscheme_to_filledbx[lhcscheme_idx] = np.array(filledbx, dtype=np.int64)
 
 
 
