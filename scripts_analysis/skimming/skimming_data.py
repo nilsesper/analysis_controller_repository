@@ -19,7 +19,7 @@ from analysis_controller.src import path_utils
 from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
 from analysis_controller.src import analysis_utils
-from analysis_controller.src import analysis_params
+from analysis_controller.src import config_utils
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
 _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
@@ -47,6 +47,12 @@ parser.add_argument(
     type=str,
     required=True,
 )
+parser.add_argument(
+    "--params",
+    help="path to FinalselectionParmsAnalysis yaml file (str)",
+    type=str,
+    required=True,
+)
 # optional:
 args = parser.parse_args()
 
@@ -57,13 +63,13 @@ args = parser.parse_args()
 ### parse args
 infile_path = args.input
 outfile_path = args.output
+paramsfile_path = args.params
 
-#infile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/output.root"
-#infile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/rekbmtf_example_output_1.root"
-#infile_path = "root://xrootd-cms.infn.it///store/user/nesper/test_analysis_hscp_l1/L1Scouting/crab_Scouting_2024H/260618_105926/0000/output_1.root"
-#infile_path = "~/promotion/test_analysis_hscp_l1/_localtest/1_reKBMTF/hadd_test_output_0.root"
-#infile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/rekbmtf_data.root"
-#outfile_path = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/finalselection/finalselection_slowdata.root"
+###################
+### IMPORT PARAMS
+
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Loading analysis parameters")
+SkimmingParamsAnalysis = config_utils.load_config_file(filepath=paramsfile_path, config_type="SkimmingParamsAnalysis", replace_wildcards=True, verbose=1)
 
 ###################
 ### IMPORT DATA
@@ -307,12 +313,13 @@ arr["L1KBMTFSkimmed_ptOffline"] = builder.snapshot()
 
 ### create track 4-vectors for arr
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Creating \"fourVec\" for all tracks and l1 muons")
+muon_mass = SkimmingParamsAnalysis.muon_mass
 arr["L1KBMTFSkimmed_fourVec"] = ak.zip(
     {
         "pt": arr.L1KBMTFSkimmed_ptOffline,
         "eta": arr.L1KBMTFSkimmed_eta,
         "phi": arr.L1KBMTFSkimmed_phi,
-        "m": analysis_params.muon_mass,
+        "m": muon_mass,
     },
     with_name="Momentum4D",
 )
@@ -321,7 +328,7 @@ arr["SkimmedL1Mu_fourVec"] = ak.zip(
         "pt": arr.SkimmedL1Mu_pt,
         "eta": arr.SkimmedL1Mu_eta,
         "phi": arr.SkimmedL1Mu_phi,
-        "m": analysis_params.muon_mass,
+        "m": muon_mass,
     },
     with_name="Momentum4D",
 )
@@ -329,12 +336,13 @@ arr["SkimmedL1Mu_fourVec"] = ak.zip(
 ### attempt to match l1 muon to kbmtf track for arr
 ## for all tracks of one event
 # only select match track with l1muon if delta_r < threshold to primary track
+delta_r_max_for_track_l1mu_match = SkimmingParamsAnalysis.delta_r_max_for_track_l1mu_match
 @nb.jit
 def track_find_l1muon_match(trackFourVec, l1muFourVecs):
     n_muons = len(l1muFourVecs)
     matched_i_muon = -1
     for i_muon in range(n_muons):
-        if trackFourVec.deltaR(l1muFourVecs[i_muon]) < analysis_params.delta_r_max_for_track_l1mu_match:
+        if trackFourVec.deltaR(l1muFourVecs[i_muon]) < delta_r_max_for_track_l1mu_match:
             matched_i_muon = i_muon
             #break
     return matched_i_muon
@@ -369,6 +377,7 @@ arr["L1KBMTFSkimmed_isL1muMatched"] = ak.where(arr.L1KBMTFSkimmed_l1muMatchedIdx
 # - if same, then largest nstub,
 # - if same, then largest pt
 # only select secondary track if delta_r > threshold to primary track
+delta_r_min_distance_between_tracks = SkimmingParamsAnalysis.delta_r_min_distance_between_tracks
 ## for all tracks of one event
 @nb.jit
 def event_sel_tracks(nStubs, bxSpreads, fourVecs):
@@ -388,7 +397,7 @@ def event_sel_tracks(nStubs, bxSpreads, fourVecs):
         for i_track in range(n_tracks):
             if i_track == sel_i_prim_track:
                 continue
-            elif fourVecs[i_track].deltaR(fourVecs[sel_i_prim_track]) <= analysis_params.delta_r_min_distance_between_tracks:
+            elif fourVecs[i_track].deltaR(fourVecs[sel_i_prim_track]) <= delta_r_min_distance_between_tracks:
                 continue
             if sel_i_sec_track == -1:
                 sel_i_sec_track = i_track
@@ -498,8 +507,23 @@ arr_tracks["l1MuCharge2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwC
 ### CALCULATE HIGHER-LEVEL QUANTITIES FOR SELECTED TRACKS
 
 ### prepare map of colliding bunches
-run_to_lhcscheme = analysis_params.nb_run_to_lhcscheme
-lhcscheme_to_filledbx = analysis_params.nb_lhcscheme_to_filledbx
+# read them from analysis config file
+run_to_lhcscheme = SkimmingParamsAnalysis.run_to_lhcscheme
+lhcscheme_to_filledbx = SkimmingParamsAnalysis.lhcscheme_to_filledbx
+# convert to faster numba dictionary
+# assign index to each unique lhcscheme
+lhcschemes = list(lhcscheme_to_filledbx.keys())
+lhcschemes_to_idx = {lhcscheme: i for i, lhcscheme in enumerate(lhcschemes)}
+# fill numba dictionaries, but use index (integer) instead of lhcscheme (string)
+nb_run_to_lhcscheme = nb.typed.Dict.empty(key_type=nb.types.int64, value_type=nb.types.int64)
+for run, lhcscheme in run_to_lhcscheme.items():
+    lhcscheme_idx = lhcschemes_to_idx[lhcscheme]
+    nb_run_to_lhcscheme[run] = lhcscheme_idx
+nb_lhcscheme_to_filledbx = nb.typed.Dict.empty(key_type=nb.types.int64, value_type=nb.types.int64[:])
+for lhcscheme, filledbx in lhcscheme_to_filledbx.items():
+    lhcscheme_idx = lhcschemes_to_idx[lhcscheme]
+    nb_lhcscheme_to_filledbx[lhcscheme_idx] = np.array(filledbx, dtype=np.int64)
+# the numba dictionaries are used in the following
 
 ### determine whether current event is in colliding bunch
 # take as reference bx not the event bx, but the firstbx1
@@ -524,12 +548,13 @@ def arr_check_colliding(events, run_to_lhcscheme, lhcscheme_to_filledbx):
     return arr_is_colliding
 ### add boolean field if is colliding event
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_colliding\" for output data")
-arr_tracks["is_colliding"] = arr_check_colliding(events=arr_tracks, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
+arr_tracks["is_colliding"] = arr_check_colliding(events=arr_tracks, run_to_lhcscheme=nb_run_to_lhcscheme, lhcscheme_to_filledbx=nb_lhcscheme_to_filledbx)
 
 ### determine whether current event had colliding bunch within last collisions
 # take as reference bx not the event bx, but the firstbx1
 # mark as "earlier colliding" if [bx-bx_interval , bx] was colliding bunch
 # mask as "earlier colliding", if is currently colliding
+bx_interval_earlier_colliding = SkimmingParamsAnalysis.bx_interval_earlier_colliding
 ## for single event
 @nb.jit
 def event_check_earlier_colliding(run, bx, bx_interval, is_colliding, run_to_lhcscheme, lhcscheme_to_filledbx):
@@ -555,7 +580,7 @@ def arr_check_earlier_colliding(events, bx_interval, run_to_lhcscheme, lhcscheme
     return arr_is_earlier_colliding
 ### add boolean field if is earlier colliding event
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_earlier_colliding\" for output data")
-arr_tracks["is_earlier_colliding"] = arr_check_earlier_colliding(events=arr_tracks, bx_interval=analysis_params.bx_interval_earlier_colliding, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
+arr_tracks["is_earlier_colliding"] = arr_check_earlier_colliding(events=arr_tracks, bx_interval=bx_interval_earlier_colliding, run_to_lhcscheme=nb_run_to_lhcscheme, lhcscheme_to_filledbx=nb_lhcscheme_to_filledbx)
 
 ###################
 ### PERFORM CUTS ON SELECTED TRACKS

@@ -7,6 +7,7 @@ import sys
 import os
 
 from analysis_controller.src import analysis_utils
+from analysis_controller.src import config_utils
 
 ###############################################################
 
@@ -95,7 +96,11 @@ from analysis_controller.src import analysis_utils
 
 ###############################################################
 
+input_file = "/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml"
 
+SkimmingParamsAnalysis = config_utils.load_config_file(filepath=input_file, config_type="SkimmingParamsAnalysis", replace_wildcards=True, verbose=1)
+
+# print(SkimmingParamsAnalysis)
 
 
 
