@@ -33,13 +33,13 @@ parser = argparse.ArgumentParser()
 # mandatory:
 parser.add_argument(
     "--input",
-    help=f"path to \"ConfigRekbmtfInput\" yaml file (str)",
+    help=f"path to \"ConfigSkimmingInput\" yaml file (str)",
     type=str,
     required=True,
 )
 parser.add_argument(
-    "--params",
-    help=f"path to \"ConfigRekbmtfParams\" yaml file (str)",
+    "--paramssubmission",
+    help=f"path to \"ConfigSkimmingParamsSubmission\" yaml file (str)",
     type=str,
     required=True,
 )
@@ -51,17 +51,17 @@ args = parser.parse_args()
 ### MAIN PART
 
 ### import input config file
-ConfigRekbmtfInput = config_utils.load_config_file(filepath=args.input, config_type="ConfigRekbmtfInput", replace_wildcards=True, verbose=1)
+ConfigRekbmtfInput = config_utils.load_config_file(filepath=args.input, config_type="ConfigSkimmingInput", replace_wildcards=True, verbose=1)
 # extract config info
-RekbmtfInput = ConfigRekbmtfInput.RekbmtfInput
+SkimmingInput = ConfigRekbmtfInput.SkimmingInput
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data type of this submission is \"{RekbmtfInput.data_type}\"")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data label of this submission is \"{RekbmtfInput.data_label}\"")
 
 ### import params config file
-ConfigRekbmtfParams = config_utils.load_config_file(filepath=args.params, config_type="ConfigRekbmtfParams", replace_wildcards=True, verbose=1)
+ConfigSkimmingParamsSubmission = config_utils.load_config_file(filepath=args.params, config_type="ConfigSkimmingParamsSubmission", replace_wildcards=True, verbose=1)
 # extract config info
-RekbmtfParams = ConfigRekbmtfParams.RekbmtfParams
+SkimmingParamsSubmission = ConfigSkimmingParamsSubmission.SkimmingParamsSubmission
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParams.submission_type}\"")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParams.output_type}\"")

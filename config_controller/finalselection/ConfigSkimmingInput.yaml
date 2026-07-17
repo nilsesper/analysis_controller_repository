@@ -1,0 +1,7 @@
+SkimmingInput:
+
+    collections:
+    
+        -   user_label: rekbmtf_data_Scouting_2024H_2026-07-09_11-16-27_single-file
+            rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/collections/rekbmtf_data_Scouting_2024H_2026-07-09_11-16-27/single-file_ConfigRekbmtfOutput.yaml
+
