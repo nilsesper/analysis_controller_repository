@@ -214,7 +214,7 @@ def check_dict(*, dictionary, dictionary_name="", blueprint="", top_level=True):
                 if i < n_err-1:
                     err_str += "\n"
             console_utils.raise_exception(string=err_str)
-    print(f"check_dict(): {dictionary_name}\n    blueprint = {blueprint}\n    result = {len(err_list)==0}")
+    #print(f"check_dict(): {dictionary_name}\n    blueprint = {blueprint}\n    result = {len(err_list)==0}")
     return err_list
 
 ### check list
@@ -258,7 +258,7 @@ def check_list(*, listobj, list_name="", elementblueprint="", top_level=True):
                 if i < n_err-1:
                     err_str += "\n"
             console_utils.raise_exception(string=err_str)
-    print(f"check_list(): {list_name}\n    elementblueprint = {elementblueprint}\n    result = {len(err_list)==0}")
+    #print(f"check_list(): {list_name}\n    elementblueprint = {elementblueprint}\n    result = {len(err_list)==0}")
     return err_list
 
 ### check one element
@@ -285,7 +285,7 @@ def check_one_element(*, value, blueprintvalue, element_name="", top_level=True)
         err_list.extend( check_dict(dictionary=value, dictionary_name=f"{element_name}", blueprint=newblueprint, top_level=False) )
     else:
         err_list.append(f"\"{element_name}\" has invalid blueprint value \"{blueprintvalue}\".")
-    print(f"check_one_element(): {element_name}\n    blueprintvalue = {blueprintvalue}\n    result = {len(err_list)==0}")
+    #print(f"check_one_element(): {element_name}\n    blueprintvalue = {blueprintvalue}\n    result = {len(err_list)==0}")
     return err_list
 
 ### replace wildcards in dictionary
