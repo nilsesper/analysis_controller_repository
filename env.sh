@@ -17,7 +17,7 @@ printf "${YELLOW}Locating the repository directory and change working directory 
 
 ### store original path
 CURRENT_WORKING_DIR="`pwd`"
-printf "  CURENT_WORKING_DIR = ${CURRENT_WORKING_DIR}\n"
+printf "  CURRENT_WORKING_DIR = ${CURRENT_WORKING_DIR}\n"
 
 ### find script abs path when not executing but sourcing the script and cd into it
 # (taken from https://stackoverflow.com/questions/4774054/reliable-way-for-a-bash-script-to-get-the-full-path-to-itself)
