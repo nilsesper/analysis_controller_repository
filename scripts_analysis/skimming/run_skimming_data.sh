@@ -4,6 +4,9 @@ InputFile=$1
 OutputFile=$2
 ParamsFile=$3
 
+ClusterId=$4
+ProcId=$5
+
 #>>>>> usage example: >>>>>>>>>>>>>>>
 # source scripts_analysis/skimming/run_skimming_data.sh {InputFile.root} {OutputFile.root} {SkimmingParamsAnalysis.yaml}
 #
@@ -29,6 +32,14 @@ ParamsFilePath="`realpath -s ${ParamsFile}`"
 printf "${GREEN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>${RESET}\n"
 printf "${GREEN}>>>>>>${WHITEBOLD} ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis ${RESET}\n"
 printf "${GREEN}>>>>>>${WHITE} run_skimming_data.sh ${RESET}\n"
+
+printf "${GREEN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>${RESET}\n"
+printf "${GREEN}>>>>>> ${WHITE} BASIC INFO ${RESET}\n"
+printf "${GREEN}>>>>>> ${WHITE}   InputFile = ${InputFile} ${RESET}\n"
+printf "${GREEN}>>>>>> ${WHITE}   OutputFile = ${OutputFile} ${RESET}\n"
+printf "${GREEN}>>>>>> ${WHITE}   ParamsFile = ${ParamsFile} ${RESET}\n"
+printf "${GREEN}>>>>>> ${WHITE}   ClusterId = ${ClusterId} ${RESET}\n"
+printf "${GREEN}>>>>>> ${WHITE}   ProcId = ${ProcId} ${RESET}\n"
 
 printf "${GREEN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>${RESET}\n"
 printf "${GREEN}>>>>>> ${WHITE} SOURCING ENVIRONMENT ${RESET}\n"
