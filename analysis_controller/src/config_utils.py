@@ -1,4 +1,4 @@
-"*none*"###########################
+###########################
 ### CONFIGURATION UTILS ###
 ###########################
 
@@ -61,8 +61,6 @@ DictBlueprints = {
         "user_label": "*str*",
         "rekbmtf_output_config": "*str*",
     },
-    "_GenericDictIntStr": "*int*-*str*",
-    "_GenericDictStrListInt": "*str*-*list*::*int*",
     #########################
     ###*** for scripts_controller ***
     ### info dicts (part of config file dicts)
@@ -119,8 +117,8 @@ DictBlueprints = {
         "collections": "*list*::_FinalselectionCollection"
     },
     ###*** for scripts_analysis ***
-    #--- finalselection
-    "FinalselectionParamsAnalysis": {
+    #--- skimming
+    "SkimmingParamsAnalysis": {
         "muon_mass": "*float*",
         "delta_r_max_for_track_l1mu_match": "*float*",
         "delta_r_min_distance_between_tracks": "*float*",
@@ -225,7 +223,6 @@ def check_list(*, listobj, list_name="", elementblueprint="", top_level=True):
     if type(listobj) != PythonTypes["*list*"]:
         err_list.append(f"\"{list_name}\" list was not actually a list but had the type \"{type(listobj)}\".")
     else:
-        print(list_name, elementblueprint)
         python_type_has_match = [elementblueprint.startswith(PythonTypeName) for PythonTypeName in PythonTypeNames]
         # if blueprint is named blueprint in DictBlueprints, perform explicit check
         if elementblueprint in DictBlueprints.keys():
