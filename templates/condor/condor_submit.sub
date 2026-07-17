@@ -4,9 +4,10 @@ universe = vanilla
 # getenv = true
 
 executable = condor_exec.sh
-arguments = $(ClusterId) $(ProcId)
+arguments = $(ClusterId) $(ProcId) $(InputFile)
 
 # input = input/indata-$(ProcId)
+transfer_input_files = $(InputFile)
 
 stdout = stdout/stdout-ClusterId$(ClusterId)-ProcId$(ProcId).out
 stderr = stderr/stderr-ClusterId$(ClusterId)-ProcId$(ProcId).err
@@ -19,4 +20,4 @@ log = condorlog/condorlog-ClusterId$(ClusterId).log
 should_transfer_files = yes
 when_to_transfer_output = on_exit
 
-queue 1
+queue InputFile from InputFileList.txt
