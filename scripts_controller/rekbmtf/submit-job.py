@@ -38,8 +38,8 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument(
-    "--params",
-    help=f"path to \"ConfigRekbmtfParams\" yaml file (str)",
+    "--paramssubmission",
+    help=f"path to \"ConfigRekbmtfParamsSubmission\" yaml file (str)",
     type=str,
     required=True,
 )
@@ -59,12 +59,12 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data label of this submission is \"{RekbmtfInput.data_label}\"")
 
 ### import params config file
-ConfigRekbmtfParams = config_utils.load_config_file(filepath=args.params, config_type="ConfigRekbmtfParams", replace_wildcards=True, verbose=1)
+ConfigRekbmtfParamsSubmission = config_utils.load_config_file(filepath=args.paramssubmission, config_type="ConfigRekbmtfParamsSubmission", replace_wildcards=True, verbose=1)
 # extract config info
-RekbmtfParams = ConfigRekbmtfParams.RekbmtfParams
+RekbmtfParamsSubmission = ConfigRekbmtfParamsSubmission.RekbmtfParamsSubmission
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParams.submission_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParams.output_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParamsSubmission.submission_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParamsSubmission.output_type}\"")
 
 ### define submission timestamp
 submission_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -86,7 +86,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 
 #=============================================================================
 #== SUBMISSION_TYPE: CERN-CRAB  &&  OUTPUT_TYPE: CERN-GRID
-if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type == "cern-grid":
+if RekbmtfParamsSubmission.submission_type == "cern-crab" and RekbmtfParamsSubmission.output_type == "cern-grid":
 
     ### prepare variables
     crab_requestname = submission_name
@@ -100,7 +100,7 @@ if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type ==
     cmssw_config_filename = f"cmssw_cfg.py"
     cmssw_config_filepath = os.path.join(submission_path, cmssw_config_filename)
     # copy template file
-    _, _ = console_utils.run_command(bash_command=f'cp {RekbmtfParams.cmssw_config_template_filepath} {cmssw_config_filepath}\n')
+    _, _ = console_utils.run_command(bash_command=f'cp {RekbmtfParamsSubmission.cmssw_config_template_filepath} {cmssw_config_filepath}\n')
     # prepare cmssw wildcards
     cmssw_config_wildcards = {
         
@@ -110,14 +110,14 @@ if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type ==
     new_content = file_utils.replace_wildcards_if_possible(content=content, wildcards=cmssw_config_wildcards)
     file_utils.store_local_file(filepath=cmssw_config_filepath, new_content=new_content)
     # print
-    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared CMSSW config file at \"{cmssw_config_filepath}\", based on template file \"{RekbmtfParams.cmssw_config_template_filepath}\"")
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared CMSSW config file at \"{cmssw_config_filepath}\", based on template file \"{RekbmtfParamsSubmission.cmssw_config_template_filepath}\"")
 
     ### prepare crab config file
     # copy crab template file to submitpath
     crab_config_filename = f"crab_cfg.py"
     crab_config_filepath = os.path.join(submission_path, crab_config_filename)
     # copy template file
-    _, _ = console_utils.run_command(bash_command=f'cp {RekbmtfParams.crab_config_template_filepath} {crab_config_filepath}\n')
+    _, _ = console_utils.run_command(bash_command=f'cp {RekbmtfParamsSubmission.crab_config_template_filepath} {crab_config_filepath}\n')
     # prepare crab wildcards
     crab_config_wildcards = {
         "++++CRAB_REQUESTNAME++++": crab_requestname,
@@ -126,15 +126,15 @@ if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type ==
         "++++INPUT_DAS_NAME++++": RekbmtfInput.input_das_name,
         "++++INPUT_LUMI_MASK++++": RekbmtfInput.input_lumi_mask,
         "++++INPUT_RUN_RANGE++++": RekbmtfInput.input_run_range,
-        "++++CRAB_OUTPUT_BASEDIR++++": RekbmtfParams.output_basepath,
-        "++++CRAB_STORAGE_SITE++++": RekbmtfParams.output_site,
+        "++++CRAB_OUTPUT_BASEDIR++++": RekbmtfParamsSubmission.output_basepath,
+        "++++CRAB_STORAGE_SITE++++": RekbmtfParamsSubmission.output_site,
     }
     # open crab template, and replace wildcards
     content = file_utils.load_local_file(filepath=crab_config_filepath)
     new_content = file_utils.replace_wildcards_if_possible(content=content, wildcards=crab_config_wildcards)
     file_utils.store_local_file(filepath=crab_config_filepath, new_content=new_content)
     # print
-    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared CRAB config file at \"{crab_config_filepath}\", based on template file \"{RekbmtfParams.crab_config_template_filepath}\"")
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared CRAB config file at \"{crab_config_filepath}\", based on template file \"{RekbmtfParamsSubmission.crab_config_template_filepath}\"")
 
     ### finally: submit to crab
     console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit to CRAB, using the CRAB workarea \"{crab_workarea}\"")
@@ -145,7 +145,7 @@ if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type ==
     # # prepare voms
     # bash_commands += f'voms-proxy-init --rfc --voms cms -valid 192:00\n'
     # cd into cmssw workarea
-    bash_commands += f'cd {RekbmtfParams.cmssw_src_path}\n'
+    bash_commands += f'cd {RekbmtfParamsSubmission.cmssw_src_path}\n'
     # source cmssw env
     bash_commands += f'cmsenv\n'
     # cd into submitpath
@@ -179,7 +179,7 @@ if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type ==
         replace_wildcards=True, verbose=1,
         **{
             "RekbmtfInput": RekbmtfInput,
-            "RekbmtfParams": RekbmtfParams,
+            "RekbmtfParamsSubmission": RekbmtfParamsSubmission,
             "RekbmtfSubmission": RekbmtfSubmission,
         }
     )
@@ -187,7 +187,7 @@ if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type ==
     
 #======
 else:
-    console_utils.raise_exception(string=f"Unsupported combination of submission type \"{RekbmtfParams.submission_type}\" and output type \"{RekbmtfParams.output_type}\"")
+    console_utils.raise_exception(string=f"Unsupported combination of submission type \"{RekbmtfParamsSubmission.submission_type}\" and output type \"{RekbmtfParamsSubmission.output_type}\"")
 #=============================================================================
 
 # print

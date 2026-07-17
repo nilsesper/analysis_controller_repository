@@ -65,11 +65,11 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submission, config_type="ConfigRekbmtfSubmission", replace_wildcards=True, verbose=1)
 # extract config info
 RekbmtfInput = ConfigRekbmtfSubmission.RekbmtfInput
-RekbmtfParams = ConfigRekbmtfSubmission.RekbmtfParams
+RekbmtfParamsSubmission = ConfigRekbmtfSubmission.RekbmtfParamsSubmission
 RekbmtfSubmission = ConfigRekbmtfSubmission.RekbmtfSubmission
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParams.submission_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParams.output_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParamsSubmission.submission_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParamsSubmission.output_type}\"")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission timestamp of this submission is \"{RekbmtfSubmission.submission_timestamp}\"")
 
 ### parse optional arguments
@@ -85,7 +85,7 @@ elif (command_arg != None) and (action_type not in ["command"]):
 
 #=============================================================================
 #====== SUBMISSION_TYPE: CERN-CRAB
-if RekbmtfParams.submission_type == "cern-crab":
+if RekbmtfParamsSubmission.submission_type == "cern-crab":
     
     #====== ACTION_TYPE: MONITOR
     # monitor the crab submission status
@@ -103,7 +103,7 @@ if RekbmtfParams.submission_type == "cern-crab":
         # # prepare voms
         # bash_commands += f'voms-proxy-init --rfc --voms cms -valid 192:00\n'
         # cd into cmssw workarea
-        bash_commands += f'cd {RekbmtfParams.cmssw_src_path}\n'
+        bash_commands += f'cd {RekbmtfParamsSubmission.cmssw_src_path}\n'
         # source cmssw env
         bash_commands += f'cmsenv\n'
         # cd into submitpath
@@ -132,7 +132,7 @@ if RekbmtfParams.submission_type == "cern-crab":
         # # prepare voms
         # bash_commands += f'voms-proxy-init --rfc --voms cms -valid 192:00\n'
         # cd into cmssw workarea
-        bash_commands += f'cd {RekbmtfParams.cmssw_src_path}\n'
+        bash_commands += f'cd {RekbmtfParamsSubmission.cmssw_src_path}\n'
         # source cmssw env
         bash_commands += f'cmsenv\n'
         # cd into submitpath

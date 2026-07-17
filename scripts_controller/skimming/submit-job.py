@@ -23,7 +23,7 @@ console_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTRO
 start_time = time.time()
 
 ### define analysis step
-analysis_step = "finalselection"
+analysis_step = "skimming"
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Analysis step is \"{analysis_step}\"")
 
 #############################

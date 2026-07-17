@@ -62,11 +62,11 @@ ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submission
 # extract config info
 RekbmtfInput = ConfigRekbmtfSubmission.RekbmtfInput
 RekbmtfParams = ConfigRekbmtfSubmission.RekbmtfParams
-RekbmtfSubmission = ConfigRekbmtfSubmission.RekbmtfSubmission
+RekbmtfParamsSubmission = ConfigRekbmtfSubmission.RekbmtfParamsSubmission
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParams.submission_type}\"")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParams.output_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission timestamp of this submission is \"{RekbmtfSubmission.submission_timestamp}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission timestamp of this submission is \"{RekbmtfParamsSubmission.submission_timestamp}\"")
 
 ### define submission timestamp
 collection_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -98,7 +98,7 @@ if RekbmtfParams.output_type == "cern-grid":
 
             ### derive crab submitpath
             input_das_name_firstword = RekbmtfInput.input_das_name.split("/")[1] # extract first word of input_das_name: "L1Scouting" = first word of "/L1Scouting/Run2024I-v1/L1SCOUT"
-            output_path = f"{RekbmtfParams.output_basepath}/{input_das_name_firstword}/crab_{RekbmtfSubmission.crab_requestname}"
+            output_path = f"{RekbmtfParams.output_basepath}/{input_das_name_firstword}/crab_{RekbmtfParamsSubmission.crab_requestname}"
 
             ### obtain list of output files on grid storage
             # prepare grid access
@@ -163,7 +163,7 @@ if RekbmtfParams.output_type == "cern-grid":
                 **{
                     "RekbmtfInput": RekbmtfInput,
                     "RekbmtfParams": RekbmtfParams,
-                    "RekbmtfSubmission": RekbmtfSubmission,
+                    "RekbmtfParamsSubmission": RekbmtfParamsSubmission,
                     "RekbmtfCollection": RekbmtfCollection,
                     "RekbmtfOutput": RekbmtfOutput,
                 }
