@@ -1,11 +1,22 @@
 #!/bin/bash
 
-CYAN="\033[0;36m"
-WHITE="\033[0;37m"
-WHITEBOLD="\033[1;37m"
-YELLOW="\033[0;33m"
-RED="\033[0;31m"
 RESET="\033[0m"
+BLACK='\033[0;30m'
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+CYAN='\033[0;36m'
+WHITE='\033[0;37m'
+BGBLACK='\033[0;40m'
+BGRED='\033[0;41m'
+BGGREEN='\033[0;42m'
+BGYELLOW='\033[0;43m'
+BGBLUE='\033[0;44m'
+BGPRUPLE='\033[0;45m'
+BGCYAN='\033[0;46m'
+BGWHITE='\033[0;47m'
 
 printf "${CYAN}++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++${RESET}\n"
 printf "${CYAN}+++${WHITEBOLD} ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis ${CYAN}+++${RESET}\n"
