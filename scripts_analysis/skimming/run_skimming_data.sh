@@ -61,7 +61,11 @@ source env_no-voms.sh
 printf "${GREEN}>>>>>> ${WHITE} STARTING SCRIPT AND TIMING IT ${RESET}\n"
 
 cd /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/
-python skimming_data.py --input ${InputFilePath} --output ${OutputFilePath} --params ${ParamsFilePath}
+
+###--- run normally:
+# python skimming_data.py --input ${InputFilePath} --output ${OutputFilePath} --params ${ParamsFilePath}
+###--- run and measure resource utilization (is logged in stderr):
+/usr/bin/time --verbose  python skimming_data.py --input ${InputFilePath} --output ${OutputFilePath} --params ${ParamsFilePath}
 
 printf "${GREEN}>>>>>> ${WHITE} DONE ${RESET}\n"
 cd ${CURRENT_WORKING_DIR}
