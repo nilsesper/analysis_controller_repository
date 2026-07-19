@@ -1,0 +1,19 @@
+
+universe = vanilla
+
+executable = ++++EXECUTABLE++++
+
+arguments = $(ExecutableFile) $(InputFile) $(OutputFile) $(ParamsFile) $(ClusterId) $(ProcId)
+
+stdout = stdout/stdout-ClusterId$(ClusterId)-ProcId$(ProcId).ansi
+stderr = stderr/stderr-ClusterId$(ClusterId)-ProcId$(ProcId).err
+log = condorlog/condorlog-ClusterId$(ClusterId).log
+
+request_cpus = ++++REQUEST_CPUS++++
+request_memory = ++++REQUEST_MEMORY++++
+request_disk = ++++REQUEST_DISK++++
+
+should_transfer_files = yes
+when_to_transfer_output = on_exit
+
+queue ExecutableFile, InputFile, OutputFile, ParamsFile from ++++JOB_LIST_FILE++++
