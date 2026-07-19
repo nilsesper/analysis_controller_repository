@@ -7,7 +7,6 @@
 
 import os
 import argparse
-import subprocess
 import time
 from datetime import datetime
 
@@ -149,6 +148,7 @@ if RekbmtfParams.output_type == "cern-grid":
                     "collection_basepath": collection_basepath,
                     "collection_files": collection_file_list,
                     "collection_timestamp": collection_timestamp,
+                    "collection_name": collection_name,
                 }
             )
             ### prepare and store config file object

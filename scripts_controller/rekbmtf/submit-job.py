@@ -7,7 +7,6 @@
 
 import os
 import argparse
-import subprocess
 from datetime import datetime
 import time
 

@@ -7,7 +7,6 @@
 
 import os
 import argparse
-import subprocess
 from datetime import datetime
 import time
 
@@ -55,16 +54,17 @@ ConfigRekbmtfInput = config_utils.load_config_file(filepath=args.input, config_t
 # extract config info
 SkimmingInput = ConfigRekbmtfInput.SkimmingInput
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data type of this submission is \"{RekbmtfInput.data_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data label of this submission is \"{RekbmtfInput.data_label}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data union label of this submission is \"{SkimmingInput.union_label}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data union of this submission consists of \"{len(SkimmingInput.rekbmtf_collections)}\" individual rekbmtf output collections")
 
 ### import params config file
-ConfigSkimmingParamsSubmission = config_utils.load_config_file(filepath=args.params, config_type="ConfigSkimmingParamsSubmission", replace_wildcards=True, verbose=1)
+ConfigSkimmingParamsSubmission = config_utils.load_config_file(filepath=args.paramssubmission, config_type="ConfigSkimmingParamsSubmission", replace_wildcards=True, verbose=1)
 # extract config info
 SkimmingParamsSubmission = ConfigSkimmingParamsSubmission.SkimmingParamsSubmission
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParams.submission_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParams.output_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Analysis parameters of this submission are \"{SkimmingParamsSubmission.params_analysis}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{SkimmingParamsSubmission.submission_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{SkimmingParamsSubmission.output_type}\"")
 
 ### define submission timestamp
 submission_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -72,10 +72,10 @@ submission_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting submission timestamp as \"{submission_timestamp}\"")
 
 ### start submission
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit dataset")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit data union")
 
 ### submit name
-submission_name = f"{analysis_step}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}_{submission_timestamp}"
+submission_name = f"{analysis_step}_{SkimmingInput.union_label}_{submission_timestamp}"
 
 ### submission path, where all info about this submission is stored
 submission_path = os.path.join(_ANALYSIS_CONTROLLER_REPO_PATH, "submissions", submission_name)
@@ -85,113 +85,207 @@ os.mkdir(submission_path)
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared submission directory at \"{submission_path}\"")
 
 #=============================================================================
-#== SUBMISSION_TYPE: CERN-CRAB  &&  OUTPUT_TYPE: CERN-GRID
-if RekbmtfParams.submission_type == "cern-crab" and RekbmtfParams.output_type == "cern-grid":
+#== SUBMISSION_TYPE: AACHEN-CONDOR  &&  OUTPUT_TYPE: AACHEN-NET
+if SkimmingParamsSubmission.submission_type == "aachen-condor" and SkimmingParamsSubmission.output_type == "aachen-net":
 
     ### prepare variables
     crab_requestname = submission_name
-    
-    ### prepare crab work area
-    crab_workarea = os.path.join(submission_path, "crab_project")
-    os.mkdir(crab_workarea)
 
-    ### prepare cmssw config file
-    # copy cmssw template file to submitpath
-    cmssw_config_filename = f"cmssw_cfg.py"
-    cmssw_config_filepath = os.path.join(submission_path, cmssw_config_filename)
-    # copy template file
-    _, _ = console_utils.run_command(bash_command=f'cp {RekbmtfParams.cmssw_config_template_filepath} {cmssw_config_filepath}\n')
-    # prepare cmssw wildcards
-    cmssw_config_wildcards = {
-        
-    }
-    # open cmssw template, and replace wildcards
-    content = file_utils.load_local_file(filepath=cmssw_config_filepath)
-    new_content = file_utils.replace_wildcards_if_possible(content=content, wildcards=cmssw_config_wildcards)
-    file_utils.store_local_file(filepath=cmssw_config_filepath, new_content=new_content)
+    ### prepare collection basepath
+    output_basepath = os.path.join(SkimmingParamsSubmission.output_basepath, submission_name)
+
+    ### create output basepath
+    # make sure it did not exist before
+    if os.path.isdir(output_basepath):
+        console_utils.raise_exception(string=f"The output base path subdirectory \"{output_basepath}\" does already exist")
+    # create dir
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create output base path subdirectory \"{output_basepath}\"")
+    os.mkdir(output_basepath)
+
+    ### locate input files, determine output file paths and prepare submission list
+    submission_list = [] # [(executable, innputfile, outputfile, paramsfile)]
+
+    ### determine executable path
+    executable = os.path.join(_ANALYSIS_CONTROLLER_REPO_PATH, "scripts_analysis/skimming/run_skimming_data.sh")
+
+    # loop over all input rekbmtf collections
+    n_rekbmtf = len(SkimmingInput.rekbmtf_collections)
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Collecting information about all individual rekbmtf output collections for this submission data union")
+    for i_rekbmtf in range(n_rekbmtf):
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Collecting information about rekbmtf output collection \"{(i_rekbmtf+1):,} / {n_rekbmtf:,} = {((i_rekbmtf+1)/n_rekbmtf if n_rekbmtf > 0 else 0)*100:.3f} %\"")
+        ### locate rekbmtf output config file
+        rekbmtf_output_config_file = SkimmingInput.rekbmtf_collections[i_rekbmtf].rekbmtf_output_config
+        rekbmtf_output_user_label = SkimmingInput.rekbmtf_collections[i_rekbmtf].user_label
+
+        ### import rekbmtf output config file
+        ConfigRekbmtfOutput = config_utils.load_config_file(filepath=rekbmtf_output_config_file, config_type="ConfigRekbmtfOutput", replace_wildcards=True, verbose=1)
+        ### extract config info
+        RekbmtfInput = ConfigRekbmtfOutput.RekbmtfInput
+        RekbmtfParamsSubmission = ConfigRekbmtfOutput.RekbmtfParamsSubmission
+        RekbmtfCollection = ConfigRekbmtfOutput.RekbmtfCollection
+        RekbmtfSubmission = ConfigRekbmtfOutput.RekbmtfSubmission
+        RekbmtfOutput = ConfigRekbmtfOutput.RekbmtfOutput
+        # print
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Rekbmtf output \"{(i_rekbmtf+1):,}\" is type \"{RekbmtfInput.data_type}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Rekbmtf output \"{(i_rekbmtf+1):,}\" has label \"{RekbmtfInput.data_label}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Rekbmtf output \"{(i_rekbmtf+1):,}\" has rekbmtf submission name \"{RekbmtfSubmission.submission_timestamp}\"")
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Rekbmtf output \"{(i_rekbmtf+1):,}\" has rekbmtf collection name \"{RekbmtfOutput.collection_name}\"")
+
+        ### prepare submission parameters
+        # determine output file suffix
+        #   desired file naming: {RekbmtfOutput.collection_name}_{i_file}.root
+        paramsfile = SkimmingParamsSubmission.params_analysis
+        outfile_prefix = f"skimming_{RekbmtfOutput.collection_name}"
+        # determine inputfile and outputfile paths
+        n_files = len(RekbmtfOutput.collection_files)
+        for i_file in range(n_files):
+            # inputfile path
+            infile = RekbmtfOutput.collection_files[i_file].path
+            # outputfile path
+            outfile = os.path.join(output_basepath, f"{outfile_prefix}_{i_file}.root")
+            # add to submission_list
+            submission_list.append( (executable, infile, outfile, paramsfile) )
     # print
-    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared CMSSW config file at \"{cmssw_config_filepath}\", based on template file \"{RekbmtfParams.cmssw_config_template_filepath}\"")
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished collecting information about all individual rekbmtf output collections for this submission data union")
+    n_jobs = len(submission_list)
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"In total \"{n_jobs}\" jobs are foreseen for this submission")
 
-    ### prepare crab config file
-    # copy crab template file to submitpath
-    crab_config_filename = f"crab_cfg.py"
-    crab_config_filepath = os.path.join(submission_path, crab_config_filename)
+    ### prepare condor work area
+    condor_workarea = os.path.join(submission_path, "condor_project")
+    os.mkdir(condor_workarea)
+
+    ### prepare condor job list csv file from created submission list
+    job_list_filename = f"CondorJobList.csv"
+    job_list_filepath = os.path.join(condor_workarea, job_list_filename)
+    # prepare csv file content
+    job_list_str = ""
+    for i_job in range(n_jobs):
+        n_cols = len(submission_list[i_job])
+        for i_col in range(n_cols):
+            job_list_str += f"{submission_list[i_job][i_col]}"
+            if i_col < n_cols-1:
+                job_list_str += ","
+        if i_job < n_jobs-1:
+            job_list_str += "\n"
+    # write csv file
+    file_utils.store_local_file(filepath=job_list_filepath, new_content=job_list_str)
+
+    ### prepare condor exec file
+    # copy condor exec template file to submitpath
+    condor_executable_config_filename = f"condor_exec.sh"
+    condor_executable_config_filepath = os.path.join(condor_workarea, condor_executable_config_filename)
     # copy template file
-    _, _ = console_utils.run_command(bash_command=f'cp {RekbmtfParams.crab_config_template_filepath} {crab_config_filepath}\n')
-    # prepare crab wildcards
-    crab_config_wildcards = {
-        "++++CRAB_REQUESTNAME++++": crab_requestname,
-        "++++CRAB_WORKAREA++++": crab_workarea,
-        "++++CMSSW_CONFIGFILE++++": cmssw_config_filepath,
-        "++++INPUT_DAS_NAME++++": RekbmtfInput.input_das_name,
-        "++++INPUT_LUMI_MASK++++": RekbmtfInput.input_lumi_mask,
-        "++++INPUT_RUN_RANGE++++": RekbmtfInput.input_run_range,
-        "++++CRAB_OUTPUT_BASEDIR++++": RekbmtfParams.output_basepath,
-        "++++CRAB_STORAGE_SITE++++": RekbmtfParams.output_site,
-    }
-    # open crab template, and replace wildcards
-    content = file_utils.load_local_file(filepath=crab_config_filepath)
-    new_content = file_utils.replace_wildcards_if_possible(content=content, wildcards=crab_config_wildcards)
-    file_utils.store_local_file(filepath=crab_config_filepath, new_content=new_content)
-    # print
-    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared CRAB config file at \"{crab_config_filepath}\", based on template file \"{RekbmtfParams.crab_config_template_filepath}\"")
+    _, _ = console_utils.run_command(bash_command=f'cp {SkimmingParamsSubmission.condor_executable_template_filepath} {condor_executable_config_filepath}\n')
+    # prepare wildcards
+    condor_submission_config_wildcards = {
 
-    ### finally: submit to crab
-    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit to CRAB, using the CRAB workarea \"{crab_workarea}\"")
+    }
+    # open template, and replace wildcards
+    content = file_utils.load_local_file(filepath=condor_executable_config_filepath)
+    new_content = file_utils.replace_wildcards_if_possible(content=content, wildcards=condor_submission_config_wildcards)
+    file_utils.store_local_file(filepath=condor_executable_config_filepath, new_content=new_content)
+    # print
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared condor executable file at \"{condor_executable_config_filepath}\", based on template file \"{SkimmingParamsSubmission.condor_executable_template_filepath}\"")
+
+    ### prepare condor submit file
+    # copy condor submit template file to submitpath
+    condor_submission_config_filename = f"condor_submit.sub"
+    condor_submission_config_filepath = os.path.join(condor_workarea, condor_submission_config_filename)
+    # determine default parameters
+    condor_request_cpus = "1"
+    condor_request_memory = "4G"
+    condor_request_disk = "1G"
+    # update parameters from submission parameters, if not empty
+    if SkimmingParamsSubmission.condor_request_cpus != "":
+        condor_request_cpus = SkimmingParamsSubmission.condor_request_cpus
+    if SkimmingParamsSubmission.condor_request_memory != "":
+        condor_request_memory = SkimmingParamsSubmission.condor_request_memory
+    if SkimmingParamsSubmission.condor_request_disk != "":
+        condor_request_disk = SkimmingParamsSubmission.condor_request_disk
+    # copy template file
+    _, _ = console_utils.run_command(bash_command=f'cp {SkimmingParamsSubmission.condor_submission_config_template_filepath} {condor_submission_config_filepath}\n')
+    # prepare wildcards
+    condor_submission_config_wildcards = {
+        "++++EXECUTABLE++++": condor_executable_config_filepath,
+        "++++REQUEST_CPUS++++": condor_request_cpus,
+        "++++REQUEST_MEMORY++++": condor_request_memory,
+        "++++REQUEST_DISK++++": condor_request_disk,
+        "++++JOB_LIST_FILE++++": job_list_filename,
+    }
+    # open template, and replace wildcards
+    content = file_utils.load_local_file(filepath=condor_submission_config_filepath)
+    new_content = file_utils.replace_wildcards_if_possible(content=content, wildcards=condor_submission_config_wildcards)
+    file_utils.store_local_file(filepath=condor_submission_config_filepath, new_content=new_content)
+    # print
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared condor submission config file at \"{condor_submission_config_filepath}\", based on template file \"{SkimmingParamsSubmission.condor_submission_config_template_filepath}\"")
+
+    ### finally: submit to condor
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit to CONDOR, using the CONDOR workarea \"{condor_workarea}\"")
     bash_commands = f''
     bash_commands += f'\n'
-    # source cms base env
-    bash_commands += f'source /cvmfs/cms.cern.ch/cmsset_default.sh\n'
-    # # prepare voms
-    # bash_commands += f'voms-proxy-init --rfc --voms cms -valid 192:00\n'
-    # cd into cmssw workarea
-    bash_commands += f'cd {RekbmtfParams.cmssw_src_path}\n'
-    # source cmssw env
-    bash_commands += f'cmsenv\n'
-    # cd into submitpath
-    bash_commands += f'cd {submission_path}\n'
-    # crab submit command
-    bash_commands += f'crab submit -c {crab_config_filepath}\n'
-    #bash_commands += f'crab submit -c {crab_config_filepath} --dryrun\n'
+    # cd into condor workarea
+    bash_commands += f'cd {condor_workarea}\n'
+    # condor submit command
+    bash_commands += f'condor_submit {condor_submission_config_filepath}\n'
     # execute commands
-    _, _ = console_utils.run_command(bash_command=bash_commands)
+    _, cmdout = console_utils.run_command(bash_command=bash_commands)
+
+    ### extract cluster id
+    condor_cluster_id = "none"
+    if "submitted to cluster" in cmdout:
+        tmp_str = cmdout.split("submitted to cluster")[-1]
+        tmp_str = tmp_str.replace(".","").replace(" ","").replace("\n","")
+        condor_cluster_id = tmp_str
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"CONDOR submission succeeded with ClusterId \"{condor_cluster_id}\"")
+
+    ### prepare list of submitted data: input and output files
+    # submission_list = [(executable, innputfile, outputfile, paramsfile)]
+    submitted_jobs = [{
+        "input": submission_list[i_job][1],
+        "output": submission_list[i_job][2],
+    } for i_job in range(n_jobs)]
 
     ### prepare submission object
-    RekbmtfSubmission = config_utils.create_config(
-        config_type="RekbmtfSubmission",
+    SkimmingSubmission = config_utils.create_config(
+        config_type="SkimmingSubmission",
         replace_wildcards=True, verbose=1,
         **{
             "submission_name": submission_name,
             "submission_path": submission_path,
             "submission_timestamp": submission_timestamp,
 
-            "cmssw_config_filepath": cmssw_config_filepath,
-            "crab_config_filepath": crab_config_filepath,
-            "crab_requestname": crab_requestname,
-            "crab_workarea": crab_workarea,
+            "condor_submission_config_filepath": condor_submission_config_filepath,
+            "condor_executable_filepath": condor_executable_config_filepath,
+            "condor_workarea": condor_workarea,
+            "condor_cluster_id": condor_cluster_id,
+
+            "executable": executable,
+
+            "submitted_jobs": submitted_jobs,
         }
     )
     ### prepare and store config file object
-    submission_filename = "ConfigRekbmtfSubmission.yaml"
+    submission_filename = "ConfigSkimmingSubmission.yaml"
     submission_filepath = os.path.join(submission_path, submission_filename)
-    ConfigRekbmtfSubmission = config_utils.create_config(
-        config_type="ConfigRekbmtfSubmission",
+    ConfigSkimmingSubmission = config_utils.create_config(
+        config_type="ConfigSkimmingSubmission",
         replace_wildcards=True, verbose=1,
         **{
-            "RekbmtfInput": RekbmtfInput,
-            "RekbmtfParams": RekbmtfParams,
-            "RekbmtfSubmission": RekbmtfSubmission,
+            "SkimmingInput": SkimmingInput,
+            "SkimmingParamsSubmission": SkimmingParamsSubmission,
+            "SkimmingSubmission": SkimmingSubmission,
         }
     )
-    config_utils.store_config_file(filepath=submission_filepath, config=ConfigRekbmtfSubmission, config_type="ConfigRekbmtfSubmission", verbose=1)
-    
+    config_utils.store_config_file(filepath=submission_filepath, config=ConfigSkimmingSubmission, config_type="ConfigSkimmingSubmission", verbose=1)
+    #"""
+
 #======
 else:
-    console_utils.raise_exception(string=f"Unsupported combination of submission type \"{RekbmtfParams.submission_type}\" and output type \"{RekbmtfParams.output_type}\"")
+    console_utils.raise_exception(string=f"Unsupported combination of submission type \"{SkimmingParamsSubmission.submission_type}\" and output type \"{SkimmingParamsSubmission.output_type}\"")
 #=============================================================================
 
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished submitting the dataset")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished submitting the data union")
 
 #****************************
 #############################

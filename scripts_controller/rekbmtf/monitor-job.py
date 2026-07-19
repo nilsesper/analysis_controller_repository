@@ -7,11 +7,9 @@
 
 import os
 import argparse
-import subprocess
 import time
 
 from analysis_controller.src import path_utils
-from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
 from analysis_controller.src import config_utils
 
