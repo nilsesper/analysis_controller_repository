@@ -22,4 +22,4 @@ request_disk = 8G
 should_transfer_files = yes
 when_to_transfer_output = on_exit
 
-queue ExecutableFile, InputFile, OutputFile, ParamsFile from CondorSubmitFileList.txt
+queue ExecutableFile, InputFile, OutputFile, ParamsFile from CondorSubmitFileList.csv

@@ -1,0 +1,43 @@
+000 (33197.000.000) 2026-07-19 14:33:04 Job submitted from host: <134.61.13.60:9618?addrs=134.61.13.60-9618&alias=lx3a60.physik.rwth-aachen.de&noUDP&sock=schedd_3959_1f88>
+...
+040 (33197.000.000) 2026-07-19 14:33:04 Started transferring input files
+	Transferring to host: <134.61.13.2:9618?addrs=134.61.13.2-9618&alias=lx3a02.physik.rwth-aachen.de&noUDP&sock=slot1_1_3868_1b16_14426>
+...
+040 (33197.000.000) 2026-07-19 14:33:09 Finished transferring input files
+...
+001 (33197.000.000) 2026-07-19 14:33:10 Job executing on host: <134.61.13.2:9618?addrs=134.61.13.2-9618&alias=lx3a02.physik.rwth-aachen.de&noUDP&sock=startd_3256_ec74>
+	SlotName: slot1_1@lx3a02.physik.rwth-aachen.de
+	CondorScratchDir = "/user/condor/execute/dir_863712"
+	Cpus = 1
+	Disk = 8389632
+	Memory = 8192
+...
+006 (33197.000.000) 2026-07-19 14:33:18 Image size of job updated: 607072
+	593  -  MemoryUsage of job (MB)
+	607072  -  ResidentSetSize of job (KB)
+...
+006 (33197.000.000) 2026-07-19 14:34:50 Image size of job updated: 6146716
+	595  -  MemoryUsage of job (MB)
+	609120  -  ResidentSetSize of job (KB)
+...
+040 (33197.000.000) 2026-07-19 14:34:50 Started transferring output files
+...
+040 (33197.000.000) 2026-07-19 14:34:50 Finished transferring output files
+...
+005 (33197.000.000) 2026-07-19 14:34:50 Job terminated.
+	(1) Normal termination (return value 0)
+		Usr 0 00:01:20, Sys 0 00:00:10  -  Run Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Run Local Usage
+		Usr 0 00:01:20, Sys 0 00:00:10  -  Total Remote Usage
+		Usr 0 00:00:00, Sys 0 00:00:00  -  Total Local Usage
+	8188  -  Run Bytes Sent By Job
+	533384684  -  Run Bytes Received By Job
+	8188  -  Total Bytes Sent By Job
+	533384684  -  Total Bytes Received By Job
+	Partitionable Resources :     Usage  Request Allocated 
+	   Cpus                 :      0.99        1         1 
+	   Disk (KB)            : 520912     8388608   8389632 
+	   Memory (MB)          :    595        8192      8192 
+	   TimeExecute (s)      :    100                       
+	   TimeSlotBusy (s)     :    106                       
+...

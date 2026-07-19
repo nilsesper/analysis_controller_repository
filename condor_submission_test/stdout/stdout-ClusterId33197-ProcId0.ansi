@@ -1,21 +1,27 @@
-[condor_exec] Start condor_exec.sh
-[condor_exec] Executable = /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/run_skimming_data.sh
-[condor_exec] Additional arguments = /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/input_test_0.root /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/output_test_0_nocuts_condor.root /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml 33189 0
-[condor_exec] Start executable with the following command "source /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/run_skimming_data.sh /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/input_test_0.root /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/output_test_0_nocuts_condor.root /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml 33189 0"
+[0;35m[ condor_exec.sh ][0;37m Start condor bash executable [0;36mcondor_exec.sh[0m
+[0;35m[ condor_exec.sh ][0;37m Start timestamp is [0;36m2026-07-19_14-33-10[0m
+[0;35m[ condor_exec.sh ][0;37m User bash executable = [0;36m/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/run_skimming_data.sh
+[0m
+[0;35m[ condor_exec.sh ][0;37m Additional arguments = [0;36m/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/input_large_test_0.root /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/output_large_test_0_nocuts_condor.root /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml 33197 0
+[0m
+[0;35m[ condor_exec.sh ][0;37m Start user bash executable with the following command [0;36m
+source /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/run_skimming_data.sh /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/input_large_test_0.root /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/output_large_test_0_nocuts_condor.root /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml 33197 0
+[0m
+[0;35m>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[0m
 [0;32m>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[0m
-[0;32m>>>>>>[1;37m ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis [0m
+[0;32m>>>>>> ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis [0m
 [0;32m>>>>>>[0;37m run_skimming_data.sh [0m
 [0;32m>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[0m
 [0;32m>>>>>> [0;37m BASIC INFO [0m
-[0;32m>>>>>> [0;37m   InputFile = /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/input_test_0.root [0m
-[0;32m>>>>>> [0;37m   OutputFile = /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/output_test_0_nocuts_condor.root [0m
+[0;32m>>>>>> [0;37m   InputFile = /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/input_large_test_0.root [0m
+[0;32m>>>>>> [0;37m   OutputFile = /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/output_large_test_0_nocuts_condor.root [0m
 [0;32m>>>>>> [0;37m   ParamsFile = /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml [0m
-[0;32m>>>>>> [0;37m   ClusterId = 33189 [0m
+[0;32m>>>>>> [0;37m   ClusterId = 33197 [0m
 [0;32m>>>>>> [0;37m   ProcId = 0 [0m
 [0;32m>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[0m
 [0;32m>>>>>> [0;37m SOURCING ENVIRONMENT [0m
 [0;36m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[0m
-[0;36m+++[1;37m ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis [0;36m+++[0m
+[0;36m+++ ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis [0;36m+++[0m
 [0;36m+++[0;37m env.sh                                                         [0;36m+++[0m
 [0;36m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[0m
 [0;33mLocating the repository directory and change working directory into it.[0m
@@ -36,9 +42,9 @@
 [0;36m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mLoading analysis parameters[0m
 [0;33m[ analysis_controller/src/config_utils.py : load_config_file() ][0m [0mAttempting to import config file of type [0;36mSkimmingParamsAnalysis[0m from [0;36m/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml[0m[0m
-[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mOpening input ROOT file from [0;36m/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/input_test_0.root[0m[0m
+[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mOpening input ROOT file from [0;36m/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/input_large_test_0.root[0m[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mConverting ROOT tree [0;36mEvents[0m to awkward array[0m
-[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mThe imported dataset has [0;36m92,708[0m events[0m
+[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mThe imported dataset has [0;36m4,625,284[0m events[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mCalculating [0;36mfirstbx[0m for all tracks[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mCalculating [0;36mbxspread[0m for all tracks[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mCalculating [0;36mstspread[0m for all tracks[0m
@@ -49,15 +55,17 @@
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mPreparing output data with information about the selected tracks[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mCalculating [0;36mis_colliding[0m for output data[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mCalculating [0;36mis_earlier_colliding[0m for output data[0m
-[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mOutput data has [0;36m92,708[0m events before all cuts[0m
+[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mOutput data has [0;36m4,625,284[0m events before all cuts[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mApplying all user-defined cuts in the following[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mDone applying all user-defined cuts[0m
-[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mOutput data has [0;36m92,708[0m events after all cuts. Total cut flow: [0;36m92,708 / 92,708 = 100.000 %[0m[0m
-[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mAttempting to write [0;36m92,708[0m events into output ROOT file [0;36m/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/output_test_0_nocuts_condor.root[0m[0m
+[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mOutput data has [0;36m4,625,284[0m events after all cuts. Total cut flow: [0;36m4,625,284 / 4,625,284 = 100.000 %[0m[0m
+[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mAttempting to write [0;36m4,625,284[0m events into output ROOT file [0;36m/home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/test_files/output_large_test_0_nocuts_condor.root[0m[0m
 [0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mDone writing output ROOT file[0m
-[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mThe execution took [0;36m12.107369 seconds[0m[0m
+[0;33m[ scripts_analysis/skimming/skimming_data.py ][0m [0mThe execution took [0;36m95.995904 seconds[0m[0m
 [0;36m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[0m
 [0;32m>>>>>> [0;37m DONE [0m
 [0;32m>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[0m
-[condor_exec] Finished executable
-[condor_exec] finish condor_exec.sh
+[0;35m>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>[0m
+[0;35m[ condor_exec.sh ][0;37m Finished user bash executable[0m
+[0;35m[ condor_exec.sh ][0;37m Stop timestamp is [0;36m2026-07-19_14-34-50[0m
+[0;35m[ condor_exec.sh ][0;37m finish condor bash executable [0;36mcondor_exec.sh[0m
