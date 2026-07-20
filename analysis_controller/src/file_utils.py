@@ -263,7 +263,7 @@ def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exist
         if already_exists:
             console_utils.raise_exception(string="Aborted because any of the target hadd files already exists")
         if verbose >= 1:
-            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"None of the target hadd files already exist")
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"None of the target hadd files already exist")
     # perform actual hadd-ing
     for i in range(n_hadd_files):
         hadd_file_path = hadd_file_list[i]["path"]
