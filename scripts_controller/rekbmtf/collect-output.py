@@ -1,6 +1,6 @@
-####################################
-### SUBMISSION OUTPUT COLLECTION ###
-####################################
+#######################################
+### REKBMTF STEP: OUTPUT COLLECTION ###
+#######################################
 
 ############################
 ### IMPORTS
@@ -14,6 +14,7 @@ from analysis_controller.src import path_utils
 from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
 from analysis_controller.src import config_utils
+from analysis_controller.src import constants
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
 _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
@@ -76,7 +77,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 collection_name = f"{analysis_step}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}_{collection_timestamp}"
 
 ### collection path, where all info about this data collection is stored
-collection_path = os.path.join(_ANALYSIS_CONTROLLER_REPO_PATH, "collections", collection_name)
+collection_path = os.path.join(constants.output_basepath, collection_name)
 # create collect path
 os.mkdir(collection_path)
 # print

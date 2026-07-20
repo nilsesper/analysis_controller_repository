@@ -9,9 +9,9 @@ SkimmingParamsSubmission:
 
     params_analysis: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml
 
-    condor_request_cpus: ""
-    condor_request_memory: ""
-    condor_request_disk: ""
+    condor_request_cpus: "1"
+    condor_request_memory: "8G"
+    condor_request_disk: "500M"
 
     condor_submission_config_template_filepath: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/templates_submission/condor/condor_submit.sub
     condor_executable_template_filepath: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/templates_submission/condor/condor_exec.sh
