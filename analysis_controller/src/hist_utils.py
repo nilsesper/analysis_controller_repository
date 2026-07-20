@@ -28,6 +28,7 @@ class StructHistEdges:
         "bins",
         "n_bins",
         "uniform",
+        "bin_width",
         "mean_bin_width",
         "total_edges_width",
     )
@@ -43,15 +44,15 @@ class StructHistEdges:
         # add underflow and overflow bins
         self.edges_ou = np.concatenate([[-np.inf], self.edges, [np.inf]])
         # calculate bin centers
-        self.bins = np.array([self.edges[i+1] - self.edges[i] for i in range(self.n_edges-1)])
+        self.bins = np.array([self.edges[i] + (self.edges[i+1] - self.edges[i])/2 for i in range(self.n_edges-1)])
         # get num of bins
         self.n_bins = self.n_edges-1
         # determine if bins are uniform
         # (this is the case if the distance between neighboring edges is the same everywhere)
-        edge_diff = np.diff(self.edges)
-        self.uniform = all(x == edge_diff[0] for x in edge_diff)
+        self.bin_width = np.diff(self.edges)
+        self.uniform = all(x == self.bin_width[0] for x in self.bin_width)
         # calculate mean bin width
-        self.mean_bin_width = np.mean(np.diff(self.edges))
+        self.mean_bin_width = np.mean(self.bin_width)
         # calculate total width of edges (without underflow / overflow)
         self.total_edges_width = self.edges[-1] - self.edges[0]
 
@@ -146,9 +147,10 @@ def create_RootHist(*, HistEdges, DataPts=create_DataPts(data_pts=[])):
     roothist = ROOT.TH1D("h", "Histogram", HistEdges.n_bins, HistEdges.low_edge, HistEdges.high_edge)
     roothist.Sumw2()
     # fill root hist, with weights
-    data_pts_root = np.ascontiguousarray(DataPts.data_pts, dtype=np.float64)
-    data_weights_root = np.ascontiguousarray(DataPts.data_weights, dtype=np.float64)
-    roothist.FillN(DataPts.n_data_pts, data_pts_root, data_weights_root)
+    if DataPts.n_data_pts > 0:
+        data_pts_root = np.ascontiguousarray(DataPts.data_pts, dtype=np.float64)
+        data_weights_root = np.ascontiguousarray(DataPts.data_weights, dtype=np.float64)
+        roothist.FillN(DataPts.n_data_pts, data_pts_root, data_weights_root)
     # create struct
     RootHist = StructRootHist(HistEdges=HistEdges, roothist=roothist)
     return RootHist
