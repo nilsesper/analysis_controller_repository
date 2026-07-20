@@ -2,16 +2,20 @@ SkimmingInput:
 
     # union_label: rekbmtf_data_2024H_test
     # union_label: rekbmtf_data_2024H
-    union_label: rekbmtf_data_2024I
+    # union_label: rekbmtf_data_2024I
+    union_label: rekbmtf_sim_DY
 
     rekbmtf_collections:
     
         # -   user_label: rekbmtf_data_Scouting_2024H_single-file_2026-07-09_11-16-27
-        #     rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/collections/rekbmtf_data_Scouting_2024H_2026-07-09_11-16-27/single-file_ConfigRekbmtfOutput.yaml
+        #     rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/rekbmtf_data_Scouting_2024H_2026-07-09_11-16-27/single-file_ConfigRekbmtfOutput.yaml
 
         # -   user_label: rekbmtf_data_Scouting_2024H_2026-07-09_11-16-27
-        #     rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/collections/rekbmtf_data_Scouting_2024H_2026-07-09_11-16-27/ConfigRekbmtfOutput.yaml
+        #     rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/rekbmtf_data_Scouting_2024H_2026-07-09_11-16-27/ConfigRekbmtfOutput.yaml
 
-        -   user_label: rekbmtf_data_Scouting_2024I_2026-07-15_17-37-53
-            rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/collections/rekbmtf_data_Scouting_2024I_2026-07-15_17-37-53/ConfigRekbmtfOutput.yaml
+        # -   user_label: rekbmtf_data_Scouting_2024I_2026-07-15_17-37-53
+        #     rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/rekbmtf_data_Scouting_2024I_2026-07-15_17-37-53/ConfigRekbmtfOutput.yaml
+
+        -   user_label: rekbmtf_sim_DY
+            rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/sim_cecile_DY/ConfigRekbmtfOutput.yaml
 

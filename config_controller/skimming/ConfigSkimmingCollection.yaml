@@ -1,0 +1,10 @@
+
+SkimmingCollection:
+
+    hadd_file_size: 1 GiB
+    hadd_file_prefix: skimming_output_
+
+    output_type: aachen-net
+    output_site: ""
+    output_basepath: /net/data_cms3a-1/esper/test_analysis_hscp_l1/analysis_controller_output/
+
