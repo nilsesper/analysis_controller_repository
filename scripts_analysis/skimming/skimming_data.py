@@ -1,6 +1,7 @@
-###############################
-### FINALSELECTION SLOWDATA ###
-###############################
+#####################
+### SKIMMING STEP ###
+### for data      ###
+#####################
 
 ############################
 ### IMPORTS
@@ -16,7 +17,6 @@ import time
 import argparse
 
 from analysis_controller.src import path_utils
-from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
 from analysis_controller.src import analysis_utils
 from analysis_controller.src import config_utils
@@ -49,7 +49,7 @@ parser.add_argument(
 )
 parser.add_argument(
     "--params",
-    help="path to FinalselectionParmsAnalysis yaml file (str)",
+    help="path to SkimmingParmsAnalysis yaml file (str)",
     type=str,
     required=True,
 )
@@ -81,7 +81,7 @@ infile = uproot.open(infile_path)
 ### extract "Events" root tree
 roottree = infile["Events"]
 roottree_branches = roottree.keys()
-#console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"ROOT tree \"Events\" contains branches {roottree_branches}")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"ROOT tree \"Events\" contains branches {roottree_branches}")
 
 ### convert root tree to awkward array
 arr = roottree.arrays(roottree_branches)
@@ -93,76 +93,6 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 
 ### add initial index to arr
 arr["treeidx"] = row_indices
-
-### overview of input array
-# for data:
-"""
-arr.type.show() = {
-    run: uint32,
-    luminosityBlock: uint32,
-    bunchCrossing: uint32,
-    orbitNumber: uint32,
-    nL1KBMTFSkimmed: int32,
-    L1KBMTFSkimmed_hwCharge: var * int16,
-    L1KBMTFSkimmed_hwQual: var * int16,
-    L1KBMTFSkimmed_hwDXY: var * int16,
-    L1KBMTFSkimmed_hwK: var * int16,
-    L1KBMTFSkimmed_processor: var * int16,
-    L1KBMTFSkimmed_nStub: var * int16,
-    L1KBMTFSkimmed_s1Station: var * int16,
-    L1KBMTFSkimmed_s1Sector: var * int16,
-    L1KBMTFSkimmed_s1Wheel: var * int16,
-    L1KBMTFSkimmed_s1HwQual: var * int16,
-    L1KBMTFSkimmed_s1Bx: var * int16,
-    L1KBMTFSkimmed_s2Station: var * int16,
-    L1KBMTFSkimmed_s2Sector: var * int16,
-    L1KBMTFSkimmed_s2Wheel: var * int16,
-    L1KBMTFSkimmed_s2HwQual: var * int16,
-    L1KBMTFSkimmed_s2Bx: var * int16,
-    L1KBMTFSkimmed_s3Station: var * int16,
-    L1KBMTFSkimmed_s3Sector: var * int16,
-    L1KBMTFSkimmed_s3Wheel: var * int16,
-    L1KBMTFSkimmed_s3HwQual: var * int16,
-    L1KBMTFSkimmed_s3Bx: var * int16,
-    L1KBMTFSkimmed_s4Station: var * int16,
-    L1KBMTFSkimmed_s4Sector: var * int16,
-    L1KBMTFSkimmed_s4Wheel: var * int16,
-    L1KBMTFSkimmed_s4HwQual: var * int16,
-    L1KBMTFSkimmed_s4Bx: var * int16,
-    L1KBMTFSkimmed_bx: var * int32,
-    L1KBMTFSkimmed_pt: var * float32,
-    L1KBMTFSkimmed_eta: var * float32,
-    L1KBMTFSkimmed_phi: var * float32,
-    L1KBMTFSkimmed_met_bxm9: var * float32,
-    L1KBMTFSkimmed_met_bxm8: var * float32,
-    L1KBMTFSkimmed_met_bxm7: var * float32,
-    L1KBMTFSkimmed_met_bxm6: var * float32,
-    L1KBMTFSkimmed_met_bxm5: var * float32,
-    L1KBMTFSkimmed_met_bxm4: var * float32,
-    L1KBMTFSkimmed_met_bxm3: var * float32,
-    L1KBMTFSkimmed_met_bxm2: var * float32,
-    L1KBMTFSkimmed_met_bxm1: var * float32,
-    L1KBMTFSkimmed_met_bx0: var * float32,
-    L1KBMTFSkimmed_ptUnconstrained: var * float32,
-    L1KBMTFSkimmed_etaAtVtx: var * float32,
-    L1KBMTFSkimmed_phiAtVtx: var * float32,
-    nSkimmedL1Mu: int32,
-    SkimmedL1Mu_hwCharge: var * int32,
-    SkimmedL1Mu_hwQual: var * int32,
-    SkimmedL1Mu_hwDXY: var * int32,
-    SkimmedL1Mu_tfMuonIndex: var * int32,
-    SkimmedL1Mu_ptUnconstrained: var * float32,
-    SkimmedL1Mu_etaAtVtx: var * float32,
-    SkimmedL1Mu_phiAtVtx: var * float32,
-    SkimmedL1Mu_pt: var * float32,
-    SkimmedL1Mu_eta: var * float32,
-    SkimmedL1Mu_phi: var * float32
-}
-"""
-# for simulation:
-"""
-???
-"""
 
 ###################
 ### CALCULATE HIGHER-LEVEL QUANTITIES FOR ALL TRACKS
@@ -434,8 +364,8 @@ row_indices_arr = ak.local_index(arr, axis=0)
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Preparing output data with information about the selected tracks")
 arr_tracks = ak.Array({
     #--- basic info
-    "treeidx":                  np.array(arr.treeidx[row_indices_arr], dtype=np.uintc),
-    "arridx":                   np.array(row_indices_arr, dtype=np.uintc),
+    # "treeidx":                  np.array(arr.treeidx[row_indices_arr], dtype=np.uintc),
+    # "arridx":                   np.array(row_indices_arr, dtype=np.uintc),
     "run":                      np.array(arr.run[row_indices_arr], dtype=np.uintc),
     "luminosityBlock":          np.array(arr.luminosityBlock[row_indices_arr], dtype=np.uintc),
     "orbitNumber":              np.array(arr.orbitNumber[row_indices_arr], dtype=np.uintc),
@@ -506,81 +436,116 @@ arr_tracks["l1MuCharge2"] = analysis_utils.apply_akindex(arr=arr.SkimmedL1Mu_hwC
 ###################
 ### CALCULATE HIGHER-LEVEL QUANTITIES FOR SELECTED TRACKS
 
-### prepare map of colliding bunches
-# read them from analysis config file
-run_to_lhcscheme = SkimmingParamsAnalysis.run_to_lhcscheme
-lhcscheme_to_filledbx = SkimmingParamsAnalysis.lhcscheme_to_filledbx
-# convert to faster numba dictionary
-# assign index to each unique lhcscheme
-lhcschemes = list(lhcscheme_to_filledbx.keys())
-lhcschemes_to_idx = {lhcscheme: i for i, lhcscheme in enumerate(lhcschemes)}
-# fill numba dictionaries, but use index (integer) instead of lhcscheme (string)
-nb_run_to_lhcscheme = nb.typed.Dict.empty(key_type=nb.types.int64, value_type=nb.types.int64)
-for run, lhcscheme in run_to_lhcscheme.items():
-    lhcscheme_idx = lhcschemes_to_idx[lhcscheme]
-    nb_run_to_lhcscheme[run] = lhcscheme_idx
-nb_lhcscheme_to_filledbx = nb.typed.Dict.empty(key_type=nb.types.int64, value_type=nb.types.int64[:])
-for lhcscheme, filledbx in lhcscheme_to_filledbx.items():
-    lhcscheme_idx = lhcschemes_to_idx[lhcscheme]
-    nb_lhcscheme_to_filledbx[lhcscheme_idx] = np.array(filledbx, dtype=np.int64)
-# the numba dictionaries are used in the following
+#---------------------------------
+### filling scheme
 
-### determine whether current event is in colliding bunch
-# take as reference bx not the event bx, but the firstbx1
-## for single event
-@nb.jit
-def event_check_colliding(run, bx, run_to_lhcscheme, lhcscheme_to_filledbx):
-    lhcscheme = run_to_lhcscheme[run]
-    filledbx_list = lhcscheme_to_filledbx[lhcscheme]
-    is_colliding = False
-    if bx in filledbx_list:
-        is_colliding = True
-    return is_colliding
-## for ak arr
-@nb.jit
-def arr_check_colliding(events, run_to_lhcscheme, lhcscheme_to_filledbx):
-    n_events = len(events)
-    arr_is_colliding = np.zeros(n_events, dtype=np.bool_)
-    for i_event in range(n_events):
-        event = events[i_event]
-        is_colliding = event_check_colliding(run=event.run, bx=event.firstbx1, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
-        arr_is_colliding[i_event] = is_colliding
-    return arr_is_colliding
-### add boolean field if is colliding event
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_colliding\" for output data")
-arr_tracks["is_colliding"] = arr_check_colliding(events=arr_tracks, run_to_lhcscheme=nb_run_to_lhcscheme, lhcscheme_to_filledbx=nb_lhcscheme_to_filledbx)
+if SkimmingParamsAnalysis.evaluate_filling_scheme:
 
-### determine whether current event had colliding bunch within last collisions
-# take as reference bx not the event bx, but the firstbx1
-# mark as "earlier colliding" if [bx-bx_interval , bx] was colliding bunch
-# mask as "earlier colliding", if is currently colliding
-bx_interval_earlier_colliding = SkimmingParamsAnalysis.bx_interval_earlier_colliding
-## for single event
-@nb.jit
-def event_check_earlier_colliding(run, bx, bx_interval, is_colliding, run_to_lhcscheme, lhcscheme_to_filledbx):
-    lhcscheme = run_to_lhcscheme[run]
-    filledbx_list = lhcscheme_to_filledbx[lhcscheme]
-    is_earlier_colliding = False
-    if is_colliding == True: # if colliding, also set earlier colliding
-        is_earlier_colliding = True
-    else:
-        for bx_check in range(bx-bx_interval, bx+1): # include current bx, i.e. check [bx-1-bx_interval , bx]
-            if bx_check in filledbx_list:
-                is_earlier_colliding = True
-    return is_earlier_colliding
-## for ak arr
-@nb.jit
-def arr_check_earlier_colliding(events, bx_interval, run_to_lhcscheme, lhcscheme_to_filledbx):
-    n_events = len(events)
-    arr_is_earlier_colliding = np.zeros(n_events, dtype=np.bool_)
-    for i_event in range(n_events):
-        event = events[i_event]
-        is_earlier_colliding = event_check_earlier_colliding(run=event.run, bx=event.firstbx1, bx_interval=bx_interval, is_colliding=event.is_colliding, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
-        arr_is_earlier_colliding[i_event] = is_earlier_colliding
-    return arr_is_earlier_colliding
-### add boolean field if is earlier colliding event
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_earlier_colliding\" for output data")
-arr_tracks["is_earlier_colliding"] = arr_check_earlier_colliding(events=arr_tracks, bx_interval=bx_interval_earlier_colliding, run_to_lhcscheme=nb_run_to_lhcscheme, lhcscheme_to_filledbx=nb_lhcscheme_to_filledbx)
+    ### prepare map of colliding bunches
+    # read them from analysis config file
+    run_to_lhcscheme = SkimmingParamsAnalysis.run_to_lhcscheme
+    lhcscheme_to_filledbx = SkimmingParamsAnalysis.lhcscheme_to_filledbx
+    # convert to faster numba dictionary
+    # assign index to each unique lhcscheme
+    lhcschemes = list(lhcscheme_to_filledbx.keys())
+    lhcschemes_to_idx = {lhcscheme: i for i, lhcscheme in enumerate(lhcschemes)}
+    # fill numba dictionaries, but use index (integer) instead of lhcscheme (string)
+    nb_run_to_lhcscheme = nb.typed.Dict.empty(key_type=nb.types.int64, value_type=nb.types.int64)
+    for run, lhcscheme in run_to_lhcscheme.items():
+        lhcscheme_idx = lhcschemes_to_idx[lhcscheme]
+        nb_run_to_lhcscheme[run] = lhcscheme_idx
+    nb_lhcscheme_to_filledbx = nb.typed.Dict.empty(key_type=nb.types.int64, value_type=nb.types.int64[:])
+    for lhcscheme, filledbx in lhcscheme_to_filledbx.items():
+        lhcscheme_idx = lhcschemes_to_idx[lhcscheme]
+        nb_lhcscheme_to_filledbx[lhcscheme_idx] = np.array(filledbx, dtype=np.int64)
+    # the numba dictionaries are used in the following
+
+    ### determine whether current event is in colliding bunch
+    # take as reference bx not the event bx, but the firstbx1
+    ## for single event
+    @nb.jit
+    def event_check_colliding(run, bx, run_to_lhcscheme, lhcscheme_to_filledbx):
+        lhcscheme = run_to_lhcscheme[run]
+        filledbx_list = lhcscheme_to_filledbx[lhcscheme]
+        is_colliding = False
+        if bx in filledbx_list:
+            is_colliding = True
+        return is_colliding
+    ## for ak arr
+    @nb.jit
+    def arr_check_colliding(events, run_to_lhcscheme, lhcscheme_to_filledbx):
+        n_events = len(events)
+        arr_is_colliding = np.zeros(n_events, dtype=np.bool_)
+        for i_event in range(n_events):
+            event = events[i_event]
+            is_colliding = event_check_colliding(run=event.run, bx=event.firstbx1, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
+            arr_is_colliding[i_event] = is_colliding
+        return arr_is_colliding
+    ### add boolean field if is colliding event
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_colliding\" for output data")
+    arr_tracks["is_colliding"] = arr_check_colliding(events=arr_tracks, run_to_lhcscheme=nb_run_to_lhcscheme, lhcscheme_to_filledbx=nb_lhcscheme_to_filledbx)
+
+    ### determine whether current event had colliding bunch within last collisions
+    # take as reference bx not the event bx, but the firstbx1
+    # mark as "earlier colliding" if [bx-bx_interval , bx] was colliding bunch
+    # mask as "earlier colliding", if is currently colliding
+    bx_interval_earlier_colliding = SkimmingParamsAnalysis.bx_interval_earlier_colliding
+    ## for single event
+    @nb.jit
+    def event_check_earlier_colliding(run, bx, bx_interval, is_colliding, run_to_lhcscheme, lhcscheme_to_filledbx):
+        lhcscheme = run_to_lhcscheme[run]
+        filledbx_list = lhcscheme_to_filledbx[lhcscheme]
+        is_earlier_colliding = False
+        if is_colliding == True: # if colliding, also set earlier colliding
+            is_earlier_colliding = True
+        else:
+            for bx_check in range(bx-bx_interval, bx+1): # include current bx, i.e. check [bx-1-bx_interval , bx]
+                if bx_check in filledbx_list:
+                    is_earlier_colliding = True
+        return is_earlier_colliding
+    ## for ak arr
+    @nb.jit
+    def arr_check_earlier_colliding(events, bx_interval, run_to_lhcscheme, lhcscheme_to_filledbx):
+        n_events = len(events)
+        arr_is_earlier_colliding = np.zeros(n_events, dtype=np.bool_)
+        for i_event in range(n_events):
+            event = events[i_event]
+            is_earlier_colliding = event_check_earlier_colliding(run=event.run, bx=event.firstbx1, bx_interval=bx_interval, is_colliding=event.is_colliding, run_to_lhcscheme=run_to_lhcscheme, lhcscheme_to_filledbx=lhcscheme_to_filledbx)
+            arr_is_earlier_colliding[i_event] = is_earlier_colliding
+        return arr_is_earlier_colliding
+    ### add boolean field if is earlier colliding event
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"is_earlier_colliding\" for output data")
+    arr_tracks["is_earlier_colliding"] = arr_check_earlier_colliding(events=arr_tracks, bx_interval=bx_interval_earlier_colliding, run_to_lhcscheme=nb_run_to_lhcscheme, lhcscheme_to_filledbx=nb_lhcscheme_to_filledbx)
+
+else:
+
+    pass
+
+#---------------------------------
+### gen columns from simulation
+
+if SkimmingParamsAnalysis.evaluate_gen_cols:
+    # gen columns in simulation: 'nGen', 'Gen_pdgid', 'Gen_charge', 'Gen_pt', 'Gen_eta', 'Gen_phi', 'Gen_beta', 'Gen_mass'
+    #--- prim track
+    arr_tracks["genpt1"] = analysis_utils.apply_akindex(arr=arr.Gen_pt, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["geneta1"] = analysis_utils.apply_akindex(arr=arr.Gen_eta, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["genphi1"] = analysis_utils.apply_akindex(arr=arr.Gen_phi, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["genbeta1"] = analysis_utils.apply_akindex(arr=arr.Gen_beta, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["gencharge1"] = analysis_utils.apply_akindex(arr=arr.Gen_charge, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["genpdgid1"] = analysis_utils.apply_akindex(arr=arr.Gen_pdgid, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["genmass1"] = analysis_utils.apply_akindex(arr=arr.Gen_mass, aki=aki_arr_prim_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    #--- sec track
+    arr_tracks["genpt2"] = analysis_utils.apply_akindex(arr=arr.Gen_pt, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["geneta2"] = analysis_utils.apply_akindex(arr=arr.Gen_eta, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["genphi2"] = analysis_utils.apply_akindex(arr=arr.Gen_phi, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["genbeta2"] = analysis_utils.apply_akindex(arr=arr.Gen_beta, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["gencharge2"] = analysis_utils.apply_akindex(arr=arr.Gen_charge, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["genpdgid2"] = analysis_utils.apply_akindex(arr=arr.Gen_pdgid, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+    arr_tracks["genmass2"] = analysis_utils.apply_akindex(arr=arr.Gen_mass, aki=aki_arr_sec_selection, padlen=1, padval=-1, firsts=True, to_numpy=True, numpy_dtype=np.single)
+
+else:
+
+    pass
 
 ###################
 ### PERFORM CUTS ON SELECTED TRACKS
@@ -689,69 +654,6 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 #                 row_dict[k] = v
 #     list_of_dict_per_row.append(row_dict)
 # print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
-
-### overview of output array
-# as it should be / as it was generated by FinalSelection_SlowData.py:
-"""
-bunchCrossing UInt_t
-bxspread1 int
-bxspread2 int
-charge1 short
-charge2 short
-dxy1 short
-dxy2 short
-eta1 float
-eta2 float
-firstbx1 int
-firstbx2 int
-hwPt1 float
-hwPt2 float
-hwPtU1 float
-hwPtU2 float
-idx1 int
-idx2 int
-isL1MuMatched1 bool
-isL1MuMatched2 bool
-is_colliding bool
-is_earlier_colliding bool
-l1MuCharge1 int
-l1MuCharge2 int
-l1MuDxy1 int
-l1MuDxy2 int
-l1MuEta1 float
-l1MuEta2 float
-l1MuHwPt1 float
-l1MuHwPt2 float
-l1MuHwPtU1 float
-l1MuHwPtU2 float
-l1MuMatchedIdx1 int
-l1MuMatchedIdx2 int
-l1MuPhi1 float
-l1MuPhi2 float
-l1MuQual1 int
-l1MuQual2 int
-luminosityBlock UInt_t
-met_bx0 float
-met_bxm1 float
-met_bxm2 float
-met_bxm3 float
-met_bxm4 float
-met_bxm5 float
-nL1KBMTFSkimmed Int_t
-nSkimmedL1Mu Int_t
-nstub1 short
-nstub2 short
-orbitNumber UInt_t
-phi1 float
-phi2 float
-pt1 float
-pt2 float
-qual1 short
-qual2 short
-run UInt_t
-stationspread1 int
-stationspread2 int
-"""
 
 ###################
 ### STORE OUTPUT
