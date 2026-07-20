@@ -89,9 +89,29 @@ Their code was very kindly provided to me, and adapted accordingly for my analys
     ```
     python analysis_controller/scripts_controller/rekbmtf/monitor-job.py --action command --command {user_command} --submission {submit_path}/ConfigRekbmtfSubmission.yaml
     ```
-- When the job is done, collect the output data.
+- Collect the outputs after the submission is completed:
+    ```
+    python scripts_controller/rekbmtf/collect-output.py --collection config_controller/rekbmtf/ConfigRekbmtfCollection.yaml --submission output_controller/submission/rekbmtf_data_Scouting_2024H_2026-06-18_11-52-59/ConfigRekbmtfSubmission.yaml
+    ```
 
 ### **`skimming`:** Extract relevant data and calculating higher-level quantities
+
+- Submit the dataset for skimming:
+    ```
+    python scripts_controller/skimming/submit-job.py --input config_controller/skimming/ConfigSkimmingInput_data.yaml --paramssubmission config_controller/skimming/ConfigSkimmingParamsSubmission_data.yaml
+    ```
+- Monitor the submitted job execution:
+    ```
+    python scripts_controller/skimming/monitor-job.py --action monitor --submission output_controller/submission/skimming_data_Scouting_2024H_2026-07-21_00-23-15/ConfigSkimmingSubmission.yaml
+    ```
+    or 
+    ```
+    condor_watch_q -clusters [condor_cluster_id]
+    ```
+- Collect the outputs after the submission is completed:
+    ```
+    python scripts_controller/skimming/collect-output.py --collection config_controller/skimming/ConfigSkimmingCollection.yaml --submission output_controller/submission/skimming_data_Scouting_2024H_2026-07-21_00-23-15/ConfigSkimmingSubmission.yaml
+    ```
 
 ### **`cleaning`:** Remove duplicate tracks
 
