@@ -1,6 +1,6 @@
-#######################################
-### REKBMTF STEP: OUTPUT COLLECTION ###
-#######################################
+########################################
+### SKIMMING STEP: OUTPUT COLLECTION ###
+########################################
 
 ############################
 ### IMPORTS
@@ -23,7 +23,7 @@ console_utils.print_console_header(analysis_controller_filepath=_ANALYSIS_CONTRO
 start_time = time.time()
 
 ### define analysis step
-analysis_step = "rekbmtf"
+analysis_step = "skimming"
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Analysis step is \"{analysis_step}\"")
 
 #############################
@@ -33,13 +33,13 @@ parser = argparse.ArgumentParser()
 # mandatory:
 parser.add_argument(
     "--collection",
-    help="path to \"ConfigRekbmtfCollection\" yaml file (str)",
+    help="path to \"ConfigSkimmingCollection\" yaml file (str)",
     type=str,
     required=True,
 )
 parser.add_argument(
     "--submission",
-    help="path to \"ConfigRekbmtfSubmission\" yaml file (str)",
+    help="path to \"ConfigSkimmingSubmission\" yaml file (str)",
     type=str,
     required=True,
 )
@@ -51,22 +51,22 @@ args = parser.parse_args()
 ### MAIN PART
 
 ### import collection config file
-ConfigRekbmtfCollection = config_utils.load_config_file(filepath=args.collection, config_type="ConfigRekbmtfCollection", replace_wildcards=True, verbose=1)
+ConfigSkimmingCollection = config_utils.load_config_file(filepath=args.collection, config_type="ConfigSkimmingCollection", replace_wildcards=True, verbose=1)
 # extract config info
-RekbmtfCollection = ConfigRekbmtfCollection.RekbmtfCollection
+SkimmingCollection = ConfigSkimmingCollection.SkimmingCollection
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this collection is \"{RekbmtfCollection.output_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this collection is \"{SkimmingCollection.output_type}\"")
 
 ### import submission config file
-ConfigRekbmtfSubmission = config_utils.load_config_file(filepath=args.submission, config_type="ConfigRekbmtfSubmission", replace_wildcards=True, verbose=1)
+ConfigSkimmingSubmission = config_utils.load_config_file(filepath=args.submission, config_type="ConfigSkimmingSubmission", replace_wildcards=True, verbose=1)
 # extract config info
-RekbmtfInput = ConfigRekbmtfSubmission.RekbmtfInput
-RekbmtfParamsSubmission = ConfigRekbmtfSubmission.RekbmtfParamsSubmission
-RekbmtfSubmission = ConfigRekbmtfSubmission.RekbmtfSubmission
+SkimmingInput = ConfigSkimmingSubmission.SkimmingInput
+SkimmingParamsSubmission = ConfigSkimmingSubmission.SkimmingParamsSubmission
+SkimmingSubmission = ConfigSkimmingSubmission.SkimmingSubmission
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{RekbmtfParamsSubmission.submission_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{RekbmtfParamsSubmission.output_type}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission timestamp of this submission is \"{RekbmtfSubmission.submission_timestamp}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission type of this submission is \"{SkimmingParamsSubmission.submission_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output type of this submission is \"{SkimmingParamsSubmission.output_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Submission timestamp of this submission is \"{SkimmingSubmission.submission_timestamp}\"")
 
 ### define submission timestamp
 collection_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -74,7 +74,7 @@ collection_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting collection timestamp as \"{collection_timestamp}\"")
 
 ### collect name
-collection_name = f"{analysis_step}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}_{collection_timestamp}"
+collection_name = f"{analysis_step}_{SkimmingInput.union_label}_{collection_timestamp}"
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting collection name as \"{collection_name}\"")
 
@@ -86,45 +86,38 @@ os.mkdir(collection_path)
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared collection directory at \"{collection_path}\"")
 
 #=============================================================================
-#====== OUTPUT_TYPE: CERN-GRID
-if RekbmtfParamsSubmission.output_type == "cern-grid":
+#====== OUTPUT_TYPE: AACHEN-NET
+if SkimmingParamsSubmission.output_type == "aachen-net":
 
-    #====== OUTPUT_SITE: T2_DE_RWTH
-    if RekbmtfParamsSubmission.output_site == "T2_DE_RWTH":
+    #====== OUTPUT_SITE: 
+    if SkimmingParamsSubmission.output_site == "":
     
-        #====== SUBMISSION_TYPE: CERN-CRAB
-        if RekbmtfParamsSubmission.submission_type == "cern-crab":
+        #====== SUBMISSION_TYPE: AACHEN-CONDOR
+        if SkimmingParamsSubmission.submission_type == "aachen-condor":
 
             ########################
             ### prepare input
 
-            ### derive crab submitpath
-            input_das_name_firstword = RekbmtfInput.input_das_name.split("/")[1] # extract first word of input_das_name: "L1Scouting" = first word of "/L1Scouting/Run2024I-v1/L1SCOUT"
-            output_path = f"{RekbmtfParamsSubmission.output_basepath}/{input_das_name_firstword}/crab_{RekbmtfSubmission.crab_requestname}"
+            ### derive condor output path
+            output_path = os.path.join(SkimmingParamsSubmission.output_basepath, SkimmingSubmission.submission_name)
 
-            ### obtain list of output files on grid storage
-            # prepare grid access
-            gfal_prefix = "davs://grid-webdav.physik.rwth-aachen.de:2889/"
-            gfal_basepath = f"{gfal_prefix}{output_path}/"
-            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to recursively list root files in GRID output path \"{gfal_basepath}\"")
+            ### obtain list of output files on storage
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to recursively list root files in CONDOR output path \"{output_path}\"")
             # ls grid files recursively
-            input_file_list, input_total_size = file_utils.recursive_file_scan(basepath=gfal_basepath, ls_command="gfal-ls -l", file_suffix=".root", maxdepth=5, verbose=1)
-            # replace gfal prefix with xrood redirector, so one can access the files on the grid via xrootd
-            xrootd_redirector_prefix = "root://xrootd-cms.infn.it//"
-            file_utils.replace_substring_filepath(file_list=input_file_list, subs_from=gfal_prefix, subs_with=xrootd_redirector_prefix)
+            input_file_list, input_total_size = file_utils.recursive_file_scan(basepath=output_path, ls_command="ls -l", file_suffix=".root", maxdepth=5, verbose=1)
 
             ### group together output files
-            input_file_groups = file_utils.group_files(file_list=input_file_list, target_group_size=RekbmtfCollection.hadd_file_size)
+            input_file_groups = file_utils.group_files(file_list=input_file_list, target_group_size=SkimmingCollection.hadd_file_size)
 
             ########################
             ### merge files
 
             ### prepare collection basepath
-            collection_basepath = os.path.join(RekbmtfCollection.output_basepath, collection_name)
+            collection_basepath = os.path.join(SkimmingCollection.output_basepath, collection_name)
 
             ### make sure output basepath exists
-            if not os.path.isdir(RekbmtfCollection.output_basepath):
-                console_utils.raise_exception(string=f"The output base path \"{RekbmtfCollection.output_basepath}\" does not exist")
+            if not os.path.isdir(SkimmingCollection.output_basepath):
+                console_utils.raise_exception(string=f"The output base path \"{SkimmingCollection.output_basepath}\" does not exist")
             
             ### create collection basepath
             # make sure it did not exist before
@@ -135,7 +128,7 @@ if RekbmtfParamsSubmission.output_type == "cern-grid":
             os.mkdir(collection_basepath)
 
             ### generate hadd file paths from file groups
-            collection_file_list = file_utils.hadd_names_from_file_groups(file_group_list=input_file_groups, hadd_basepath=collection_basepath, hadd_name_prefix=RekbmtfCollection.hadd_file_prefix, verbose=1)
+            collection_file_list = file_utils.hadd_names_from_file_groups(file_group_list=input_file_groups, hadd_basepath=collection_basepath, hadd_name_prefix=SkimmingCollection.hadd_file_prefix, verbose=1)
 
             ### actually perform hadd-ing of files
             collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True)
@@ -144,8 +137,8 @@ if RekbmtfParamsSubmission.output_type == "cern-grid":
             ### store output object
 
             ### prepare output object
-            RekbmtfOutput = config_utils.create_config(
-                config_type="RekbmtfOutput",
+            SkimmingOutput = config_utils.create_config(
+                config_type="SkimmingOutput",
                 replace_wildcards=True, verbose=1,
                 **{
                     "collection_basepath": collection_basepath,
@@ -155,20 +148,20 @@ if RekbmtfParamsSubmission.output_type == "cern-grid":
                 }
             )
             ### prepare and store config file object
-            collection_filename = "ConfigRekbmtfOutput.yaml"
+            collection_filename = "ConfigSkimmingOutput.yaml"
             collection_filepath = os.path.join(collection_path, collection_filename)
-            ConfigRekbmtfOutput = config_utils.create_config(
-                config_type="ConfigRekbmtfOutput",
+            ConfigSkimmingOutput = config_utils.create_config(
+                config_type="ConfigSkimmingOutput",
                 replace_wildcards=True, verbose=1,
                 **{
-                    "RekbmtfInput": RekbmtfInput,
-                    "RekbmtfParamsSubmission": RekbmtfParamsSubmission,
-                    "RekbmtfSubmission": RekbmtfSubmission,
-                    "RekbmtfCollection": RekbmtfCollection,
-                    "RekbmtfOutput": RekbmtfOutput,
+                    "SkimmingInput": SkimmingInput,
+                    "SkimmingParamsSubmission": SkimmingParamsSubmission,
+                    "SkimmingSubmission": SkimmingSubmission,
+                    "SkimmingCollection": SkimmingCollection,
+                    "SkimmingOutput": SkimmingOutput,
                 }
             )
-            config_utils.store_config_file(filepath=collection_filepath, config=ConfigRekbmtfOutput, config_type="ConfigRekbmtfOutput", verbose=1)
+            config_utils.store_config_file(filepath=collection_filepath, config=ConfigSkimmingOutput, config_type="ConfigSkimmingOutput", verbose=1)
 
             ########################
             ### do some verification
@@ -186,14 +179,14 @@ if RekbmtfParamsSubmission.output_type == "cern-grid":
 
         #======
         else:
-            console_utils.raise_exception(string=f"Unsupported submission type \"{RekbmtfParamsSubmission.submission_type}\"")
+            console_utils.raise_exception(string=f"Unsupported submission type \"{SkimmingParamsSubmission.submission_type}\"")
     #======
     else:
-        console_utils.raise_exception(string=f"{console_utils.color.red}Unsupported output site \"{RekbmtfParamsSubmission.output_site}\"")
+        console_utils.raise_exception(string=f"{console_utils.color.red}Unsupported output site \"{SkimmingParamsSubmission.output_site}\"")
 
 #======
 else:
-    console_utils.raise_exception(string=f"{console_utils.color.red}Unsupported output type \"{RekbmtfParamsSubmission.output_type}\"")
+    console_utils.raise_exception(string=f"{console_utils.color.red}Unsupported output type \"{SkimmingParamsSubmission.output_type}\"")
 #=============================================================================
 
 # print

@@ -95,7 +95,6 @@ if RekbmtfParamsSubmission.submission_type == "cern-crab":
         ### poll status from crab
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to poll submission status from CRAB, using the CRAB submit directory \"{crab_submitpath}\"")
         bash_commands = f''
-        bash_commands += f'\n'
         # source cms base env
         bash_commands += f'source /cvmfs/cms.cern.ch/cmsset_default.sh\n'
         # # prepare voms
@@ -124,7 +123,6 @@ if RekbmtfParamsSubmission.submission_type == "cern-crab":
         ### execute custom crab command (specified in )
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting execute specified command \"{command_arg}\" with CRAB, using the CRAB submit directory \"{crab_submitpath}\"")
         bash_commands = f''
-        bash_commands += f'\n'
         # source cms base env
         bash_commands += f'source /cvmfs/cms.cern.ch/cmsset_default.sh\n'
         # # prepare voms
