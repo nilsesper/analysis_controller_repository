@@ -3,8 +3,8 @@
 muon_mass: 0.10566
 
 # differentiate cilumns of different files (data vs. simulation)
-evaluate_gen_cols: False
-evaluate_filling_scheme: True
+evaluate_gen_cols: True
+evaluate_filling_scheme: False
 
 # deltaR upper threshold between kbmtf track and l1muon to be matched
 delta_r_max_for_track_l1mu_match: 0.1
