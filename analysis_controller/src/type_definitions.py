@@ -20,6 +20,7 @@ _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSI
 
 PythonTypes = {
     "*none*": type(None),
+    "*bool*": type(True),
     "*int*": type(0),
     "*float*": type(0.0),
     "*str*": type(""),
@@ -49,6 +50,11 @@ DictBlueprints = {
     "_JobInOutInfo": {
         "input": "*str*",
         "output": "*str*"
+    },
+    "_HistParams": {
+        "hist_name": "*str*",
+        "edge_type": "*str*",
+        "edges": "*list*::*float*",
     },
     #########################
     ### *** scripts_controller configuration files ***
@@ -135,6 +141,20 @@ DictBlueprints = {
 
         "submitted_jobs": "*list*::_JobInOutInfo",
     },
+    "SkimmingCollection": {
+        "hadd_file_size": "*str*",
+        "hadd_file_prefix": "*str*",
+
+        "output_type": "*str*",
+        "output_site": "*str*",
+        "output_basepath": "*str*",
+    },
+    "SkimmingOutput": {
+        "collection_basepath": "*str*",
+        "collection_files": "*list*::_CollectionFileGroup",
+        "collection_timestamp": "*str*",
+        "collection_name": "*str*",
+    },
     ### configuration file dicts
     #--- rekbmtf
     "ConfigRekbmtfInput": {
@@ -170,6 +190,16 @@ DictBlueprints = {
         "SkimmingParamsSubmission": "*dict*::SkimmingParamsSubmission",
         "SkimmingSubmission": "*dict*::SkimmingSubmission",
     },
+    "ConfigSkimmingCollection": {
+        "SkimmingCollection": "*dict*::SkimmingCollection",
+    },
+    "ConfigSkimmingOutput": {
+        "SkimmingInput": "*dict*::SkimmingInput",
+        "SkimmingParamsSubmission": "*dict*::SkimmingParamsSubmission",
+        "SkimmingSubmission": "*dict*::SkimmingSubmission",
+        "SkimmingCollection": "*dict*::SkimmingCollection",
+        "SkimmingOutput": "*dict*::SkimmingOutput",
+    },
     #########################
     ### scripts_analysis configuration files
     #--- rekbmtf
@@ -177,11 +207,20 @@ DictBlueprints = {
     #--- skimming
     "SkimmingParamsAnalysis": {
         "muon_mass": "*float*",
+        "evaluate_gen_cols": "*bool*",
+        "evaluate_filling_scheme": "*bool*",
         "delta_r_max_for_track_l1mu_match": "*float*",
         "delta_r_min_distance_between_tracks": "*float*",
         "bx_interval_earlier_colliding": "*int*",
         "run_to_lhcscheme": "*dict*::*int*::*str*",
         "lhcscheme_to_filledbx": "*dict*::*str*::*list*::*int*",
+    },
+    #--- analysis1
+    "Analysis1ParamsAnalysis": {
+        "muon_mass": "*float*",
+        "eventloop_iteration_size": "*str*",
+        "col_hists": "*list*::_HistParams",
+        "ana_hists": "*list*::_HistParams",
     },
 }
 
