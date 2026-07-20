@@ -148,15 +148,14 @@ if SkimmingParamsSubmission.output_type == "aachen-net":
             collection_file_list = file_utils.hadd_names_from_file_groups(file_group_list=input_file_groups, hadd_basepath=collection_basepath, hadd_name_prefix=SkimmingCollection.hadd_file_prefix, verbose=1)
 
             ### actually perform hadd-ing of files
-            collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True, check_hadd_file_size=True, delete_source_files=SkimmingCollection.delete_source_files)
-
-            ### actually perform hadd-ing of files
             # prepare remove command in case of requested source deletion
             rm_command = "rm -f"
             # perform hadding
             collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True, check_hadd_file_size=True, delete_source_files=SkimmingCollection.delete_source_files, rm_command=rm_command)
             # remove top dir if desired
+            rm_command = "rm -rf"
             if SkimmingCollection.delete_source_files:
+                console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Removing output subdirectory \"{collection_basepath}\"")
                 _, _ = console_utils.run_command(bash_command=f"{rm_command} {output_path}")
 
             ########################

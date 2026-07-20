@@ -289,7 +289,7 @@ def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exist
             if file_size_rel_diff > file_size_rel_diff_thres:
                 console_utils.raise_exception(string=f"The created hadd file does not match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
             if verbose >= 1:
-                console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The created hadd file does match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
+                console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"The created hadd file does match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
         # if desired: delete source files
         if delete_source_files:
             if verbose >= 1:

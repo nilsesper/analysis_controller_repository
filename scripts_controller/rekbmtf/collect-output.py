@@ -156,10 +156,11 @@ if RekbmtfParamsSubmission.output_type == "cern-grid":
 
             ### actually perform hadd-ing of files
             # prepare remove command in case of requested source deletion
-            gfal_rm_command = "gfal-rm"
+            gfal_rm_command = "gfal-rm -f"
             # perform hadding
             collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True, check_hadd_file_size=True, delete_source_files=RekbmtfCollection.delete_source_files, rm_command=gfal_rm_command)
             # remove top dir if desired
+            gfal_rm_command = "gfal-rm -rf"
             if RekbmtfCollection.delete_source_files:
                 _, _ = console_utils.run_command(bash_command=f"{gfal_rm_command} {gfal_basepath}")
 
