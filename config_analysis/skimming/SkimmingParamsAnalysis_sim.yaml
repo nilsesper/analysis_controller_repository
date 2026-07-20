@@ -1,8 +1,9 @@
+### FOR SIMULATION
 
 # PDG value in GeV
 muon_mass: 0.10566
 
-# differentiate cilumns of different files (data vs. simulation)
+# differentiate columns of different files (data vs. simulation)
 evaluate_gen_cols: True
 evaluate_filling_scheme: False
 

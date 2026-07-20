@@ -1,0 +1,11 @@
+SkimmingInput:
+    ### FOR SIMULATION - DrellYan
+
+    data_type: sim
+    data_label: DY
+
+    rekbmtf_outputs:
+    
+        - data_label: rekbmtf_sim_DY
+          rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/rekbmtf_sim_DY/ConfigRekbmtfOutput.yaml
+

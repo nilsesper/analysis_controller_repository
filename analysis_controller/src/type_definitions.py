@@ -43,8 +43,8 @@ DictBlueprints = {
         "path": "*str*",
         "size": "*int*",
     },
-    "_SkimmingCollection": {
-        "user_label": "*str*",
+    "_RekbmtfOutputItem": {
+        "data_label": "*str*",
         "rekbmtf_output_config": "*str*",
     },
     "_JobInOutInfo": {
@@ -98,6 +98,12 @@ DictBlueprints = {
         "output_type": "*str*",
         "output_site": "*str*",
         "output_basepath": "*str*",
+
+        "output_dir_prefix": "*str*",
+        "output_dir_timestamp_suffix": "*bool*",
+        "overwrite_output": "*bool*",
+
+        "delete_source_files": "*bool*",
     },
     "RekbmtfOutput": {
         "collection_basepath": "*str*",
@@ -107,8 +113,10 @@ DictBlueprints = {
     },
     #--- skimming
     "SkimmingInput": {
-        "union_label": "*str*", 
-        "rekbmtf_collections": "*list*::_SkimmingCollection",
+        "data_type": "*str*",
+        "data_label": "*str*", 
+
+        "rekbmtf_outputs": "*list*::_RekbmtfOutputItem",
     },
     "SkimmingParamsSubmission": {
         "submission_type": "*str*",
@@ -148,6 +156,12 @@ DictBlueprints = {
         "output_type": "*str*",
         "output_site": "*str*",
         "output_basepath": "*str*",
+
+        "output_dir_prefix": "*str*",
+        "output_dir_timestamp_suffix": "*bool*",
+        "overwrite_output": "*bool*",
+
+        "delete_source_files": "*bool*",
     },
     "SkimmingOutput": {
         "collection_basepath": "*str*",

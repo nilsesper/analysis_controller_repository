@@ -247,7 +247,7 @@ def hadd_names_from_file_groups(*, file_group_list, hadd_basepath, hadd_name_pre
 # also measure size of output file
 ## returns:
 # hadd_output_file_list: [{input_files, input_size, path, size}]
-def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exists=True, verbose=1):
+def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exists=True, delete_source_files=False, rm_command="rm -f", ls_command="ls -l", check_hadd_file_size=True, file_size_rel_diff_thres=0.05, verbose=1):
     hadd_output_file_list = []
     n_hadd_files = len(hadd_file_list)
     # check any hadd file with same name already exists
@@ -281,7 +281,21 @@ def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exist
         if not os.path.isfile(hadd_file_path):
             console_utils.raise_exception(string="The hadd command was executed but the output file could not be found")
         # measure size of created hadd file
-        hadd_file_size = get_file_size(file_path=hadd_file_path, ls_command="ls -l", verbose=max(0,verbose-1))
+        hadd_file_size = get_file_size(file_path=hadd_file_path, ls_command=ls_command, verbose=max(0,verbose-1))
+        # if desired: make sure file size is roughly the same
+        if check_hadd_file_size:
+            file_size_abs_diff = abs(hadd_file_size - hadd_file_list[i]["input_size"])
+            file_size_rel_diff = file_size_abs_diff / hadd_file_size
+            if file_size_rel_diff > file_size_rel_diff_thres:
+                console_utils.raise_exception(string=f"The created hadd file does not match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
+            if verbose >= 1:
+                console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The created hadd file does match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
+        # if desired: delete source files
+        if delete_source_files:
+            if verbose >= 1:
+                console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Deleting the source files of the successfully executed hadd command")
+            bash_command = f'{rm_command} {input_str}'
+            returnvalue, cmdout = console_utils.run_command(bash_command=bash_command, verbose=max(0,verbose-1))
         # create output entry
         hadd_output_file_list.append({
             "input_files": hadd_file_list[i]["input_files"],

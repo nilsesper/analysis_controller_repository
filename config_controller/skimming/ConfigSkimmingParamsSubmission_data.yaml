@@ -1,4 +1,5 @@
 SkimmingParamsSubmission:
+    ### FOR DATA
 
     submission_type: aachen-condor
     submission_splitting: ""
@@ -7,8 +8,7 @@ SkimmingParamsSubmission:
     output_site: ""
     output_basepath: /net/data_cms3a-1/esper/test_analysis_hscp_l1/analysis_controller_output/
 
-    # params_analysis: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml
-    params_analysis: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/config_analysis/skimming/SkimmingParamsAnalysis_simDY.yaml
+    params_analysis: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/config_analysis/skimming/SkimmingParamsAnalysis_data.yaml
 
     condor_request_cpus: "1"
     condor_request_memory: "8G"

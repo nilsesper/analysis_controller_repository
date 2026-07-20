@@ -73,17 +73,29 @@ collection_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting collection timestamp as \"{collection_timestamp}\"")
 
-### collect name
-collection_name = f"{analysis_step}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}_{collection_timestamp}"
+### collect name: {analysis_step}_ ({prefix}_) {data_type}_{data_label} (_{timestamp})
+if RekbmtfCollection.output_dir_prefix != "":
+    collection_name = f"{analysis_step}_{RekbmtfCollection.output_dir_prefix}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}"
+else:
+    collection_name = f"{analysis_step}_{RekbmtfInput.data_type}_{RekbmtfInput.data_label}"
+if RekbmtfCollection.output_dir_timestamp_suffix:
+    collection_name += f"{collection_timestamp}"
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting collection name as \"{collection_name}\"")
 
 ### collection path, where all info about this data collection is stored
 collection_path = os.path.join(constants.output_basepath, collection_name)
-# create collect path
+# make sure it did not exist before
+if os.path.isdir(collection_path) and not RekbmtfCollection.overwrite_output:
+    console_utils.raise_exception(string=f"The config output subdirectory \"{collection_path}\" does already exist, and not allowed to overwrite")
+elif os.path.isdir(collection_path) and RekbmtfCollection.overwrite_output:
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The config output subdirectory \"{collection_path}\" does already exist, but allowed to overwrite. Attempting to delete old directory")
+    _, _ = console_utils.run_command(bash_command=f"rm -rf {collection_path}")
+# create dir
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create config output subdirectory \"{collection_path}\"")
 os.mkdir(collection_path)
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared collection directory at \"{collection_path}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared config output subdirectory at \"{collection_path}\"")
 
 #=============================================================================
 #====== OUTPUT_TYPE: CERN-GRID
@@ -128,17 +140,28 @@ if RekbmtfParamsSubmission.output_type == "cern-grid":
             
             ### create collection basepath
             # make sure it did not exist before
-            if os.path.isdir(collection_basepath):
-                console_utils.raise_exception(string=f"The collection base path subdirectory \"{collection_basepath}\" does already exist")
+            if os.path.isdir(collection_basepath) and not RekbmtfCollection.overwrite_output:
+                console_utils.raise_exception(string=f"The output subdirectory \"{collection_basepath}\" does already exist, and not allowed to overwrite")
+            elif os.path.isdir(collection_basepath) and RekbmtfCollection.overwrite_output:
+                console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The output subdirectory \"{collection_basepath}\" does already exist, but allowed to overwrite. Attempting to delete old directory")
+                _, _ = console_utils.run_command(bash_command=f"rm -rf {collection_basepath}")
             # create dir
-            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create collection base path subdirectory \"{collection_basepath}\"")
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create output subdirectory \"{collection_basepath}\"")
             os.mkdir(collection_basepath)
+            # print
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared output subdirectory at \"{collection_basepath}\"")
 
             ### generate hadd file paths from file groups
             collection_file_list = file_utils.hadd_names_from_file_groups(file_group_list=input_file_groups, hadd_basepath=collection_basepath, hadd_name_prefix=RekbmtfCollection.hadd_file_prefix, verbose=1)
 
             ### actually perform hadd-ing of files
-            collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True)
+            # prepare remove command in case of requested source deletion
+            gfal_rm_command = "gfal-rm"
+            # perform hadding
+            collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True, check_hadd_file_size=True, delete_source_files=RekbmtfCollection.delete_source_files, rm_command=gfal_rm_command)
+            # remove top dir if desired
+            if RekbmtfCollection.delete_source_files:
+                _, _ = console_utils.run_command(bash_command=f"{gfal_rm_command} {gfal_basepath}")
 
             ########################
             ### store output object
@@ -169,20 +192,6 @@ if RekbmtfParamsSubmission.output_type == "cern-grid":
                 }
             )
             config_utils.store_config_file(filepath=collection_filepath, config=ConfigRekbmtfOutput, config_type="ConfigRekbmtfOutput", verbose=1)
-
-            ########################
-            ### do some verification
-
-            ### verify file size of created hadd files
-            # get hadd files total size
-            collection_verification_file_list, collection_verification_total_size = file_utils.recursive_file_scan(basepath=collection_basepath, ls_command="ls -l", file_suffix=".root", maxdepth=5, verbose=1)
-            # compare with input file size
-            file_size_abs_diff = abs(collection_verification_total_size - input_total_size)
-            file_size_rel_diff = file_size_abs_diff / collection_verification_total_size
-            file_size_rel_diff_thres = 0.05
-            if file_size_rel_diff > file_size_rel_diff_thres:
-                console_utils.raise_exception(string=f"The created hadd files do not match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
-            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The created hadd files do match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
 
         #======
         else:

@@ -73,17 +73,29 @@ collection_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting collection timestamp as \"{collection_timestamp}\"")
 
-### collect name
-collection_name = f"{analysis_step}_{SkimmingInput.union_label}_{collection_timestamp}"
+### collect name: {analysis_step}_ ({prefix}_) {data_type}_{data_label} (_{timestamp})
+if SkimmingCollection.output_dir_prefix != "":
+    collection_name = f"{analysis_step}_{SkimmingCollection.output_dir_prefix}_{SkimmingInput.data_type}_{SkimmingInput.data_label}"
+else:
+    collection_name = f"{analysis_step}_{SkimmingInput.data_type}_{SkimmingInput.data_label}"
+if SkimmingCollection.output_dir_timestamp_suffix:
+    collection_name += f"{collection_timestamp}"
 # print
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting collection name as \"{collection_name}\"")
 
 ### collection path, where all info about this data collection is stored
 collection_path = os.path.join(constants.output_basepath, collection_name)
-# create collect path
+# make sure it did not exist before
+if os.path.isdir(collection_path) and not SkimmingCollection.overwrite_output:
+    console_utils.raise_exception(string=f"The config output subdirectory \"{collection_path}\" does already exist, and not allowed to overwrite")
+elif os.path.isdir(collection_path) and SkimmingCollection.overwrite_output:
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The config output subdirectory \"{collection_path}\" does already exist, but allowed to overwrite. Attempting to delete old directory")
+    _, _ = console_utils.run_command(bash_command=f"rm -rf {collection_path}")
+# create dir
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create config output subdirectory \"{collection_path}\"")
 os.mkdir(collection_path)
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared collection directory at \"{collection_path}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared config output subdirectory at \"{collection_path}\"")
 
 #=============================================================================
 #====== OUTPUT_TYPE: AACHEN-NET
@@ -99,7 +111,7 @@ if SkimmingParamsSubmission.output_type == "aachen-net":
             ### prepare input
 
             ### derive condor output path
-            output_path = os.path.join(SkimmingParamsSubmission.output_basepath, SkimmingSubmission.submission_name)
+            output_path = os.path.join(SkimmingParamsSubmission.output_basepath, f"_submission_{SkimmingSubmission.submission_name}")
 
             ### obtain list of output files on storage
             console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to recursively list root files in CONDOR output path \"{output_path}\"")
@@ -121,17 +133,31 @@ if SkimmingParamsSubmission.output_type == "aachen-net":
             
             ### create collection basepath
             # make sure it did not exist before
-            if os.path.isdir(collection_basepath):
-                console_utils.raise_exception(string=f"The collection base path subdirectory \"{collection_basepath}\" does already exist")
+            if os.path.isdir(collection_basepath) and not SkimmingCollection.overwrite_output:
+                console_utils.raise_exception(string=f"The output subdirectory \"{collection_basepath}\" does already exist, and not allowed to overwrite")
+            elif os.path.isdir(collection_basepath) and SkimmingCollection.overwrite_output:
+                console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The output subdirectory \"{collection_basepath}\" does already exist, but allowed to overwrite. Attempting to delete old directory")
+                _, _ = console_utils.run_command(bash_command=f"rm -rf {collection_basepath}")
             # create dir
-            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create collection base path subdirectory \"{collection_basepath}\"")
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create output subdirectory \"{collection_basepath}\"")
             os.mkdir(collection_basepath)
+            # print
+            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Prepared output subdirectory at \"{collection_basepath}\"")
 
             ### generate hadd file paths from file groups
             collection_file_list = file_utils.hadd_names_from_file_groups(file_group_list=input_file_groups, hadd_basepath=collection_basepath, hadd_name_prefix=SkimmingCollection.hadd_file_prefix, verbose=1)
 
             ### actually perform hadd-ing of files
-            collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True)
+            collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True, check_hadd_file_size=True, delete_source_files=SkimmingCollection.delete_source_files)
+
+            ### actually perform hadd-ing of files
+            # prepare remove command in case of requested source deletion
+            rm_command = "rm -f"
+            # perform hadding
+            collection_file_list = file_utils.run_hadd_commands(hadd_file_list=collection_file_list, check_exists=True, check_hadd_file_size=True, delete_source_files=SkimmingCollection.delete_source_files, rm_command=rm_command)
+            # remove top dir if desired
+            if SkimmingCollection.delete_source_files:
+                _, _ = console_utils.run_command(bash_command=f"{rm_command} {output_path}")
 
             ########################
             ### store output object
@@ -162,20 +188,6 @@ if SkimmingParamsSubmission.output_type == "aachen-net":
                 }
             )
             config_utils.store_config_file(filepath=collection_filepath, config=ConfigSkimmingOutput, config_type="ConfigSkimmingOutput", verbose=1)
-
-            ########################
-            ### do some verification
-
-            ### verify file size of created hadd files
-            # get hadd files total size
-            collection_verification_file_list, collection_verification_total_size = file_utils.recursive_file_scan(basepath=collection_basepath, ls_command="ls -l", file_suffix=".root", maxdepth=5, verbose=1)
-            # compare with input file size
-            file_size_abs_diff = abs(collection_verification_total_size - input_total_size)
-            file_size_rel_diff = file_size_abs_diff / collection_verification_total_size
-            file_size_rel_diff_thres = 0.05
-            if file_size_rel_diff > file_size_rel_diff_thres:
-                console_utils.raise_exception(string=f"The created hadd files do not match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
-            console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"The created hadd files do match in total size with the input files within \"{file_size_rel_diff_thres*100:03f} %\"")
 
         #======
         else:

@@ -55,8 +55,9 @@ ConfigRekbmtfInput = config_utils.load_config_file(filepath=args.input, config_t
 # extract config info
 SkimmingInput = ConfigRekbmtfInput.SkimmingInput
 # print
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data union label of this submission is \"{SkimmingInput.union_label}\"")
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data union of this submission consists of \"{len(SkimmingInput.rekbmtf_collections)}\" individual rekbmtf output collections")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data type of this submission is \"{SkimmingInput.data_type}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data label of this submission is \"{SkimmingInput.data_label}\"")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Data of this submission consists of \"{len(SkimmingInput.rekbmtf_outputs)}\" individual rekbmtf outputs")
 
 ### import params config file
 ConfigSkimmingParamsSubmission = config_utils.load_config_file(filepath=args.paramssubmission, config_type="ConfigSkimmingParamsSubmission", replace_wildcards=True, verbose=1)
@@ -73,10 +74,10 @@ submission_timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Setting submission timestamp as \"{submission_timestamp}\"")
 
 ### start submission
-console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit data union")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to submit data")
 
 ### submit name
-submission_name = f"{analysis_step}_{SkimmingInput.union_label}_{submission_timestamp}"
+submission_name = f"{analysis_step}_{SkimmingInput.data_type}_{SkimmingInput.data_label}_{submission_timestamp}"
 
 ### submission path, where all info about this submission is stored
 submission_path = os.path.join(constants.submission_basepath, submission_name)
@@ -93,14 +94,14 @@ if SkimmingParamsSubmission.submission_type == "aachen-condor" and SkimmingParam
     crab_requestname = submission_name
 
     ### prepare collection basepath
-    output_basepath = os.path.join(SkimmingParamsSubmission.output_basepath, submission_name)
+    output_basepath = os.path.join(SkimmingParamsSubmission.output_basepath, f"_submission_{submission_name}")
 
     ### create output basepath
     # make sure it did not exist before
     if os.path.isdir(output_basepath):
-        console_utils.raise_exception(string=f"The output base path subdirectory \"{output_basepath}\" does already exist")
+        console_utils.raise_exception(string=f"The output subdirectory \"{output_basepath}\" does already exist")
     # create dir
-    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create output base path subdirectory \"{output_basepath}\"")
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Attempting to create output subdirectory \"{output_basepath}\"")
     os.mkdir(output_basepath)
 
     ### locate input files, determine output file paths and prepare submission list
@@ -110,13 +111,12 @@ if SkimmingParamsSubmission.submission_type == "aachen-condor" and SkimmingParam
     executable = os.path.join(_ANALYSIS_CONTROLLER_REPO_PATH, "scripts_analysis/skimming/run_skimming_data.sh")
 
     # loop over all input rekbmtf collections
-    n_rekbmtf = len(SkimmingInput.rekbmtf_collections)
-    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Collecting information about all individual rekbmtf output collections for this submission data union")
+    n_rekbmtf = len(SkimmingInput.rekbmtf_outputs)
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Collecting information about all individual rekbmtf output collections for this submission dataset")
     for i_rekbmtf in range(n_rekbmtf):
         console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Collecting information about rekbmtf output collection \"{(i_rekbmtf+1):,} / {n_rekbmtf:,} = {((i_rekbmtf+1)/n_rekbmtf if n_rekbmtf > 0 else 0)*100:.3f} %\"")
         ### locate rekbmtf output config file
-        rekbmtf_output_config_file = SkimmingInput.rekbmtf_collections[i_rekbmtf].rekbmtf_output_config
-        rekbmtf_output_user_label = SkimmingInput.rekbmtf_collections[i_rekbmtf].user_label
+        rekbmtf_output_config_file = SkimmingInput.rekbmtf_outputs[i_rekbmtf].rekbmtf_output_config
 
         ### import rekbmtf output config file
         ConfigRekbmtfOutput = config_utils.load_config_file(filepath=rekbmtf_output_config_file, config_type="ConfigRekbmtfOutput", replace_wildcards=True, verbose=1)
@@ -147,7 +147,7 @@ if SkimmingParamsSubmission.submission_type == "aachen-condor" and SkimmingParam
             # add to submission_list
             submission_list.append( (executable, infile, outfile, paramsfile) )
     # print
-    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished collecting information about all individual rekbmtf output collections for this submission data union")
+    console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Finished collecting information about all individual rekbmtf output collections for this submission dataset")
     n_jobs = len(submission_list)
     console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"In total \"{n_jobs}\" jobs are foreseen for this submission")
 
