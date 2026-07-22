@@ -29,7 +29,7 @@ hist_edges: # hist_name: {edge_type, edges}
   qual:
     edge_type: "custom"
     edges: [11.5, 12.5, 13.5, 14.5, 15.5]
-  mass_t:
+  mt:
     edge_type: "uniform"
     edges: [0., 200., 100.]
   delta_r:

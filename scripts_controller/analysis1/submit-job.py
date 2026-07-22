@@ -136,7 +136,7 @@ if Analysis1ParamsSubmission.submission_type == "aachen-condor" and Analysis1Par
         # determine output file suffix
         #   desired file naming: {SkimmingOutput.collection_name}_{i_file}.root
         paramsfile = Analysis1ParamsSubmission.params_analysis
-        outfile_prefix = f"skimming_{SkimmingOutput.collection_name}"
+        outfile_prefix = f"analysis1_{SkimmingOutput.collection_name}"
         # determine inputfile and outputfile paths
         n_files = len(SkimmingOutput.collection_files)
         for i_file in range(n_files):
