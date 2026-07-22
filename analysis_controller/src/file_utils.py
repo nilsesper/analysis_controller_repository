@@ -121,6 +121,7 @@ def _recursive_rootfile_read(rootdirectory):
         else:
             # roothist object -> convert to RootHist object
             if isinstance(obj, ROOT.TH1):
+                obj.SetDirectory(0) # detach from file to prevent segmentation errors
                 out_obj = hist_utils.create_RootHist_from_rootobj(roothist=obj)
                 output_dictionary[name] = out_obj
             # tparameter double object -> convert to float

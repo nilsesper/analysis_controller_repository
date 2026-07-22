@@ -206,7 +206,7 @@ def convert_RootHist_to_NpHist(*, RootHist):
 def create_RootHist_from_rootobj(*, roothist):
     # obtain bin edges
     axis = roothist.GetXaxis()
-    edges = np.array([axis.GetBinLowEdge(i) for i in range(1, axis.GetNbins() + 2)])
+    edges = np.array([axis.GetBinLowEdge(i) for i in range(1, axis.GetNbins() + 1)] + [axis.GetBinUpEdge(axis.GetNbins())])
     # create edges struct
     HistEdges = StructHistEdges(edges=edges)
     # create struct
