@@ -6,82 +6,41 @@ muon_mass: 0.10566
 # iteration size of event loop, to limit ram resources
 eventloop_iteration_size: 1 GiB
 
-# natural column histograms
-col_hists: []
-  # # general
-  # - hist_name: "nseltracks"
-  #   edge_type: "custom"
-  #   edges: [-0.5, 0.5, 1.5, 2.5]
-  # # prim track
-  # - hist_name: "pt1"
-  #   edge_type: "uniform"
-  #   edges: [0., 1100., 100.]
-  # - hist_name: "eta1"
-  #   edge_type: "uniform"
-  #   edges: [-5., 5., 100.]
-  # - hist_name: "phi1"
-  #   edge_type: "uniform"
-  #   edges: [-8., 8., 100.]
-  # - hist_name: "charge1"
-  #   edge_type: "custom"
-  #   edges: [-1.5, -0.5, 0.5, 1.5]
-  # - hist_name: "dxy1"
-  #   edge_type: "custom"
-  #   edges: [-0.5, 0.5, 1.5, 2.5, 3.5]
-  # - hist_name: "qual1"
-  #   edge_type: "custom"
-  #   edges: [11.5, 12.5, 13.5, 14.5, 15.5]
-  # # sec track
-  # - hist_name: "pt2"
-  #   edge_type: "uniform"
-  #   edges: [0., 1100., 100.]
-  # - hist_name: "eta2"
-  #   edge_type: "uniform"
-  #   edges: [-5., 5., 100.]
-  # - hist_name: "phi2"
-  #   edge_type: "uniform"
-  #   edges: [-8., 8., 100.]
-  # - hist_name: "charge2"
-  #   edge_type: "custom"
-  #   edges: [-1.5, -0.5, 0.5, 1.5]
-  # - hist_name: "dxy2"
-  #   edge_type: "custom"
-  #   edges: [-0.5, 0.5, 1.5, 2.5, 3.5]
-  # - hist_name: "qual2"
-  #   edge_type: "custom"
-  #   edges: [11.5, 12.5, 13.5, 14.5, 15.5]
-
-# analysis histograms
-ana_hists:
-  # opposite sign
-  - hist_name: "osgn_mt"
+# histogram edges
+hist_edges: # hist_name: {edge_type, edges}
+  n_tracks:
+    edge_type: "custom"
+    edges: [-0.5, 0.5, 1.5, 2.5]
+  pt:
     edge_type: "uniform"
-    edges: [0., 200., 100.]
-  - hist_name: "osgn_dr"
+    edges: [0., 1100., 100.]
+  eta:
     edge_type: "uniform"
-    edges: [0., 4., 100.]
-  - hist_name: "osgn_deta"
+    edges: [-5., 5., 100.]
+  phi:
     edge_type: "uniform"
-    edges: [-2., 2., 100.]
-  - hist_name: "osgn_dphi"
-    edge_type: "uniform"
-    edges: [-3.2, 3.2, 100.]
-  - hist_name: "osgn_chargeprod"
+    edges: [-8., 8., 100.]
+  charge:
     edge_type: "custom"
     edges: [-1.5, -0.5, 0.5, 1.5]
-  # same sign
-  - hist_name: "ssgn_mt"
+  dxy:
+    edge_type: "custom"
+    edges: [-0.5, 0.5, 1.5, 2.5, 3.5]
+  qual:
+    edge_type: "custom"
+    edges: [11.5, 12.5, 13.5, 14.5, 15.5]
+  mt:
     edge_type: "uniform"
     edges: [0., 200., 100.]
-  - hist_name: "ssgn_dr"
+  delta_r:
     edge_type: "uniform"
     edges: [0., 4., 100.]
-  - hist_name: "ssgn_deta"
+  delta_eta:
     edge_type: "uniform"
     edges: [-2., 2., 100.]
-  - hist_name: "ssgn_dphi"
+  delta_phi:
     edge_type: "uniform"
     edges: [-3.2, 3.2, 100.]
-  - hist_name: "ssgn_chargeprod"
+  charge_product:
     edge_type: "custom"
     edges: [-1.5, -0.5, 0.5, 1.5]

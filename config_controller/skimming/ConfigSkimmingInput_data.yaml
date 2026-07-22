@@ -2,14 +2,14 @@ SkimmingInput:
     ### FOR DATA
 
     data_type: data
-    data_label: Scouting_2024H
-    # data_label: Scouting_2024I
+    # data_label: Scouting_2024H
+    data_label: Scouting_2024I
 
     rekbmtf_outputs:
     
-        - data_label: rekbmtf_data_Scouting_2024H
-          rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/rekbmtf_data_Scouting_2024H/ConfigRekbmtfOutput.yaml
+        # - data_label: rekbmtf_data_Scouting_2024H
+        #   rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/rekbmtf_data_Scouting_2024H/ConfigRekbmtfOutput.yaml
 
-        # - user_label: rekbmtf_data_Scouting_2024I
-        #   rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/rekbmtf_data_Scouting_2024I/ConfigRekbmtfOutput.yaml
+        - data_label: rekbmtf_data_Scouting_2024I
+          rekbmtf_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/rekbmtf_data_Scouting_2024I/ConfigRekbmtfOutput.yaml
 

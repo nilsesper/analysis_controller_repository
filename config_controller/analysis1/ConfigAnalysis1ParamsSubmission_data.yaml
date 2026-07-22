@@ -1,0 +1,18 @@
+Analysis1ParamsSubmission:
+    ### FOR DATA
+
+    submission_type: aachen-condor
+    submission_splitting: ""
+    
+    output_type: aachen-net
+    output_site: ""
+    output_basepath: /net/data_cms3a-1/esper/test_analysis_hscp_l1/analysis_controller_output/
+
+    params_analysis: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/config_analysis/analysis1/Analysis1ParamsAnalysis_data.yaml
+
+    condor_request_cpus: "1"
+    condor_request_memory: "8G"
+    condor_request_disk: "500M"
+
+    condor_submission_config_template_filepath: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/templates_submission/condor/condor_submit.sub
+    condor_executable_template_filepath: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/templates_submission/condor/condor_exec.sh

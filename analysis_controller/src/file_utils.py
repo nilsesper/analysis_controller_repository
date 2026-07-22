@@ -8,9 +8,11 @@
 import os
 import sys
 import yaml
+import ROOT
 
 from analysis_controller.src import path_utils
 from analysis_controller.src import console_utils 
+from analysis_controller.src import hist_utils
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
 _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
@@ -76,6 +78,63 @@ def _recursive_file_scan(*, cur_basepath, ls_command="ls -l", file_suffix="", ma
         cur_found_files = _recursive_file_scan(cur_basepath=subdir_basepath, ls_command=ls_command, file_suffix=file_suffix, maxdepth=maxdepth, verbose=verbose, cur_found_files=cur_found_files, cur_depth=next_depth)
     return cur_found_files
 
+### recursively write nested dict into rootfile, using TDirectories
+# allowed input_dictionary value types:
+# - pyroot TObject derived objects
+# - RootHist objects
+def _recursive_rootfile_write(input_dictionary, rootdirectory):
+    for name, item in input_dictionary.items():
+        # dictionary -> further recursive looping
+        if isinstance(item, dict):
+            # Reuse existing directory if present
+            subdir = rootdirectory.GetDirectory(name)
+            if not subdir:
+                subdir = rootdirectory.mkdir(name)
+            _recursive_rootfile_write(item, subdir)
+        # root object
+        elif isinstance(item, ROOT.TObject):
+            rootdirectory.cd()
+            item.Write(name, ROOT.TObject.kOverwrite)
+        # RootHist object -> store as roothist
+        elif isinstance(item, hist_utils.StructRootHist):
+            rootdirectory.cd()
+            rootitem = item.roothist
+            rootitem.Write(name, ROOT.TObject.kOverwrite)
+        # plain number (int/float) -> store as double
+        elif isinstance(item, float) or isinstance(item, int):
+            rootdirectory.cd()
+            rootitem = ROOT.TParameter("double")(name, float(item))
+            rootitem.Write(name, ROOT.TObject.kOverwrite)
+        # other objects
+        else:
+            raise TypeError(f"Unsupported object at '{name}': {type(item).__name__}")
+
+### recursively read nested rootfile into nested dict, using TDirectories
+def _recursive_rootfile_read(rootdirectory):
+    output_dictionary = {}
+    for key in rootdirectory.GetListOfKeys():
+        name = key.GetName()
+        obj = key.ReadObj()
+        # directory -> further recursive looping
+        if obj.InheritsFrom(ROOT.TDirectory.Class()):
+            output_dictionary[name] = _recursive_rootfile_read(obj)
+        else:
+            # roothist object -> convert to RootHist object
+            if isinstance(obj, ROOT.TH1):
+                out_obj = hist_utils.create_RootHist_from_rootobj(roothist=obj)
+                output_dictionary[name] = out_obj
+            # tparameter double object -> convert to float
+            elif isinstance(obj, ROOT.TParameter("double")):
+                out_obj = float(obj.GetVal())
+                output_dictionary[name] = out_obj
+            # other objects
+            else:
+                output_dictionary[name] = obj
+    return output_dictionary
+
+############################
+### MAIN FUNCTIONS & CLASSES
+
 ### convert file size in bytes to human readable file size
 # human readable format: "1.3 GiB"
 def byte_size_to_human_readable_size(*, bytesize, suffix="B"):
@@ -97,9 +156,6 @@ def human_readable_size_to_byte_size(*, humanreadablesize):
     num = float(m.group(1))
     unit = (m.group(2) or "").title()
     return int(round(num * units[unit]))
-
-############################
-### MAIN FUNCTIONS & CLASSES
 
 ### load local file
 def load_local_file(*, filepath):
@@ -305,4 +361,29 @@ def run_hadd_commands(*, hadd_file_list, hadd_command="hadd -ff -f", check_exist
         })
     return hadd_output_file_list
 
+### store (nested) dict with items (histograms, numbers) into root file (with internal directory structure)
+def store_dict_as_rootfile(*, input_dictionary, rootfile_path, check_exists=True, verbose=1):
+    if verbose >= 1:
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Attempting to store data in root file \"{rootfile_path}\"")
+    # if desired: check if file exists
+    if check_exists:
+        if os.path.isfile(rootfile_path):
+            console_utils.raise_exception(string=f"Aborted because the target root file \"{rootfile_path}\" already exists")
+    # open rootfile
+    rootfile = ROOT.TFile(rootfile_path, "RECREATE")
+    # write rootfile contents
+    _recursive_rootfile_write(input_dictionary=input_dictionary, rootdirectory=rootfile)
+    # close rootfile
+    rootfile.Close()
 
+### read (nested) dict with items (histograms, numbers) from root file (with internal directory structure)
+def read_dict_from_rootfile(*, rootfile_path, verbose=1):
+    if verbose >= 1:
+        console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH} : {sys._getframe().f_code.co_name}()", string=f"Attempting to read data from root file \"{rootfile_path}\"")
+    # open rootfile
+    rootfile = ROOT.TFile.Open(rootfile_path)
+    # read rootfile contents
+    output_dictionary = _recursive_rootfile_read(rootdirectory=rootfile)
+    # close rootfile
+    rootfile.Close() 
+    return output_dictionary

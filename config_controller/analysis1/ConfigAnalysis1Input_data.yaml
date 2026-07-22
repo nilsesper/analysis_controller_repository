@@ -1,0 +1,12 @@
+Analysis1Input:
+    ### FOR DATA
+
+    data_type: data
+    data_label: Scouting_2024H
+    # data_label: Scouting_2024I
+
+    skimming_outputs:
+    
+        - data_label: skimming_data_Scouting_2024H
+          skimming_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/skimming_data_Scouting_2024H/ConfigSkimmingOutput.yaml
+

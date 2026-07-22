@@ -51,10 +51,13 @@ DictBlueprints = {
         "input": "*str*",
         "output": "*str*"
     },
-    "_HistParams": {
-        "hist_name": "*str*",
+    "_HistEdges": {
         "edge_type": "*str*",
         "edges": "*list*::*float*",
+    },
+    "_SkimmingOutputItem": {
+        "data_label": "*str*",
+        "skimming_output_config": "*str*",
     },
     #########################
     ### *** scripts_controller configuration files ***
@@ -169,6 +172,64 @@ DictBlueprints = {
         "collection_timestamp": "*str*",
         "collection_name": "*str*",
     },
+    #--- analysis1
+    "Analysis1Input": {
+        "data_type": "*str*",
+        "data_label": "*str*", 
+
+        "skimming_outputs": "*list*::_SkimmingOutputItem",
+    },
+    "Analysis1ParamsSubmission": {
+        "submission_type": "*str*",
+        "submission_splitting": "*str*",
+
+        "output_type": "*str*",
+        "output_site": "*str*",
+        "output_basepath": "*str*",
+
+        "params_analysis": "*str*",
+
+        "condor_request_cpus": "*str*",
+        "condor_request_memory": "*str*",
+        "condor_request_disk": "*str*",
+
+        "condor_submission_config_template_filepath": "*str*",
+        "condor_executable_template_filepath": "*str*",
+    },
+    "Analysis1Submission": {
+        "submission_name": "*str*",
+        "submission_path": "*str*",
+        "submission_timestamp": "*str*",
+
+        "condor_submission_config_filepath": "*str*",
+        "condor_executable_filepath": "*str*",
+        "condor_workarea": "*str*",
+        "condor_cluster_id": "*str*",
+
+        "executable": "*str*",
+
+        "submitted_jobs": "*list*::_JobInOutInfo",
+    },
+    "Analysis1Collection": {
+        "hadd_file_size": "*str*",
+        "hadd_file_prefix": "*str*",
+
+        "output_type": "*str*",
+        "output_site": "*str*",
+        "output_basepath": "*str*",
+
+        "output_dir_prefix": "*str*",
+        "output_dir_timestamp_suffix": "*bool*",
+        "overwrite_output": "*bool*",
+
+        "delete_source_files": "*bool*",
+    },
+    "Analysis1Output": {
+        "collection_basepath": "*str*",
+        "collection_files": "*list*::_CollectionFileGroup",
+        "collection_timestamp": "*str*",
+        "collection_name": "*str*",
+    },
     ### configuration file dicts
     #--- rekbmtf
     "ConfigRekbmtfInput": {
@@ -214,6 +275,28 @@ DictBlueprints = {
         "SkimmingCollection": "*dict*::SkimmingCollection",
         "SkimmingOutput": "*dict*::SkimmingOutput",
     },
+    #--- analysis1
+    "ConfigAnalysis1Input": {
+        "Analysis1Input": "*dict*::Analysis1Input",
+    },
+    "ConfigAnalysis1ParamsSubmission": {
+        "Analysis1ParamsSubmission": "*dict*::Analysis1ParamsSubmission",
+    },
+    "ConfigAnalysis1Submission": {
+        "Analysis1Input": "*dict*::Analysis1Input",
+        "Analysis1ParamsSubmission": "*dict*::Analysis1ParamsSubmission",
+        "Analysis1Submission": "*dict*::Analysis1Submission",
+    },
+    "ConfigAnalysis1Collection": {
+        "Analysis1Collection": "*dict*::Analysis1Collection",
+    },
+    "ConfigAnalysis1Output": {
+        "Analysis1Input": "*dict*::Analysis1Input",
+        "Analysis1ParamsSubmission": "*dict*::Analysis1ParamsSubmission",
+        "Analysis1Submission": "*dict*::Analysis1Submission",
+        "Analysis1Collection": "*dict*::Analysis1Collection",
+        "Analysis1Output": "*dict*::Analysis1Output",
+    },
     #########################
     ### scripts_analysis configuration files
     #--- rekbmtf
@@ -233,8 +316,7 @@ DictBlueprints = {
     "Analysis1ParamsAnalysis": {
         "muon_mass": "*float*",
         "eventloop_iteration_size": "*str*",
-        "col_hists": "*list*::_HistParams",
-        "ana_hists": "*list*::_HistParams",
+        "hist_edges": "*dict*::*str*::*dict*::_HistEdges",
     },
 }
 

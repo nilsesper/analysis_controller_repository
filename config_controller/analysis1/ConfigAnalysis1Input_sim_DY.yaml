@@ -1,0 +1,11 @@
+Analysis1Input:
+    ### FOR SIMULATION - DrellYan
+
+    data_type: sim
+    data_label: DY
+
+    skimming_outputs:
+    
+        - data_label: skimming_sim_DY
+          skimming_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/skimming_sim_DY/ConfigSkimmingOutput.yaml
+

@@ -202,6 +202,17 @@ def convert_RootHist_to_NpHist(*, RootHist):
     NpHist = StructNpHist(HistEdges=RootHist.HistEdges, hist_ou=hist_ou, err_hist_ou=err_hist_ou)
     return NpHist
 
+### create RootHist from roothist object
+def create_RootHist_from_rootobj(*, roothist):
+    # obtain bin edges
+    axis = roothist.GetXaxis()
+    edges = np.array([axis.GetBinLowEdge(i) for i in range(1, axis.GetNbins() + 2)])
+    # create edges struct
+    HistEdges = StructHistEdges(edges=edges)
+    # create struct
+    RootHist = StructRootHist(HistEdges=HistEdges, roothist=roothist)
+    return RootHist
+
 #####################
 ### numpy hist
 
