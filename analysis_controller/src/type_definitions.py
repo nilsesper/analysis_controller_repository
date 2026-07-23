@@ -59,6 +59,20 @@ DictBlueprints = {
         "data_label": "*str*",
         "skimming_output_config": "*str*",
     },
+    "_PlottingAnalysis1OutputItem": {
+        "data_type": "*str*",
+        "data_label": "*str*",
+        "analysis1_output_config": "*str*",
+        "analysis_branch": "*str*",
+        "analysis_step": "*str*",
+        "analysis_hist_name": "*str*",
+        "plot_scale_factor": "*float*",
+    },
+    "_PlottingAnalysis1HistogramParams": {
+        "plot_name": "*str*",
+
+        "plot_style": "*dict*", # here dont do explicit check, too annoying. those parameters are simply the plotting parameters
+    },
     #########################
     ### *** scripts_controller configuration files ***
     ### info dicts (part of config file dicts)
@@ -317,6 +331,17 @@ DictBlueprints = {
         "muon_mass": "*float*",
         "eventloop_iteration_size": "*str*",
         "hist_edges": "*dict*::*str*::*dict*::_HistEdges",
+    },
+    ########################
+    ### scripts_plotting configuration files
+    #--- analysis1
+    "PlotAnalysis1Input": {
+        "analysis1_outputs": "*list*::_PlottingAnalysis1OutputItem",
+    },
+    "PlotAnalysis1ParamsHist": {
+        "plot_path": "*str*",
+
+        "plot_histograms": "*list*::_PlottingAnalysis1HistogramParams",
     },
 }
 

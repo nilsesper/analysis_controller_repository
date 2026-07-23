@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import mplhep as mh
 
 from analysis_controller.src import path_utils
+from analysis_controller.src import hist_utils
 
 _FILEPATH = os.path.abspath( __file__ ) # absolute path of this file (including the file itself)
 _ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH, _ANALYSIS_CONTROLLER_PATH, _ANALYSIS_CONTROLLER_REPO_PATH = path_utils.relative_path_analysis_controller(filepath=_FILEPATH)
@@ -46,6 +47,7 @@ class StructPlotHistAxParams:
         "HistEdges",
         "show_uf", "show_of",
         "xlabel", "ylabel",
+        "xunit", "yunit",
         "xscale", "yscale",
         "xlim_low", "xlim_high",
         "ylim_low", "ylim_high",
@@ -61,6 +63,7 @@ class StructPlotHistAxParams:
             HistEdges,
             show_uf=True, show_of=True,
             xlabel=None, ylabel=None,
+            xunit=None, yunit=None,
             xscale="linear", yscale="linear",
             xlim_low=None, xlim_high=None,
             ylim_low=None, ylim_high=None,
@@ -77,6 +80,8 @@ class StructPlotHistAxParams:
         self.show_of = show_of
         self.xlabel = xlabel
         self.ylabel = ylabel
+        self.xunit = xunit
+        self.yunit = yunit
         self.xscale = xscale
         self.yscale = yscale
         self.xlim_low = xlim_low
@@ -102,6 +107,7 @@ class StructPlotHistAx:
         "HistEdges",
         "show_uf", "show_of",
         "xlabel", "ylabel",
+        "xunit", "yunit",
         "xscale", "yscale",
         "xlim_low", "xlim_high",
         "ylim_low", "ylim_high",
@@ -127,6 +133,8 @@ class StructPlotHistAx:
         self.show_of = PlotHistAxParams.show_of
         self.xlabel = PlotHistAxParams.xlabel
         self.ylabel = PlotHistAxParams.ylabel
+        self.xunit = PlotHistAxParams.xunit
+        self.yunit = PlotHistAxParams.yunit
         self.xscale = PlotHistAxParams.xscale
         self.yscale = PlotHistAxParams.yscale
         self.xlim_low = PlotHistAxParams.xlim_low
@@ -230,7 +238,14 @@ def create_PlotHistAx_from_PlotHistAxParams(*, PlotHistAxParams):
     PlotHistAx = StructPlotHistAx(PlotHistAxParams=PlotHistAxParams)
 
     # set xlim
-    PlotHistAx.ax.set_xlim(xmin=PlotHistAx.uf_center-PlotHistAx.uf_width/2-PlotHistAx.uf_distance/2, xmax=PlotHistAx.of_center+PlotHistAx.of_width/2+PlotHistAx.of_distance/2)
+    if (not PlotHistAx.show_uf) and (not PlotHistAx.show_of):
+        PlotHistAx.ax.set_xlim(xmin=PlotHistAx.HistEdges.edges[0], xmax=PlotHistAx.HistEdges.edges[-1])
+    elif (PlotHistAx.show_uf) and (not PlotHistAx.show_of):
+        PlotHistAx.ax.set_xlim(xmin=PlotHistAx.uf_center-PlotHistAx.uf_width/2-PlotHistAx.uf_distance/2, xmax=PlotHistAx.HistEdges.edges[-1])
+    elif (not PlotHistAx.show_uf) and (PlotHistAx.show_of):
+        PlotHistAx.ax.set_xlim(xmin=PlotHistAx.HistEdges.edges[0], xmax=PlotHistAx.of_center+PlotHistAx.of_width/2+PlotHistAx.of_distance/2)
+    else:
+        PlotHistAx.ax.set_xlim(xmin=PlotHistAx.uf_center-PlotHistAx.uf_width/2-PlotHistAx.uf_distance/2, xmax=PlotHistAx.of_center+PlotHistAx.of_width/2+PlotHistAx.of_distance/2)
 
     # cut xticks of hist to be within edges and add undeflow / overflow custom tick
     xticks = [x for x in PlotHistAx.ax.get_xticks() if PlotHistAx.HistEdges.edges[0] <= x <= PlotHistAx.HistEdges.edges[-1]]
@@ -270,12 +285,19 @@ def create_PlotHistAx_from_PlotHistAxParams(*, PlotHistAxParams):
     PlotHistAx.ax.xaxis.set_minor_locator(mpl.ticker.FixedLocator(minor_xticks))
 
     # draw separation lines between edges and underflow / overflow
-    PlotHistAx.ax.axvline(x=PlotHistAx.HistEdges.edges[0]-PlotHistAx.uf_distance/2, color="black", linewidth=1, linestyle="--")
-    PlotHistAx.ax.axvline(x=PlotHistAx.HistEdges.edges[-1]+PlotHistAx.of_distance/2, color="black", linewidth=1, linestyle="--")
+    if PlotHistAx.show_uf:
+        PlotHistAx.ax.axvline(x=PlotHistAx.HistEdges.edges[0]-PlotHistAx.uf_distance/2, color="black", linewidth=1, linestyle="--")
+    if PlotHistAx.show_of:
+        PlotHistAx.ax.axvline(x=PlotHistAx.HistEdges.edges[-1]+PlotHistAx.of_distance/2, color="black", linewidth=1, linestyle="--")
 
     # set xlabel
+    xunit = ""
+    xunit_str = ""
+    if PlotHistAxParams.xunit != None:
+        xunit = PlotHistAxParams.xunit
+        xunit_str = f" [{xunit}]"
     if PlotHistAx.xlabel != None:
-        xlabel = PlotHistAx.xlabel
+        xlabel = f"{PlotHistAx.xlabel}{xunit_str}"
     else:
         xlabel = ""
     PlotHistAx.ax.set_xlabel(xlabel=xlabel)
@@ -290,15 +312,19 @@ def create_PlotHistAx_from_PlotHistAxParams(*, PlotHistAxParams):
     # PlotHistAx.ax.xaxis.set_label_coords(xlabel_x, xlabel_y -0.07)
 
     # set ylabel and note bin width
+    yunit = "Events"
+    if PlotHistAxParams.yunit != None:
+        yunit = PlotHistAxParams.yunit
     bin_width_max_digits = 3
     bin_width_str = f"{PlotHistAx.HistEdges.mean_bin_width:.{bin_width_max_digits}f}".rstrip("0").rstrip(".")
-    PlotHistAx.ax.set_ylabel(f"Events / {bin_width_str} GeV")
+    PlotHistAx.ax.set_ylabel(f"{yunit} / {bin_width_str} GeV")
 
     return PlotHistAx
 
 ### add NpHist histogram to existing ax with mplhep
 def add_NpHist_to_PlotHistAx(*, NpHist, PlotHistAx, PlotHistParams):
 
+    # plot histogram
     if PlotHistParams.histtype in ["step", "fill", "band", "bar", "barstep"]:
         # plot hist
         mh.histplot(H=NpHist.hist, bins=PlotHistAx.HistEdges.edges, yerr=NpHist.err_hist, ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, linewidth=PlotHistParams.linewidth)
@@ -386,7 +412,120 @@ def add_NpHist_to_PlotHistAx(*, NpHist, PlotHistAx, PlotHistParams):
             # handle = mpl.lines.Line2D([], [], color=PlotHistParams.color)
             handle = mpl.patches.Patch(facecolor=PlotHistParams.color) #edgecolor="black",
         # update legend
-        PlotHistAx.ax.legend(handles=handles+[handle], labels=labels+[label])
+        PlotHistAx.ax.legend(handles=handles+[handle], labels=labels+[label], frameon=True, facecolor='white', edgecolor='lightgray', framealpha=0.5, fancybox=False)
     
     return PlotHistAx
+
+
+### add NpHist histogram to existing ax with mplhep
+# pass list of NpHist, PlotHistParams
+def add_NpHist_stack_to_PlotHistAx(*, NpHist_list, PlotHistAx, PlotHistParams_list):
+
+    n_hists = len(NpHist_list)
+    if n_hists == 0:
+        return PlotHistAx
+
+    # plot histogram
+    histtype = PlotHistParams_list[0].histtype
+    hists = [NpHist_list[i_hist].hist for i_hist in range(n_hists)]
+    ufs = [[NpHist_list[i_hist].uf] for i_hist in range(n_hists)]
+    ofs = [[NpHist_list[i_hist].of] for i_hist in range(n_hists)]
+    colors = [PlotHistParams_list[i_hist].color for i_hist in range(n_hists)]
+    linewidths = [PlotHistParams_list[i_hist].linewidth for i_hist in range(n_hists)]
+    errorlinewidths = [PlotHistParams_list[i_hist].errorlinewidth for i_hist in range(n_hists)]
+    markersizes = [PlotHistParams_list[i_hist].markersize for i_hist in range(n_hists)]
+    if histtype in ["step", "fill", "band", "bar", "barstep"]:
+        # plot hist
+        mh.histplot(H=hists, stack=True, bins=PlotHistAx.HistEdges.edges, ax=PlotHistAx.ax, histtype=histtype, color=colors, linewidth=linewidths)
+        # plot underflow
+        if PlotHistAx.show_uf:
+            mh.histplot(H=ufs, stack=True, bins=PlotHistAx.uf_edges, ax=PlotHistAx.ax, histtype=histtype, color=colors, linewidth=linewidths)
+        # plot overflow
+        if PlotHistAx.show_of:
+            mh.histplot(H=ofs, stack=True, bins=PlotHistAx.of_edges, ax=PlotHistAx.ax, histtype=histtype, color=colors, linewidth=linewidths)
+    elif histtype in ["errorbar"]:
+        # plot hist
+        mh.histplot(H=hists, stack=True, bins=PlotHistAx.HistEdges.edges, ax=PlotHistAx.ax, histtype=histtype, color=colors, ms=markersizes, linewidth=linewidths, elinewidth=errorlinewidths)
+        # plot underflow
+        if PlotHistAx.show_uf:
+            mh.histplot(H=ufs, stack=True, bins=PlotHistAx.uf_edges, ax=PlotHistAx.ax, histtype=histtype, color=colors, ms=markersizes, linewidth=linewidths, elinewidth=errorlinewidths)
+        # plot overflow
+        if PlotHistAx.show_of:
+            mh.histplot(H=ofs, stack=True, bins=PlotHistAx.of_edges, ax=PlotHistAx.ax, histtype=histtype, color=colors, ms=markersizes, linewidth=linewidths, elinewidth=errorlinewidths)
+
+    """
+    # linear yscale:
+    if PlotHistAx.yscale == "linear":
+        # set yscale
+        PlotHistAx.ax.set_yscale("linear")
+        # determine ylim
+        if PlotHistAx.auto_ylim_respect_err: # if should include errors in ylim
+            ymin = np.amin(NpHist.hist_ou - NpHist.err_hist_ou)*1.2
+            ymax = np.amax(NpHist.hist_ou + NpHist.err_hist_ou)*1.2
+        else:
+            ymin = np.amin(NpHist.hist_ou)*1.2
+            ymax = np.amax(NpHist.hist_ou)*1.2
+        if PlotHistAx.ylim_low != None:
+            ymin = PlotHistAx.ylim_low
+        if PlotHistAx.ylim_high != None:
+            ymax = PlotHistAx.ylim_high
+        if ymin == ymax:
+            ymin -= PlotHistAx.yscale_if_same_yminmax/2
+            ymax += PlotHistAx.yscale_if_same_yminmax/2
+        # set ylim
+        PlotHistAx.ax.set_ylim(ymin=ymin, ymax=ymax)
+        # set yticks power limits
+        formatter = mpl.ticker.ScalarFormatter(useMathText=True)
+        formatter.set_powerlimits((PlotHistAx.yticks_low_power_lim, PlotHistAx.yticks_high_power_lim))
+        PlotHistAx.ax.yaxis.set_major_formatter(formatter)
+    # log yscale:
+    elif PlotHistAx.yscale == "log":
+        # set yscale
+        PlotHistAx.ax.set_yscale("log")
+        # set ylim
+        # determine ylim
+        if PlotHistAx.auto_ylim_respect_err: # if should include errors in ylim
+            ymin = 0.5
+            ymax = np.amax(NpHist.hist_ou + NpHist.err_hist_ou)*10
+        else:
+            ymin = 0.5
+            ymax = np.amax(NpHist.hist_ou)*10
+        if PlotHistAx.ylim_low != None:
+            ymin = PlotHistAx.ylim_low
+        if PlotHistAx.ylim_high != None:
+            ymax = PlotHistAx.ylim_high
+        if ymin == ymax:
+            ymin -= PlotHistAx.yscale_if_same_yminmax/2
+            ymax += PlotHistAx.yscale_if_same_yminmax/2
+        PlotHistAx.ax.set_ylim(ymin=ymin, ymax=ymax)
+    """
+        
+    # add entry to legend, if desired
+    for i_hist in range(n_hists):
+        if PlotHistAx.show_legend and PlotHistParams_list[i_hist].show_in_legend:
+            label = ""
+            if PlotHistParams_list[i_hist].label != None:
+                label = PlotHistParams_list[i_hist].label
+            # get existing handles
+            if PlotHistAx.ax.get_legend() is not None:
+                legend = PlotHistAx.ax.get_legend()
+                handles = legend.legend_handles
+                labels = [text.get_text() for text in legend.get_texts()]
+            else:
+                handles = []
+                labels = []
+            # insert new handle
+            #   histtypes: ["step", "fill", "errorbar", "band", "bar", "barstep"]
+            if PlotHistParams_list[i_hist].histtype in ["step", "barstep"]:
+                handle = mpl.lines.Line2D([], [], color=PlotHistParams_list[i_hist].color)
+            elif PlotHistParams_list[i_hist].histtype in ["errorbar"]:
+                handle = PlotHistAx.ax.errorbar([], [], xerr=1, yerr=1, linestyle="None", marker="o", color=PlotHistParams_list[i_hist].color, linewidth=PlotHistParams_list[i_hist].errorlinewidth)
+            elif PlotHistParams_list[i_hist].histtype in ["band", "bar", "fill"]:
+                # handle = mpl.lines.Line2D([], [], color=PlotHistParams.color)
+                handle = mpl.patches.Patch(facecolor=PlotHistParams_list[i_hist].color) #edgecolor="black",
+            # update legend
+            PlotHistAx.ax.legend(handles=handles+[handle], labels=labels+[label], frameon=True, facecolor='white', edgecolor='lightgray', framealpha=0.5, fancybox=False)
+    
+    return PlotHistAx
+
 

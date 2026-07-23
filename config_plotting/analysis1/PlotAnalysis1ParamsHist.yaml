@@ -1,0 +1,29 @@
+
+plot_path: /net/data_cms3a-1/esper/test_analysis_hscp_l1/analysis_controller_output/analysis1_plots
+
+plot_histograms:
+
+    -   plot_name: zpeak_osgn_mt
+        plot_style:
+            show_uf: true
+            show_of: true
+            xlabel: $m_{T,\mu\mu,\text{reKBMTF}}$
+            ylabel: ""
+            xunit: GeV
+            yunit: null
+            xscale: normal
+            yscale: log
+            xlim_low: null
+            xlim_high: null
+            ylim_low: null
+            ylim_high: null
+            show_legend: true
+            xticks_low_power_lim: -2
+            xticks_high_power_lim: 3
+            yticks_low_power_lim: -2
+            yticks_high_power_lim: 3
+            uf_tick_label: UF
+            of_tick_label: OF
+            yscale_if_same_yminmax: 0.5
+            auto_ylim_respect_err: true
+

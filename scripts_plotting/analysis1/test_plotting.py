@@ -65,13 +65,10 @@ print(f"input_dict = {input_dict}")
 #############################
 ### PLOT HISTOGRAMS
 
-print(input_dict["z_peak_opposite_sign"]["opposite_sign"]["h__mt"])
-print(input_dict["z_peak_opposite_sign"]["opposite_sign"]["h__mt"].roothist)
-
 hists = {
-    "mt": input_dict["z_peak_opposite_sign"]["opposite_sign"]["h__mt"],
+    "osgn_mt": input_dict["z_peak_opposite_sign"]["opposite_sign"]["h__mt"],
+    "ssgn_mt": input_dict["z_peak_same_sign"]["same_sign"]["h__mt"],
 }
-print(hists)
 
 for hist_name in hists.keys():
 
@@ -91,23 +88,22 @@ for hist_name in hists.keys():
     )
     PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
 
-    # PlotHistParams = plot_utils.StructPlotHistParams(
-    #     histtype="errorbar",
-    #     label="Data",
-    #     color="black",
-    #     markersize=12,
-    #     errorlinewidth=1.5,
-    #     show_in_legend=True,
-    # )
     PlotHistParams = plot_utils.StructPlotHistParams(
-        histtype="bar",
-        # histtype="step",
-        label="DY",
-        color=plot_utils.get_color_from_ColorWheel(index=0),
+        histtype="errorbar",
+        label="Data",
+        color="black",
         markersize=12,
         errorlinewidth=1.5,
         show_in_legend=True,
     )
+    # PlotHistParams = plot_utils.StructPlotHistParams(
+    #     histtype="bar",
+    #     label="DY",
+    #     color=plot_utils.get_color_from_ColorWheel(index=0),
+    #     markersize=12,
+    #     errorlinewidth=1.5,
+    #     show_in_legend=True,
+    # )
     PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=NpHist_from_RootHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
     fig.show()
 

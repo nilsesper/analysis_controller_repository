@@ -125,6 +125,19 @@ def create_HistEdges_uniform(*, low_edge, high_edge, n_bins):
     HistEdges = StructHistEdges(edges=edges)
     return HistEdges
 
+### assert that hist edges are the same
+def assert_same_HistEdges(*, HistEdges=[]):
+    n_edges = len(HistEdges)
+    has_same_edges = True
+    for i_edges in range(n_edges):
+        # compare edge count
+        has_same_edges &= (HistEdges[0].n_edges == HistEdges[i_edges].n_edges)
+        # compare edge values
+        if has_same_edges:
+            has_same_edges &= all([HistEdges[0].edges[i_edge] == HistEdges[i_edges].edges[i_edge] for i_edge in range(HistEdges[0].n_edges)])
+    if not has_same_edges:
+        console_utils.raise_exception(string="Histogram edges are not the same")
+
 #####################
 ### data points
 
@@ -170,16 +183,7 @@ def linear_combination_RootHists(*, RootHists, factors=None):
     n_hists = len(RootHists)
     # determine hist edges
     HistEdges = RootHists[0].HistEdges
-    # check if all edges are actually the same
-    has_same_edges = True
-    for i_hist in range(n_hists):
-        # compare edge count
-        has_same_edges &= (HistEdges.n_edges == RootHists[i_hist].HistEdges.n_edges)
-        # compare edge values
-        if has_same_edges:
-            has_same_edges &= all([HistEdges.edges[i_edge] == RootHists[i_hist].HistEdges.edges[i_edge] for i_edge in range(HistEdges.n_edges)])
-    if not has_same_edges:
-        console_utils.raise_exception(string="Histograms must have the same HistEdges in order to add them together")
+    
     # import factor
     if factors == None:
         factors = np.ones(n_hists)
@@ -245,15 +249,7 @@ def linear_combination_NpHists(*, NpHists, factors=None):
     # determine hist edges
     HistEdges = NpHists[0].HistEdges
     # check if all edges are actually the same
-    has_same_edges = True
-    for i_hist in range(n_hists):
-        # compare edge count
-        has_same_edges &= (HistEdges.n_edges == NpHists[i_hist].HistEdges.n_edges)
-        # compare edge values
-        if has_same_edges:
-            has_same_edges &= all([HistEdges.edges[i_edge] == NpHists[i_hist].HistEdges.edges[i_edge] for i_edge in range(HistEdges.n_edges)])
-    if not has_same_edges:
-        console_utils.raise_exception(string="Histograms must have the same HistEdges in order to add them together")
+    assert_same_HistEdges(HistEdges=[NpHists[i_hist].HistEdges for i_hist in range(n_hists)])
     # import factor
     if factors == None:
         factors = np.ones(n_hists)

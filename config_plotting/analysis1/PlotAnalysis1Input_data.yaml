@@ -1,0 +1,53 @@
+
+analysis1_outputs:
+
+    -   data_type: data
+        data_label: Scouting_2024H
+        analysis1_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/analysis1_data_Scouting_2024H/ConfigAnalysis1Output.yaml
+        analysis_branch: z_peak_opposite_sign
+        analysis_step: opposite_sign
+        analysis_hist_name: h__mt
+        plot_scale_factor: 1.0
+    
+    -   data_type: data
+        data_label: Scouting_2024I
+        analysis1_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/analysis1_data_Scouting_2024I/ConfigAnalysis1Output.yaml
+        analysis_branch: z_peak_opposite_sign
+        analysis_step: opposite_sign
+        analysis_hist_name: h__mt
+        plot_scale_factor: 1.0
+
+    -   data_type: sim
+        data_label: Nonprompt
+        analysis1_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/analysis1_data_Scouting_2024H/ConfigAnalysis1Output.yaml
+        analysis_branch: z_peak_same_sign
+        analysis_step: same_sign
+        analysis_hist_name: h__mt
+        # plot_scale_factor: 1.0
+        plot_scale_factor: 2.42
+        # from Create_fake_Zmumu.py: sf = 2.42 scale factor for same-sign data (called "Fake")
+    
+    -   data_type: sim
+        data_label: Nonprompt
+        analysis1_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/analysis1_data_Scouting_2024I/ConfigAnalysis1Output.yaml
+        analysis_branch: z_peak_same_sign
+        analysis_step: same_sign
+        analysis_hist_name: h__mt
+        # plot_scale_factor: 1.0
+        plot_scale_factor: 2.42
+        # from Create_fake_Zmumu.py: sf = 2.42 scale factor for same-sign data (called "Fake")
+
+    -   data_type: sim
+        data_label: DY
+        analysis1_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/analysis1_sim_DY/ConfigAnalysis1Output.yaml
+        analysis_branch: z_peak_opposite_sign
+        analysis_step: opposite_sign
+        analysis_hist_name: h__mt
+        # plot_scale_factor: 1.0
+        plot_scale_factor: 50.0 # <-- so far this is some random number...
+        # from FinalSelection_ZmumuKBMTF.py: xsweight = (6346.0) / (164838 events in raw file) = 0.384984045
+        # from ZmumuAnalysis.cc: lumiweight = (40400.0/15.0) + (5820.0/15.0) + (12320.0/15.0) = 2693.333 + 388.0 + 821.333 = 3902.667
+        # from ZmumuAnalysis.cc: Muon reconstruction efficiency: reco_eff = 0.93 (as a flat number, or binned in nstub1/2 which is used in the later analysis)
+        # xsweight * lumiweight * reco_eff = 
+
+        # todo additionally: smear factor of 0.11 for pt1/2 in DY sim
