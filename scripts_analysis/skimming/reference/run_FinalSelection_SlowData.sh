@@ -35,7 +35,8 @@ cmsenv
 
 printf "${GREEN}>>>>>> ${WHITE} STARTING SCRIPT AND TIMING IT ${RESET}\n"
 cd /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/2_HSCPanalysis/CMSSW_14_0_12/src/L1ScoutingAnalysisRDataFrame/NtupleAnalyzer/scripts/
-/usr/bin/time --verbose python3 FinalSelection_SlowData.py ${InputFilePath} ${OutputFilePath}
+# /usr/bin/time --verbose python3 FinalSelection_SlowData.py ${InputFilePath} ${OutputFilePath}
+python3 FinalSelection_SlowData.py ${InputFilePath} ${OutputFilePath}
 
 printf "${GREEN}>>>>>> ${WHITE} DONE ${RESET}\n"
 cd ${CURRENT_WORKING_DIR}
