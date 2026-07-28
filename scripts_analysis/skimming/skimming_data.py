@@ -499,7 +499,7 @@ if SkimmingParamsAnalysis.evaluate_filling_scheme:
         if is_colliding == True: # if colliding, also set earlier colliding
             is_earlier_colliding = True
         else:
-            for bx_check in range(bx-bx_interval, bx+1): # include current bx, i.e. check [bx-1-bx_interval , bx]
+            for bx_check in range(bx-bx_interval, bx+1): # include current bx, i.e. check [bx-bx_interval , bx]
                 if bx_check in filledbx_list:
                     is_earlier_colliding = True
         return is_earlier_colliding
