@@ -38,7 +38,7 @@ analysis1_outputs:
         # from Create_fake_Zmumu.py: sf = 2.42 scale factor for same-sign data (called "Fake")
 
     -   data_type: sim
-        data_label: DY
+        data_label: DY($\mu\mu$)
         analysis1_output_config: ++++ANALYSIS_CONTROLLER_REPO_PATH++++/output_controller/output/analysis1_sim_DY/ConfigAnalysis1Output.yaml
         analysis_branch: z_peak_opposite_sign
         analysis_step: opposite_sign
