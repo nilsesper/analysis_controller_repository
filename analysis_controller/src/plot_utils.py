@@ -171,6 +171,7 @@ class StructPlotHistParams:
         "markersize",
         "linewidth",
         "errorlinewidth",
+        "show_errors",
     )
     def __init__(self, *,
             label=None,
@@ -180,6 +181,7 @@ class StructPlotHistParams:
             markersize=5,
             linewidth=2,
             errorlinewidth=2,
+            show_errors=True,
         ):
         self.label = label
         self.color = color
@@ -188,6 +190,7 @@ class StructPlotHistParams:
         self.markersize = markersize
         self.linewidth = linewidth
         self.errorlinewidth = errorlinewidth
+        self.show_errors = show_errors
         self.update()
     def update(self):
         pass
@@ -324,25 +327,34 @@ def create_PlotHistAx_from_PlotHistAxParams(*, PlotHistAxParams):
 ### add NpHist histogram to existing ax with mplhep
 def add_NpHist_to_PlotHistAx(*, NpHist, PlotHistAx, PlotHistParams):
 
+    err_of = 0
+    err_uf = 0
+    err_hist = np.zeros(PlotHistAx.HistEdges.n_bins)
+    if PlotHistParams.show_errors:
+        err_uf = NpHist.err_uf
+        err_of = NpHist.err_of
+        err_hist = NpHist.err_hist
+        err_hist_ou = np.array([err_uf] + err_hist + [err_of])
+
     # plot histogram
     if PlotHistParams.histtype in ["step", "fill", "band", "bar", "barstep"]:
         # plot hist
-        mh.histplot(H=NpHist.hist, bins=PlotHistAx.HistEdges.edges, yerr=NpHist.err_hist, ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, linewidth=PlotHistParams.linewidth)
+        mh.histplot(H=NpHist.hist, bins=PlotHistAx.HistEdges.edges, yerr=err_hist, ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, linewidth=PlotHistParams.linewidth)
         # plot underflow
         if PlotHistAx.show_uf:
-            mh.histplot(H=[NpHist.uf], bins=PlotHistAx.uf_edges, yerr=[NpHist.err_uf], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, linewidth=PlotHistParams.linewidth)
+            mh.histplot(H=[NpHist.uf], bins=PlotHistAx.uf_edges, yerr=[err_uf], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, linewidth=PlotHistParams.linewidth)
         # plot overflow
         if PlotHistAx.show_of:
-            mh.histplot(H=[NpHist.of], bins=PlotHistAx.of_edges, yerr=[NpHist.err_of], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, linewidth=PlotHistParams.linewidth)
+            mh.histplot(H=[NpHist.of], bins=PlotHistAx.of_edges, yerr=[err_of], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, linewidth=PlotHistParams.linewidth)
     elif PlotHistParams.histtype in ["errorbar"]:
         # plot hist
-        mh.histplot(H=NpHist.hist, bins=PlotHistAx.HistEdges.edges, yerr=NpHist.err_hist, ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, ms=PlotHistParams.markersize, linewidth=PlotHistParams.linewidth, elinewidth=PlotHistParams.errorlinewidth)
+        mh.histplot(H=NpHist.hist, bins=PlotHistAx.HistEdges.edges, yerr=err_hist, ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, ms=PlotHistParams.markersize, linewidth=PlotHistParams.linewidth, elinewidth=PlotHistParams.errorlinewidth)
         # plot underflow
         if PlotHistAx.show_uf:
-            mh.histplot(H=[NpHist.uf], bins=PlotHistAx.uf_edges, yerr=[NpHist.err_uf], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, ms=PlotHistParams.markersize, linewidth=PlotHistParams.linewidth, elinewidth=PlotHistParams.errorlinewidth)
+            mh.histplot(H=[NpHist.uf], bins=PlotHistAx.uf_edges, yerr=[err_uf], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, ms=PlotHistParams.markersize, linewidth=PlotHistParams.linewidth, elinewidth=PlotHistParams.errorlinewidth)
         # plot overflow
         if PlotHistAx.show_of:
-            mh.histplot(H=[NpHist.of], bins=PlotHistAx.of_edges, yerr=[NpHist.err_of], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, ms=PlotHistParams.markersize, linewidth=PlotHistParams.linewidth, elinewidth=PlotHistParams.errorlinewidth)
+            mh.histplot(H=[NpHist.of], bins=PlotHistAx.of_edges, yerr=[err_of], ax=PlotHistAx.ax, histtype=PlotHistParams.histtype, color=PlotHistParams.color, ms=PlotHistParams.markersize, linewidth=PlotHistParams.linewidth, elinewidth=PlotHistParams.errorlinewidth)
 
     # linear yscale:
     if PlotHistAx.yscale == "linear":
