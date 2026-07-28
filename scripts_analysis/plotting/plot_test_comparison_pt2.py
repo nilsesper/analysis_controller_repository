@@ -21,7 +21,6 @@ from analysis_controller.src import path_utils
 from analysis_controller.src import file_utils
 from analysis_controller.src import console_utils
 from analysis_controller.src import analysis_utils
-from analysis_controller.src import analysis_params
 from analysis_controller.src import hist_utils
 from analysis_controller.src import plot_utils
 
@@ -38,14 +37,14 @@ mh.style.use("CMS")
 parser = argparse.ArgumentParser()
 # mandatory:
 parser.add_argument(
-    "--input1",
-    help="path to input root file 1 (str)",
+    "--myinput",
+    help="path to my input root file (str)",
     type=str,
     required=True,
 )
 parser.add_argument(
-    "--input2",
-    help="path to input root file 2 (str)",
+    "--refinput",
+    help="path to referebce input root file (str)",
     type=str,
     required=True,
 )
@@ -58,7 +57,8 @@ args = parser.parse_args()
 ### MAIN PART
 
 ### parse args
-infile_paths = [args.input1, args.input2]
+infile_paths = [args.myinput, args.refinput]
+data_label = ["My", "Ref"]
 n_files = 2
 
 #############################
@@ -103,7 +103,16 @@ HistEdges = hist_utils.create_HistEdges_uniform(low_edge=low_edge, high_edge=hig
 arr_DataPts = []
 for i_file in range(n_files):
     arr = arrs[i_file]
-    data_pts = np.array(arr.pt1)
+    # cut on track1
+    if data_label[i_file] == "Ref":
+        mask = (arr.idx2 != 99)
+        arr = arr[mask]
+    elif data_label[i_file] == "My":
+        mask = (arr.idx2 != -1)
+        arr = arr[mask]
+    print(f"after cut: {len(arr):,} events")
+    # pt1 data
+    data_pts = np.array(arr.pt2)
     DataPts = hist_utils.create_DataPts(data_pts=data_pts)
     arr_DataPts.append(DataPts)
 
@@ -136,7 +145,7 @@ PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     HistEdges=HistEdges,
     show_uf=True,
     show_of=True,
-    xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
+    xlabel=f"$p_{{T}}(\\mu_{{2}})$ [GeV]",
     yscale="linear",
     show_legend=True,
 )
@@ -144,7 +153,7 @@ PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams
 for i_file in range(n_files):
     NpHist = arr_NpHist[i_file]
     PlotHistParams = plot_utils.StructPlotHistParams(
-        label=f"Data_{i_file+1}",
+        label=f"Data_{data_label[i_file]}",
         color=plot_utils.get_color_from_ColorWheel(index=i_file),
         show_in_legend=True,
     )
@@ -158,7 +167,7 @@ PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     HistEdges=HistEdges,
     show_uf=True,
     show_of=True,
-    xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
+    xlabel=f"$p_{{T}}(\\mu_{{2}})$ [GeV]",
     yscale="log",
     show_legend=True,
 )
@@ -166,7 +175,7 @@ PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams
 for i_file in range(n_files):
     NpHist = arr_NpHist[i_file]
     PlotHistParams = plot_utils.StructPlotHistParams(
-        label=f"Data_{i_file+1}",
+        label=f"Data_{data_label[i_file]}",
         color=plot_utils.get_color_from_ColorWheel(index=i_file),
         show_in_legend=True,
     )
@@ -180,15 +189,16 @@ PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     HistEdges=HistEdges,
     show_uf=True,
     show_of=True,
-    xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
+    xlabel=f"$p_{{T}}(\\mu_{{2}})$ [GeV]",
     yscale="linear",
     show_legend=True,
 )
 PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
 PlotHistParams = plot_utils.StructPlotHistParams(
-    label="Data_1 $-$ Data_2",
+    label=f"Data_{data_label[0]} $-$ Data_{data_label[1]}",
     color=plot_utils.get_color_from_ColorWheel(),
     show_in_legend=True,
+    show_errors=False,
 )
 PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=difference_NpHist, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
@@ -200,15 +210,16 @@ PlotHistAxParams = plot_utils.StructPlotHistAxParams(
     HistEdges=HistEdges,
     show_uf=True,
     show_of=True,
-    xlabel=f"$p_{{T}}(\\mu_{{1}})$ [GeV]",
+    xlabel=f"$p_{{T}}(\\mu_{{2}})$ [GeV]",
     yscale="linear",
     show_legend=True,
 )
 PlotHistAx = plot_utils.create_PlotHistAx_from_PlotHistAxParams(PlotHistAxParams=PlotHistAxParams)
 PlotHistParams = plot_utils.StructPlotHistParams(
-    label="Data_1_err $-$ Data_2_err",
+    label=f"Data_{data_label[0]}_err $-$ Data_{data_label[1]}_err",
     color=plot_utils.get_color_from_ColorWheel(),
     show_in_legend=True,
+    show_errors=False,
 )
 PlotHistAx = plot_utils.add_NpHist_to_PlotHistAx(NpHist=difference_NpHist_err, PlotHistAx=PlotHistAx, PlotHistParams=PlotHistParams)
 fig.show()
