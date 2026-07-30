@@ -300,6 +300,7 @@ arr["L1KBMTFSkimmed_isL1muMatched"] = ak.where(arr.L1KBMTFSkimmed_l1muMatchedIdx
 
 ###################
 ### SELECT UP TO 2 TRACKS PER EVENT
+#%%% logic taken from: FinalSelection_SlowData.py and basic_sel.cpp
 
 ### select only primary and secondary track
 # track selection order from collection:
@@ -547,6 +548,7 @@ else:
 
     pass
 
+
 ###################
 ### PERFORM CUTS ON SELECTED TRACKS
 
@@ -555,25 +557,25 @@ selection_n_initial = len(arr_tracks)
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_initial:,}\" events before all cuts")
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Applying all user-defined cuts in the following")
 
-# ### select events with at least one kbmtf track
-# selection_info = f"(nseltracks > 0)"
-# selection_n_before = len(arr_tracks)
-# #--------------
-# arr_mask = (arr_tracks.nseltracks > 0)
-# #--------------
-# arr_tracks = arr_tracks[arr_mask]
-# selection_n_after = len(arr_tracks)
-# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+### select events with at least one kbmtf track
+selection_info = f"(nseltracks > 0)"
+selection_n_before = len(arr_tracks)
+#--------------
+arr_mask = (arr_tracks.nseltracks > 0)
+#--------------
+arr_tracks = arr_tracks[arr_mask]
+selection_n_after = len(arr_tracks)
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
-# ### select events with at >= 1 track over more than one bx
-# selection_info = f"(bxspread1 > 0) | (bxspread2 > 0)"
-# selection_n_before = len(arr_tracks)
-# #--------------
-# arr_mask = (arr_tracks.bxspread1 > 0) | (arr_tracks.bxspread2 > 0)
-# #--------------
-# arr_tracks = arr_tracks[arr_mask]
-# selection_n_after = len(arr_tracks)
-# console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+### select events with at >= 1 track over more than one bx
+selection_info = f"(bxspread1 > 0) | (bxspread2 > 0)"
+selection_n_before = len(arr_tracks)
+#--------------
+arr_mask = (arr_tracks.bxspread1 > 0) | (arr_tracks.bxspread2 > 0)
+#--------------
+arr_tracks = arr_tracks[arr_mask]
+selection_n_after = len(arr_tracks)
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Performing output data cut \"{selection_info}\". Cut flow: \"{selection_n_after:,} / {selection_n_before:,} = {(selection_n_after/selection_n_before if selection_n_before > 0 else 0)*100:.3f} %\". Total cut flow: \"{selection_n_after} / {selection_n_initial} = {(selection_n_after/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
 
 # ### select events with two tracks
 # selection_info = f"(nseltracks == 2)"
@@ -599,6 +601,65 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Done applying all user-defined cuts")
 selection_n_final = len(arr_tracks)
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_final:,}\" events after all cuts. Total cut flow: \"{selection_n_final:,} / {selection_n_initial:,} = {(selection_n_final/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+
+
+###################
+### DO DUPLICATE REMOVAL SIMILAR TO CECILES ALGORITHM
+#%%% logic taken from: RemoveDuplicate.cc
+
+### store no of events before duplicate removal
+selection_n_initial = len(arr_tracks)
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_initial:,}\" events before duplicate removal")
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Applying duplicate removal algorithm in the following")
+
+### duplicate removal algorithm
+@nb.njit
+def find_best(run, lumi, orbit, bx, eta1, nstub1, bxspread1, idx2):
+    keep = np.empty(len(run), np.int64)
+    nkeep = 0
+    prev_run = 0
+    prev_lumi = 0
+    prev_orbit = 0
+    prev_bx = 0
+    prev_eta1 = 0.0
+    best = -1
+    best_nstub1 = 0
+    best_bxspread1 = 0
+    best_idx2 = 0
+    for i in range(len(run)):
+        is_same = (i > 0 and run[i] == prev_run and lumi[i] == prev_lumi and orbit[i] == prev_orbit and abs(bx[i] - prev_bx) < 5 and abs(eta1[i] - prev_eta1) < 0.1)
+        if not is_same:
+            if best >= 0:
+                keep[nkeep] = best
+                nkeep += 1
+            best = i
+            best_nstub1 = nstub1[i]
+            best_bxspread1 = bxspread1[i]
+            best_idx2 = idx2[i]
+        else:
+            if (bxspread1[i] > best_bxspread1 or (bxspread1[i] == best_bxspread1 and nstub1[i] > best_nstub1) or (bxspread1[i] == best_bxspread1 and nstub1[i] == best_nstub1 and idx2[i] < best_idx2)):
+                best = i
+                best_nstub1 = nstub1[i]
+                best_bxspread1 = bxspread1[i]
+                best_idx2 = idx2[i]
+        prev_run = run[i]
+        prev_lumi = lumi[i]
+        prev_orbit = orbit[i]
+        prev_bx = bx[i]
+        prev_eta1 = eta1[i]
+    if best >= 0:
+        keep[nkeep] = best
+        nkeep += 1
+    return keep[:nkeep]
+
+sel_idx = find_best(run=ak.to_numpy(arr_tracks.run), lumi=ak.to_numpy(arr_tracks.luminosityBlock), orbit=ak.to_numpy(arr_tracks.orbitNumber), bx=ak.to_numpy(arr_tracks.bunchCrossing), eta1=ak.to_numpy(arr_tracks.eta1), nstub1=ak.to_numpy(arr_tracks.nstub1), bxspread1=ak.to_numpy(arr_tracks.bxspread1), idx2=ak.to_numpy(arr_tracks.idx2))
+arr_tracks = arr_tracks[sel_idx]
+
+### store no of events after duplicate removal
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Done applying duplicate removal algorithm")
+selection_n_final = len(arr_tracks)
+console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Output data has \"{selection_n_final:,}\" events after duplicate removal. Total cut flow: \"{selection_n_final:,} / {selection_n_initial:,} = {(selection_n_final/selection_n_initial if selection_n_initial > 0 else 0)*100:.3f} %\"")
+
 
 ###################
 ### PRINT SOME DATA FOR DEBUGGING
@@ -654,6 +715,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 #                 row_dict[k] = v
 #     list_of_dict_per_row.append(row_dict)
 # print(tabulate(list_of_dict_per_row, headers="keys", tablefmt="grid", showindex=True))
+
 
 ###################
 ### STORE OUTPUT
