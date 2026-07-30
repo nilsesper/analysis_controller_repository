@@ -20,12 +20,16 @@ GREEN="\033[0;32m"
 RESET="\033[0m"
 
 CURRENT_WORKING_DIR="`pwd`"
+BASE_DIR="analyis_controller_repository/"
+SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/$(basename -- "${BASH_SOURCE[0]}")"
+RELATIVE_SCRIPT_PATH="${SCRIPT_PATH#*/analysis_controller_repository/}"
+
 InputFilePath="`realpath -s ${InputFile}`"
 OutputFilePath="`realpath -s ${OutputFile}`"
 
 printf "${GREEN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>${RESET}\n"
 printf "${GREEN}>>>>>>${WHITEBOLD} ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis ${RESET}\n"
-printf "${GREEN}>>>>>>${WHITE} run_FinalSelection_SlowData.sh ${RESET}\n"
+printf "${GREEN}>>>>>>${WHITE} ${RELATIVE_SCRIPT_PATH} ${RESET}\n"
 
 printf "${GREEN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>${RESET}\n"
 printf "${GREEN}>>>>>> ${WHITE} SOURCING ENVIRONMENT ${RESET}\n"
@@ -35,7 +39,9 @@ cmsenv
 
 printf "${GREEN}>>>>>> ${WHITE} STARTING SCRIPT AND TIMING IT ${RESET}\n"
 cd /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/2_HSCPanalysis/CMSSW_14_0_12/src/L1ScoutingAnalysisRDataFrame/NtupleAnalyzer/scripts/
-# /usr/bin/time --verbose python3 FinalSelection_SlowData.py ${InputFilePath} ${OutputFilePath}
+
+# /usr/bin/time --verbose [...]
+
 python3 FinalSelection_SlowData.py ${InputFilePath} ${OutputFilePath}
 
 printf "${GREEN}>>>>>> ${WHITE} DONE ${RESET}\n"

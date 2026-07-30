@@ -34,6 +34,9 @@ BGCYAN='\033[0;46m'
 BGWHITE='\033[0;47m'
 
 CURRENT_WORKING_DIR="`pwd`"
+BASE_DIR="analyis_controller_repository/"
+SCRIPT_PATH="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)/$(basename -- "${BASH_SOURCE[0]}")"
+RELATIVE_SCRIPT_PATH="${SCRIPT_PATH#*/analysis_controller_repository/}"
 
 InputFilePath="`realpath -s ${InputFile}`"
 OutputFilePath="`realpath -s ${OutputFile}`"
@@ -42,7 +45,7 @@ ParamsFilePath="`realpath -s ${ParamsFile}`"
 
 printf "${GREEN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>${RESET}\n"
 printf "${GREEN}>>>>>>${WHITEBOLD} ANALYSIS_CONTROLLER_REPOSITORY: l1 scouting slow hscp analysis ${RESET}\n"
-printf "${GREEN}>>>>>>${WHITE} run_skimming_data.sh ${RESET}\n"
+printf "${GREEN}>>>>>>${WHITE} ${RELATIVE_SCRIPT_PATH} ${RESET}\n"
 
 printf "${GREEN}>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>${RESET}\n"
 printf "${GREEN}>>>>>> ${WHITE} BASIC INFO ${RESET}\n"
@@ -62,10 +65,9 @@ printf "${GREEN}>>>>>> ${WHITE} STARTING SCRIPT AND TIMING IT ${RESET}\n"
 
 cd /home/home1/institut_3a/esper/promotion/test_analysis_hscp_l1/analysis_controller_repository/scripts_analysis/skimming/
 
-###--- run normally:
+# /usr/bin/time --verbose [...]
+
 python skimming_data.py --input ${InputFilePath} --output ${OutputFilePath} --params ${ParamsFilePath}
-###--- run and measure resource utilization (is logged in stderr):
-# /usr/bin/time --verbose  python skimming_data.py --input ${InputFilePath} --output ${OutputFilePath} --params ${ParamsFilePath}
 
 printf "${GREEN}>>>>>> ${WHITE} DONE ${RESET}\n"
 cd ${CURRENT_WORKING_DIR}
