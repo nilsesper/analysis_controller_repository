@@ -113,7 +113,7 @@ def track_first_bx(nStub, s1Bx, s2Bx, s3Bx, s4Bx):
     return first_bx
 ## generate ak arr
 @nb.jit
-def arr_min_bx(events, builder):
+def arr_first_bx(events, builder):
     n_events = len(events)
     for i_event in range(n_events):
         builder.begin_list()
@@ -127,7 +127,7 @@ def arr_min_bx(events, builder):
 ## add field to arr
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Calculating \"firstbx\" for all tracks")
 builder = ak.ArrayBuilder()
-arr_min_bx(events=arr, builder=builder)
+arr_first_bx(events=arr, builder=builder)
 arr["L1KBMTFSkimmed_firstBx"] = builder.snapshot()
 
 ### calculate bx_spread for arr
