@@ -614,7 +614,7 @@ console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FIL
 
 ### duplicate removal algorithm
 @nb.njit
-def find_best(run, lumi, orbit, bx, eta1, nstub1, bxspread1, idx2):
+def select_tracks_remove_duplicates(run, lumi, orbit, bx, eta1, nstub1, bxspread1, idx2):
     keep = np.empty(len(run), np.int64)
     nkeep = 0
     prev_run = 0
@@ -652,8 +652,8 @@ def find_best(run, lumi, orbit, bx, eta1, nstub1, bxspread1, idx2):
         nkeep += 1
     return keep[:nkeep]
 
-sel_idx = find_best(run=ak.to_numpy(arr_tracks.run), lumi=ak.to_numpy(arr_tracks.luminosityBlock), orbit=ak.to_numpy(arr_tracks.orbitNumber), bx=ak.to_numpy(arr_tracks.bunchCrossing), eta1=ak.to_numpy(arr_tracks.eta1), nstub1=ak.to_numpy(arr_tracks.nstub1), bxspread1=ak.to_numpy(arr_tracks.bxspread1), idx2=ak.to_numpy(arr_tracks.idx2))
-arr_tracks = arr_tracks[sel_idx]
+idx_arr_duplicate_removal = select_tracks_remove_duplicates(run=ak.to_numpy(arr_tracks.run), lumi=ak.to_numpy(arr_tracks.luminosityBlock), orbit=ak.to_numpy(arr_tracks.orbitNumber), bx=ak.to_numpy(arr_tracks.bunchCrossing), eta1=ak.to_numpy(arr_tracks.eta1), nstub1=ak.to_numpy(arr_tracks.nstub1), bxspread1=ak.to_numpy(arr_tracks.bxspread1), idx2=ak.to_numpy(arr_tracks.idx2))
+arr_tracks = arr_tracks[idx_arr_duplicate_removal]
 
 ### store no of events after duplicate removal
 console_utils.print_topic_string(topic=f"{_ANALYSIS_CONTROLLER_REPO_RELATIVE_FILEPATH}", string=f"Done applying duplicate removal algorithm")
